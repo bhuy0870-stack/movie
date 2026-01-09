@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CHV MOVIES - Đỉnh Cao Điện Ảnh{% endblock %}</title>
+    <title>{% block title %}BQH MOVIE - Đỉnh Cao Điện Ảnh{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -13,103 +13,85 @@
     <style>
         :root {
             --primary: #e50914;
+            --primary-hover: #ff1f1f;
             --bg-body: #060606;
             --bg-nav: rgba(6, 6, 6, 0.98);
             --border: rgba(255, 255, 255, 0.12);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --gold: #ffcc00;
         }
 
-        body {
-            background-color: var(--bg-body);
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            padding-top: 80px;
-        }
+        body { background-color: var(--bg-body); color: #ffffff; font-family: 'Inter', sans-serif; padding-top: 80px; overflow-x: hidden; }
 
         /* --- LOADING BAR --- */
         #loading-bar {
             position: fixed; top: 0; left: 0; width: 0%; height: 3px;
-            background: var(--primary); z-index: 9999; transition: width 0.5s ease;
+            background: linear-gradient(to right, var(--primary), var(--gold)); 
+            z-index: 9999; transition: width 0.4s ease;
         }
 
-        /* --- NAVBAR --- */
-        .navbar {
-            padding: 18px 0; transition: var(--transition);
-            backdrop-filter: blur(25px); border-bottom: 1px solid transparent;
-        }
-        .navbar.scrolled {
-            background: var(--bg-nav) !important;
-            padding: 10px 0; border-bottom-color: var(--border);
-        }
+        /* --- NAVBAR & LOGO --- */
+        .navbar { padding: 18px 0; transition: var(--transition); backdrop-filter: blur(25px); }
+        .navbar.scrolled { background: var(--bg-nav) !important; padding: 12px 0; border-bottom: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        .brand-logo {
-            font-size: 1.6rem; font-weight: 900; text-decoration: none !important;
-            color: #ffffff !important; display: flex; align-items: center; letter-spacing: -1px;
-        }
-        .brand-logo i { color: var(--primary); margin-right: 8px; }
+        .brand-logo { font-size: 1.8rem; font-weight: 900; text-decoration: none !important; display: flex; align-items: center; letter-spacing: -1.5px; text-transform: uppercase; }
+        .logo-main { background: linear-gradient(to bottom, #ffffff 60%, #aaaaaa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-sub { color: var(--primary); margin-left: 4px; font-style: italic; letter-spacing: 1px; text-shadow: 0 0 12px rgba(229, 9, 20, 0.5); }
+        .brand-logo i { color: var(--primary); margin-right: 10px; font-size: 1.5rem; }
 
-        .nav-link {
-            font-weight: 600; font-size: 0.85rem; color: rgba(255,255,255,0.85) !important;
-            padding: 10px 18px !important; transition: var(--transition);
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
+        .nav-link { font-weight: 700; font-size: 0.85rem; color: rgba(255,255,255,0.7) !important; text-transform: uppercase; padding: 10px 15px !important; }
         .nav-link:hover { color: var(--primary) !important; }
 
-        /* --- SEARCH --- */
-        .search-box {
-            background: rgba(255,255,255,0.1); border: 1px solid transparent;
-            border-radius: 10px; padding: 6px 15px; transition: var(--transition);
+        .nav-donate { color: var(--gold) !important; font-weight: 800 !important; }
+        .nav-donate i { animation: heartBeat 1.5s infinite; margin-right: 5px; }
+        @keyframes heartBeat {
+            0%, 70%, 100% { transform: scale(1); }
+            15% { transform: scale(1.3); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.3); }
         }
+
+        .search-box { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 6px 15px; border: 1px solid transparent; transition: 0.3s; }
         .search-box:focus-within { border-color: var(--primary); background: rgba(255,255,255,0.15); }
-        .search-box input { background: transparent; border: none; color: #fff; font-size: 0.9rem; width: 180px; outline: none; }
+        .search-box input { background: transparent; border: none; color: #fff; font-size: 0.9rem; width: 140px; outline: none; }
 
-        /* --- USER DROPDOWN (FIXED 100% ĐỘ MỜ) --- */
         .user-avatar {
-            width: 38px; height: 38px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--primary), #b00610);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
-            color: white; transition: var(--transition);
+            width: 40px; height: 40px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), #8e0000);
+            display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.1); transition: 0.3s;
         }
+        .user-avatar:hover { transform: scale(1.05); border-color: var(--primary); }
 
-        .dropdown-menu {
-            background: #181818 !important; border: 1px solid var(--border) !important;
-            border-radius: 12px; padding: 10px; margin-top: 15px !important;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        }
+        .dropdown-menu { background: #121212 !important; border: 1px solid var(--border) !important; border-radius: 15px; padding: 10px; margin-top: 15px !important; }
+        .dropdown-item { color: #fff !important; font-weight: 600; padding: 10px 15px; border-radius: 8px; transition: 0.2s; }
+        .dropdown-item:hover { background: rgba(229, 9, 20, 0.1) !important; color: var(--primary) !important; }
 
-        /* Tên tài khoản trong menu - Sửa lỗi mờ */
-        .user-info-header {
-            padding: 10px 15px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
-        }
-        .user-info-label {
-            color: rgba(255,255,255,0.6) !important; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .user-info-name {
-            color: #ffffff !important; font-weight: 700 !important; font-size: 1rem; opacity: 1 !important;
-        }
-
-        .dropdown-item {
-            color: #ffffff !important; font-size: 0.9rem; font-weight: 500;
-            padding: 12px 16px; border-radius: 8px; opacity: 1 !important;
-            display: flex; align-items: center; transition: var(--transition);
-        }
-        .dropdown-item i { width: 25px; font-size: 1.1rem; color: var(--primary); opacity: 1 !important; }
-        .dropdown-item:hover {
-            background: var(--primary) !important; color: #fff !important;
-            transform: translateX(5px);
-        }
-        .dropdown-item:hover i { color: #fff; }
-
-        /* --- BACK TO TOP --- */
         #backToTop {
-            position: fixed; bottom: 30px; right: 30px;
-            width: 48px; height: 48px; background: var(--primary);
-            color: white; border-radius: 12px; border: none;
-            display: none; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 1000; transition: var(--transition);
-            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4);
+            position: fixed; bottom: 100px;
+            right: 30px; width: 50px; height: 50px;
+            background: var(--primary); color: white; border-radius: 15px; border: none;
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4); transition: 0.3s;
         }
+        #backToTop:hover { transform: translateY(-5px); background: var(--primary-hover); }
+
+        /* --- MODAL DONATE FIX --- */
+        .qr-container { 
+            background: white; 
+            padding: 20px; /* Tăng padding để không bị sát mép */
+            border-radius: 20px; 
+            display: inline-block; 
+            transition: 0.3s; 
+            border: 3px solid transparent; 
+        }
+        .qr-container img {
+            width: 250px;
+            height: 250px;
+            object-fit: contain; /* Đảm bảo không bị khuất phần trên */
+            display: block;
+        }
+        .qr-container:hover { transform: scale(1.03); border-color: var(--gold); box-shadow: 0 0 20px rgba(255, 204, 0, 0.3); }
     </style>
 </head>
 <body>
@@ -118,54 +100,57 @@
     <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
         <div class="container">
             <a class="brand-logo" href="{% url 'home' %}">
-                <i class="fas fa-clapperboard"></i>CHV<span style="color:var(--primary)">MOVIES</span>
+                <i class="fas fa-film"></i>
+                <span class="logo-main">BQH</span>
+                <span class="logo-sub">MOVIE</span>
             </a>
 
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navRes">
-                <i class="fas fa-bars text-white"></i>
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navRes">
+                <i class="fas fa-bars"></i>
             </button>
 
             <div class="collapse navbar-collapse" id="navRes">
                 <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám Phá</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}?sort=-imdb_rating">Xếp Hạng</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}?genre=Phim bộ">Phim Bộ</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}?genre=Hoạt hình">Hoạt Hình</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Trang Chủ</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-donate" href="#" data-bs-toggle="modal" data-bs-target="#donateModal">
+                            <i class="fas fa-heart"></i> Donate
+                        </a>
+                    </li>
                 </ul>
 
                 <div class="d-flex align-items-center gap-3">
                     <form class="search-box d-none d-xl-flex align-items-center" action="{% url 'home' %}" method="GET">
-                        <input type="text" name="q" placeholder="Tìm kiếm phim..." value="{{ request.GET.q|default:'' }}">
+                        <input type="text" name="q" placeholder="Tìm phim..." value="{{ request.GET.q|default:'' }}">
                         <button type="submit" class="btn p-0 text-white"><i class="fas fa-search"></i></button>
                     </form>
 
                     {% if user.is_authenticated %}
                         <div class="dropdown">
-                            <div class="user-avatar" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ user.username|first|upper }}
-                            </div>
+                            <div class="user-avatar" data-bs-toggle="dropdown">{{ user.username|first|upper }}</div>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg">
                                 <li>
-                                    <div class="user-info-header">
-                                        <div class="user-info-label">Xin chào,</div>
-                                        <div class="user-info-name text-truncate">{{ user.username }}</div>
+                                    <div class="px-3 py-2 border-bottom border-secondary border-opacity-25 mb-2">
+                                        <small class="text-white-50 d-block">Tài khoản</small>
+                                        <span class="fw-bold text-white">{{ user.username }}</span>
                                     </div>
                                 </li>
-                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle"></i> Hồ sơ cá nhân</a></li>
-                                <li><a class="dropdown-item" href="{% url 'watchlist' %}"><i class="fas fa-bookmark"></i> Phim đã lưu</a></li>
-                                <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Hồ sơ cá nhân</a></li>
+                                <li><a class="dropdown-item" href="{% url 'watchlist' %}"><i class="fas fa-bookmark me-2"></i> Phim đã lưu</a></li>
+                                <li><a class="dropdown-item text-warning" href="#" data-bs-toggle="modal" data-bs-target="#donateModal"><i class="fas fa-coffee me-2"></i> Ủng hộ Admin</a></li>
+                                <li><hr class="dropdown-divider border-secondary"></li>
                                 <li>
                                     <form action="{% url 'logout' %}" method="post" class="m-0">
                                         {% csrf_token %}
                                         <button type="submit" class="dropdown-item text-danger fw-bold bg-transparent border-0 w-100 text-start">
-                                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                            <i class="fas fa-power-off me-2"></i> Đăng xuất
                                         </button>
                                     </form>
                                 </li>
                             </ul>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-danger btn-sm px-4 rounded-pill fw-bold py-2">ĐĂNG NHẬP</a>
+                        <a href="{% url 'login' %}" class="btn btn-danger px-4 rounded-pill fw-bold">ĐĂNG NHẬP</a>
                     {% endif %}
                 </div>
             </div>
@@ -176,26 +161,65 @@
         {% block content %}{% endblock %}
     </div>
 
-    <button id="backToTop"><i class="fas fa-chevron-up"></i></button>
+    <div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border border-secondary shadow-lg" style="border-radius: 25px;">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-warning fw-bold"><i class="fas fa-university me-2"></i>Thông tin chuyển khoản</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="qr-container mb-3">
+                        <img src="https://img.vietqr.io/image/vcb-1025765518-compact2.jpg?amount=0&addInfo=Ung%20ho%20BQH%20Movie&accountName=BANH%20QUANG%20HUY" 
+                             alt="QR Donate">
+                        <p class="text-dark small mt-2 mb-0 fw-bold">Quét mã bằng App Ngân hàng / MoMo</p>
+                    </div>
+                    <div class="text-start bg-black bg-opacity-50 p-3 rounded-3 border border-secondary border-opacity-40">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-white-50 small">Ngân hàng:</span>
+                            <span class="text-white small fw-bold">VIETCOMBANK</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-white-50 small">Số tài khoản:</span>
+                            <span class="text-white small fw-bold">1025765518</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-white-50 small">Chủ tài khoản:</span>
+                            <span class="text-white small fw-bold text-uppercase">BANH QUANG HUY</span>
+                        </div>
+                    </div>
+                    <p class="text-white-50 small mt-3 italic">Nội dung: <strong>Ung ho BQH Movie</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <footer class="py-5 mt-5 border-top border-secondary border-opacity-10 text-center text-white-50 small">
-        © 2026 CHV Studio. All Rights Reserved.
-    </footer>
+    <button id="backToTop" title="Lên đầu trang"><i class="fas fa-arrow-up"></i></button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        window.onload = () => { 
+        // Loading Bar
+        window.addEventListener('load', () => { 
             const bar = document.getElementById('loading-bar');
             bar.style.width = '100%'; 
-            setTimeout(() => { bar.style.opacity = '0'; }, 500); 
-        };
+            setTimeout(() => { bar.style.opacity = '0'; }, 400); 
+        });
+
+        // Scroll Logic
         const nav = document.getElementById('mainNavbar');
         const btt = document.getElementById('backToTop');
+        
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 80) { nav.classList.add('scrolled'); btt.style.display = 'flex'; }
-            else { nav.classList.remove('scrolled'); btt.style.display = 'none'; }
+            if (window.scrollY > 50) nav.classList.add('scrolled'); 
+            else nav.classList.remove('scrolled'); 
+
+            if (window.scrollY > 400) btt.style.display = 'flex'; 
+            else btt.style.display = 'none'; 
         });
-        btt.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+        btt.addEventListener('click', () => { 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        });
     </script>
 </body>
 </html>

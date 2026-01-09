@@ -1,5 +1,5 @@
 {% extends 'main/base.html' %}
-{% block title %}{{ movie.title }} - Gemini Movies{% endblock %}
+{% block title %}{{ movie.title }} - BQH MOVIE{% endblock %}
 
 {% block content %}
 <style>
@@ -14,15 +14,14 @@
 
     body { background-color: var(--dark-bg); color: white; transition: background 0.5s; }
 
-    /* --- HIỆU CHỈNH CHẾ ĐỘ RẠP CHIẾU (ẨN NAVBAR & LOGO) --- */
+    /* --- HIỆU CHỈNH CHẾ ĐỘ RẠP CHIẾU --- */
     body.cinema-mode-active .navbar, 
-    body.cinema-mode-active header,
     body.cinema-mode-active footer { 
         display: none !important; 
     }
 
     .player-section { 
-        padding: 60px 0; position: relative; z-index: 10;
+        padding: 40px 0 60px; position: relative; z-index: 10;
         overflow: hidden; transition: 0.5s;
     }
     
@@ -37,65 +36,65 @@
         justify-content: center;
     }
 
-    .player-section.cinema-mode .cinema-wrapper { max-width: 100% !important; border-radius: 0; border: none; }
-
     .bg-blur-container {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
     }
     .bg-blur-image {
         position: absolute; width: 100%; height: 120%;
         background: url('{{ movie.poster_url }}') center/cover;
-        filter: blur(100px) brightness(0.3); transform: scale(1.1);
+        filter: blur(100px) brightness(0.2); transform: scale(1.1);
     }
 
     .cinema-wrapper { 
-        max-width: 1200px; margin: 0 auto; border-radius: 24px; overflow: hidden;
-        box-shadow: 0 50px 100px rgba(0,0,0,0.8); border: 1px solid var(--glass-border);
+        max-width: 1240px; margin: 0 auto; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.9); border: 1px solid var(--glass-border);
         background: #000; transition: 0.5s;
     }
+    .player-section.cinema-mode .cinema-wrapper { max-width: 100% !important; border-radius: 0; border: none; }
 
     .player-controls {
-        background: #111; padding: 15px 30px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+        background: #111; padding: 12px 25px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;
         border-top: 1px solid var(--glass-border);
     }
     
     .server-btn {
         background: var(--glass); color: #fff; border: 1px solid var(--glass-border);
-        padding: 8px 20px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; 
+        padding: 6px 18px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; 
         cursor: pointer; transition: 0.3s;
     }
     .server-btn.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px rgba(229, 9, 20, 0.4); }
 
     .control-btn {
         background: var(--glass); border: 1px solid var(--glass-border); color: #fff; 
-        padding: 8px 15px; border-radius: 10px; font-size: 0.8rem; transition: 0.3s;
+        padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; transition: 0.3s;
     }
-    .control-btn:hover { background: var(--accent); color: #fff; }
+    .control-btn:hover { background: var(--accent); border-color: var(--accent); }
 
     /* --- THÔNG TIN PHIM --- */
     .info-card-premium {
-        background: var(--glass); backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border); border-radius: 30px;
-        padding: 40px; margin-bottom: 40px;
+        background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border); border-radius: 24px;
+        padding: 35px; margin-bottom: 40px;
     }
 
     .btn-bookmark-premium {
         background: var(--accent); color: white; padding: 12px 25px;
-        border-radius: 15px; text-decoration: none; font-weight: bold;
+        border-radius: 12px; text-decoration: none; font-weight: 800;
         display: inline-flex; align-items: center; gap: 10px; transition: 0.3s;
-        border: none;
+        border: none; font-size: 0.9rem;
     }
     .btn-bookmark-premium.active { background: #fff; color: #000; }
+    .btn-bookmark-premium:hover { transform: translateY(-3px); opacity: 0.9; color: white; }
 
     /* --- ĐÁNH GIÁ & BÌNH LUẬN --- */
     .review-input-wrapper {
-        background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border);
-        border-radius: 25px; padding: 30px;
+        background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
+        border-radius: 20px; padding: 25px;
     }
 
     .comment-area-premium {
-        background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-        color: white; border-radius: 18px; padding: 20px; transition: 0.3s;
+        background: #151515; border: 1px solid #333;
+        color: white; border-radius: 12px; padding: 15px; transition: 0.3s;
     }
     .comment-area-premium:focus { border-color: var(--accent); outline: none; background: #000; }
 
@@ -103,32 +102,31 @@
         display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px;
     }
     .star-rating-premium input { display: none; }
-    .star-rating-premium label { font-size: 2rem; color: #222; cursor: pointer; transition: 0.2s; }
+    .star-rating-premium label { font-size: 1.8rem; color: #333; cursor: pointer; transition: 0.2s; }
     .star-rating-premium input:checked ~ label,
     .star-rating-premium label:hover,
     .star-rating-premium label:hover ~ label { color: var(--star-color); }
 
     .user-avatar {
-        width: 55px; height: 55px; border-radius: 18px;
-        background: linear-gradient(45deg, var(--accent), #f00);
+        width: 50px; height: 50px; border-radius: 12px;
+        background: linear-gradient(45deg, var(--accent), #b00610);
         display: flex; align-items: center; justify-content: center;
-        font-weight: 900; font-size: 1.2rem; box-shadow: 0 10px 20px rgba(229, 9, 20, 0.2);
+        font-weight: 800; font-size: 1.1rem;
     }
 
     .btn-like-premium {
         background: var(--glass); border: 1px solid var(--glass-border);
-        color: #fff; padding: 6px 18px; border-radius: 12px; transition: 0.3s;
+        color: #fff; padding: 5px 15px; border-radius: 10px; transition: 0.3s; font-size: 0.85rem;
     }
-    .btn-like-premium.liked { background: rgba(229, 9, 20, 0.1); border-color: var(--accent); color: var(--accent); }
+    .btn-like-premium.liked { background: var(--accent); border-color: var(--accent); }
 
     /* --- SIDEBAR ĐỀ XUẤT --- */
     .rec-item-premium {
-        display: flex; gap: 15px; padding: 12px; border-radius: 20px;
+        display: flex; gap: 15px; padding: 10px; border-radius: 15px;
         transition: 0.3s; text-decoration: none; align-items: center;
-        border: 1px solid transparent;
     }
-    .rec-item-premium:hover { background: var(--glass); transform: translateX(10px); }
-    .rec-poster { width: 85px; height: 120px; object-fit: cover; border-radius: 15px; }
+    .rec-item-premium:hover { background: var(--glass); }
+    .rec-poster { width: 70px; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border); }
 
 </style>
 
@@ -136,7 +134,7 @@
     <div class="bg-blur-container">
         <div class="bg-blur-image"></div>
     </div>
-    <div class="container-fluid">
+    <div class="container">
         <div class="cinema-wrapper" id="cinema-container">
             <div class="ratio ratio-16x9">
                 {% if can_watch_trailer %}
@@ -144,9 +142,9 @@
                 {% else %}
                     <div class="d-flex flex-column align-items-center justify-content-center bg-dark text-center h-100 p-4">
                         <i class="fas fa-lock fa-4x text-danger mb-4"></i>
-                        <h2 class="fw-900 text-white">NỘI DUNG GIỚI HẠN</h2>
-                        <p class="text-white-50 fs-5">{{ age_message }}</p>
-                        <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-5 mt-3 fw-bold">Quay lại trang chủ</a>
+                        <h2 class="fw-bold text-white">NỘI DUNG GIỚI HẠN</h2>
+                        <p class="text-white-50 fs-6">{{ age_message }}</p>
+                        <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-5 mt-3 fw-bold">QUAY LẠI TRANG CHỦ</a>
                     </div>
                 {% endif %}
             </div>
@@ -171,20 +169,20 @@
     </div>
 </section>
 
-<div class="container py-5">
-    <div class="row g-5">
+<div class="container py-4">
+    <div class="row g-4">
         <div class="col-lg-8">
             <div class="info-card-premium">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-4 mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                     <div class="flex-grow-1">
-                        <div class="d-flex align-items-center flex-wrap gap-3 mb-3">
-                            <h1 class="display-5 fw-900 text-white m-0 text-uppercase">{{ movie.title }}</h1>
-                            <span class="badge bg-danger rounded-3 px-3 py-2">{{ movie.age_limit }}+</span>
+                        <div class="d-flex align-items-center flex-wrap gap-3 mb-2">
+                            <h1 class="h2 fw-800 text-white m-0 text-uppercase">{{ movie.title }}</h1>
+                            <span class="badge bg-danger rounded-pill px-3">{{ movie.age_limit }}+</span>
                         </div>
-                        <div class="d-flex align-items-center gap-4 text-white-50">
-                            <span class="text-warning fw-bold fs-5"><i class="fas fa-star me-2"></i>{{ movie.imdb_rating }}</span>
-                            <span><i class="far fa-calendar-alt me-2"></i>{{ movie.release_date|date:"Y" }}</span>
-                            <span class="badge border border-secondary px-3">{{ movie.genres }}</span>
+                        <div class="d-flex align-items-center gap-3 text-white-50 small">
+                            <span class="text-warning fw-bold"><i class="fas fa-star me-1"></i>{{ movie.imdb_rating }}</span>
+                            <span><i class="far fa-calendar-alt me-1"></i>{{ movie.release_date|date:"Y" }}</span>
+                            <span class="text-white">{{ movie.genres }}</span>
                         </div>
                     </div>
                     {% if user.is_authenticated %}
@@ -195,18 +193,18 @@
                     {% endif %}
                 </div>
                 <hr class="opacity-10 my-4">
-                <h6 class="text-danger fw-bold text-uppercase mb-3">Nội dung phim</h6>
-                <p class="text-white-50 lh-lg fs-6" style="text-align: justify;">{{ movie.description }}</p>
+                <h6 class="text-danger fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Nội dung chính</h6>
+                <p class="text-white-50 lh-lg" style="text-align: justify; font-size: 0.95rem;">{{ movie.description }}</p>
             </div>
 
             <div class="reviews-section">
-                <h4 class="fw-900 text-white mb-5 text-uppercase"><i class="fas fa-comments me-3 text-danger"></i>Cộng đồng đánh giá</h4>
+                <h5 class="fw-bold text-white mb-4"><i class="fas fa-comments me-2 text-danger"></i>BÌNH LUẬN</h5>
                 {% if user.is_authenticated %}
                 <div class="review-input-wrapper mb-5">
                     <form action="{% url 'add_review' movie.id %}" method="POST">
                         {% csrf_token %}
-                        <div class="d-flex align-items-center justify-content-between mb-4">
-                            <span class="fw-bold">Đánh giá của bạn:</span>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="small fw-bold text-white-50">Đánh giá của bạn:</span>
                             <div class="star-rating-premium">
                                 <input type="radio" id="star5" name="rating" value="5" checked><label for="star5" class="fas fa-star"></label>
                                 <input type="radio" id="star4" name="rating" value="4"><label for="star4" class="fas fa-star"></label>
@@ -215,9 +213,9 @@
                                 <input type="radio" id="star1" name="rating" value="1"><label for="star1" class="fas fa-star"></label>
                             </div>
                         </div>
-                        <textarea name="comment" class="form-control comment-area-premium mb-4" rows="4" placeholder="Cảm nghĩ của bạn về bộ phim này..." required></textarea>
+                        <textarea name="comment" class="form-control comment-area-premium mb-3" rows="3" placeholder="Nhập cảm nghĩ của bạn..." required></textarea>
                         <div class="text-end">
-                            <button class="btn btn-danger px-5 py-3 rounded-pill fw-bold">GỬI ĐÁNH GIÁ</button>
+                            <button class="btn btn-danger px-4 py-2 rounded-pill fw-bold small">GỬI ĐÁNH GIÁ</button>
                         </div>
                     </form>
                 </div>
@@ -225,48 +223,44 @@
 
                 <div class="review-list">
                     {% for review in reviews %}
-                    <div class="d-flex gap-4 mb-5 pb-5 border-bottom border-white border-opacity-5">
-                        <div class="user-avatar text-white">{{ review.user.username|first|upper }}</div>
+                    <div class="d-flex gap-3 mb-4 pb-4 border-bottom border-white border-opacity-5">
+                        <div class="user-avatar">{{ review.user.username|first|upper }}</div>
                         <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="text-white fw-bold m-0">{{ review.user.username }}</h6>
-                                    <div class="text-warning mt-1" style="font-size:0.75rem">
-                                        {% for i in "12345"|make_list %}<i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>{% endfor %}
-                                    </div>
-                                </div>
-                                <small class="text-white-50">{{ review.created_at|timesince }} trước</small>
+                            <div class="d-flex justify-content-between">
+                                <h6 class="text-white fw-bold m-0 small">{{ review.user.username }}</h6>
+                                <small class="text-white-50" style="font-size: 0.7rem;">{{ review.created_at|timesince }} trước</small>
                             </div>
-                            <p class="text-white-50 my-3 lh-base">{{ review.comment }}</p>
-                            <div class="d-flex align-items-center gap-4">
+                            <div class="text-warning my-1" style="font-size:0.7rem">
+                                {% for i in "12345"|make_list %}<i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>{% endfor %}
+                            </div>
+                            <p class="text-white-50 my-2 small">{{ review.comment }}</p>
+                            <div class="d-flex align-items-center gap-3">
                                 <button class="btn-like-premium {% if user in review.likes.all %}liked{% endif %}" onclick="handleLike(this, {{ review.id }})">
-                                    <i class="fas fa-heart me-2"></i> <span class="like-count">{{ review.likes.count }}</span>
+                                    <i class="fas fa-heart me-1"></i> <span class="like-count">{{ review.likes.count }}</span>
                                 </button>
                                 {% if review.user == user %}
-                                <a href="{% url 'delete_review' review.id %}" class="text-white-50 small text-decoration-none"><i class="fas fa-trash-alt me-1"></i> Xóa</a>
+                                <a href="{% url 'delete_review' review.id %}" class="text-white-50 x-small text-decoration-none" style="font-size: 0.75rem;"><i class="fas fa-trash-alt me-1"></i> Xóa</a>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="text-center py-5 info-card-premium border-dashed opacity-50">
-                        <i class="fas fa-comment-dots fa-3x mb-3 text-secondary"></i>
-                        <p>Chưa có bình luận nào.</p>
-                    </div>
+                    <p class="text-white-50 text-center py-4">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <h5 class="fw-900 text-white mb-4 text-uppercase border-start border-danger border-4 ps-3">Phim Tương Tự</h5>
+            <h6 class="fw-bold text-white mb-3 text-uppercase border-start border-danger border-3 ps-2">Phim Đề Xuất</h6>
             <div class="d-flex flex-column gap-2">
                 {% for rec in recommendations %}
                 <a href="{% url 'movie_detail' rec.id %}" class="rec-item-premium">
                     <img src="{{ rec.poster_url }}" class="rec-poster">
                     <div class="overflow-hidden">
                         <div class="text-white small fw-bold text-truncate">{{ rec.title }}</div>
-                        <div class="text-warning small mt-1"><i class="fas fa-star me-1"></i>{{ rec.imdb_rating }}</div>
+                        <div class="text-warning x-small mt-1" style="font-size: 0.75rem;"><i class="fas fa-star me-1"></i>{{ rec.imdb_rating }}</div>
+                        <div class="text-white-50 x-small mt-1" style="font-size: 0.7rem;">{{ rec.release_date|date:"Y" }}</div>
                     </div>
                 </a>
                 {% endfor %}
@@ -277,7 +271,6 @@
 
 <script>
     function handleLike(btn, reviewId) {
-        btn.style.transform = "scale(1.2)";
         fetch(`/like-review/${reviewId}/`, {
             method: 'POST',
             headers: { 
@@ -287,7 +280,6 @@
         })
         .then(res => res.json())
         .then(data => {
-            setTimeout(() => btn.style.transform = "scale(1)", 200);
             if(data.liked) btn.classList.add('liked');
             else btn.classList.remove('liked');
             btn.querySelector('.like-count').innerText = data.count;
