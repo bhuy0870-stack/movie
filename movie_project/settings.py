@@ -1,12 +1,17 @@
 import os
 from pathlib import Path
 
+# --- ĐƯỜNG DẪN CƠ SỞ ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- BẢO MẬT (SECURITY) ---
+# --- BẢO MẬT ---
+# Lưu ý: Khi chạy thật nên dùng biến môi trường cho SECRET_KEY
 SECRET_KEY = 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq'
+
+# DEBUG nên để True khi sửa máy, nhưng Render sẽ chạy tốt hơn nếu có WhiteNoise hỗ trợ
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+
+ALLOWED_HOSTS = ['*'] # Cho phép tất cả các domain (Render, Ngrok, Local)
 
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
 INSTALLED_APPS = [
@@ -15,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic', # Thêm dòng này để hỗ trợ static khi debug
     'django.contrib.staticfiles',
     
     'main', # App chính của bạn
@@ -22,6 +28,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # QUAN TRỌNG: Xử lý CSS/JS trên Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,7 +43,7 @@ ROOT_URLCONF = 'movie_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Dùng Path thay vì os.path để đồng nhất
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -52,6 +59,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'movie_project.wsgi.application'
 
 # --- CƠ SỞ DỮ LIỆU ---
+# Mặc định dùng SQLite. Lưu ý: Render sẽ reset data sau mỗi lần deploy nếu dùng SQLite
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -65,20 +73,25 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
 
-# --- STATIC FILES (CSS, JS, Images) ---
+# --- CẤU HÌNH STATIC FILES (QUAN TRỌNG NHẤT ĐỂ LÊN RENDER) ---
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# --- XÁC THỰC (AUTHENTICATION) ---
+# Nơi chứa các file static sau khi chạy lệnh collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Hỗ trợ nén và lưu trữ cache file static để web chạy nhanh hơn
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# --- XÁC THỰC ---
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
 
-# --- CẤU HÌNH AN TOÀN CHO NGROK/LOCAL ---
+# --- CẤU HÌNH AN TOÀN ---
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.render.com',
     'https://*.ngrok-free.app',
     'https://*.ngrok-free.dev',
-    'http://127.0.0.1:8000', 
-    'http://localhost:8000',
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
