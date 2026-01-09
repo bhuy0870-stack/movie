@@ -1,0 +1,53 @@
+.featured-banner {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.4s ease;
+}
+
+.featured-overlay {
+    background: linear-gradient(to right, #000 20%, transparent 80%);
+    border-radius: 8px;
+}
+
+.featured-banner:hover {
+    transform: scale(1.01);
+}
+
+.transition-scale {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    border: none !important;
+}
+
+.transition-scale:hover {
+    transform: scale(1.05);
+    z-index: 2;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.transition-scale:hover .card-img-top {
+    filter: brightness(1.1);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #e5e5e5;
+}
+
+.pagination .page-link {
+    border-radius: 4px;
+    margin: 0 3px;
+    transition: all 0.2s;
+}
+
+.pagination .page-link:hover {
+    background-color: #E50914 !important;
+    color: white !important;
+    border-color: #E50914 !important;
+}
+
+.pagination .page-item.active .page-link {
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+}

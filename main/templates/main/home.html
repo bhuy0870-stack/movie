@@ -1,0 +1,361 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* --- HỆ THỐNG BIẾN & CÀI ĐẶT CHUNG --- */
+    :root {
+        --primary-red: #e50914;
+        --accent-red: #ff1f1f;
+        --dark-bg: #060606;
+        --card-bg: #121212;
+        --glass: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-dim: #9ca3af;
+        --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    body { 
+        background-color: var(--dark-bg); 
+        color: white; 
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* --- HIỆU ỨNG CHỮ PHÁT SÁNG --- */
+    .glow-text {
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        background: linear-gradient(to bottom, #fff 30%, #666 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-transform: uppercase;
+    }
+
+    /* --- CATEGORY CHIPS --- */
+    .cat-chip {
+        background: var(--glass);
+        border: 1px solid var(--glass-border);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 14px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .cat-chip:hover, .active-chip {
+        background: var(--primary-red) !important;
+        border-color: var(--primary-red) !important;
+        color: white !important;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(229, 9, 20, 0.3);
+    }
+
+    /* --- MOVIE CARD --- */
+    .movie-card {
+        position: relative;
+        background: var(--card-bg);
+        border-radius: 22px;
+        padding: 10px;
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease backwards;
+    }
+    .movie-card:hover {
+        transform: translateY(-15px);
+        border-color: var(--primary-red);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+    }
+    .movie-card::after {
+        content: ''; position: absolute; inset: -1px;
+        background: linear-gradient(45deg, var(--primary-red), transparent, var(--primary-red));
+        border-radius: 22px; z-index: -1; opacity: 0; transition: 0.3s;
+    }
+    .movie-card:hover::after { opacity: 1; }
+
+    .card-img-wrapper {
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        aspect-ratio: 2/3;
+    }
+    .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+    .movie-card:hover .card-img-wrapper img { transform: scale(1.1); }
+
+    .play-overlay {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: 0.3s;
+    }
+    .movie-card:hover .play-overlay { opacity: 1; }
+
+    .play-btn-blur {
+        width: 55px; height: 55px;
+        background: rgba(229, 9, 20, 0.9);
+        backdrop-filter: blur(8px);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.2rem;
+        transform: scale(0.5); transition: var(--transition);
+    }
+    .movie-card:hover .play-btn-blur { transform: scale(1); }
+
+    .badge-premium {
+        position: absolute; top: 15px; left: 15px;
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800;
+    }
+
+    /* --- SIDEBAR RANKING --- */
+    .ranking-item {
+        background: var(--glass);
+        border-radius: 16px;
+        padding: 12px;
+        border-left: 4px solid transparent;
+        transition: 0.3s;
+    }
+    .ranking-item:hover {
+        background: rgba(255,255,255,0.08);
+        border-left-color: var(--primary-red);
+        transform: translateX(8px);
+    }
+    .rank-number { font-size: 2rem; font-weight: 900; opacity: 0.1; font-style: italic; transition: 0.3s; }
+
+    /* --- FOOTER --- */
+    .cinema-footer {
+        margin-top: 100px; padding: 80px 0 40px;
+        background: linear-gradient(to top, #000 0%, var(--dark-bg) 100%);
+        border-top: 1px solid var(--glass-border);
+    }
+    .social-icon {
+        width: 45px; height: 45px; background: var(--glass);
+        border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+        color: white; text-decoration: none; transition: 0.3s;
+    }
+    .social-icon:hover { background: var(--primary-red); transform: translateY(-5px); }
+
+    /* --- ANIMATIONS & SCROLLBAR --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 10px; }
+</style>
+
+<div class="container-fluid px-lg-5 mt-4">
+    {# 1. HERO CAROUSEL NỔI BẬT #}
+    {% if movies_page.number == 1 and not request.GET.genre and not request.GET.q %}
+    <div id="heroCarousel" class="carousel slide carousel-fade mb-5" data-bs-ride="carousel">
+        <div class="carousel-inner rounded-5 overflow-hidden shadow-lg">
+            {% for movie in featured_movies|slice:":3" %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}" style="height: 550px; background: url('{{ movie.poster_url }}') center/cover;">
+                <div style="position: absolute; inset: 0; background: linear-gradient(90deg, #000 15%, transparent 100%);"></div>
+                <div class="carousel-caption d-none d-md-block text-start h-100 d-flex align-items-center" style="left: 8%; bottom: 0; max-width: 600px;">
+                    <div>
+                        <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill shadow-sm">BOM TẤN TUẦN NÀY</span>
+                        <h1 class="display-2 fw-900 mb-3 text-uppercase" style="letter-spacing: -2px;">{{ movie.title }}</h1>
+                        <div class="d-flex align-items-center gap-3 mb-4 text-white-50">
+                            <span><i class="fas fa-star text-warning me-1"></i>{{ movie.imdb_rating }} IMDB</span>
+                            <span>•</span>
+                            <span>{{ movie.release_date|date:"Y" }}</span>
+                            <span>•</span>
+                            <span class="badge border border-secondary">4K UltraHD</span>
+                        </div>
+                        <p class="fs-5 mb-4 opacity-75 fw-light">{{ movie.description|truncatechars:180 }}</p>
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'movie_detail' movie.id %}" class="btn btn-danger btn-lg px-5 py-3 rounded-4 fw-bold shadow-lg">
+                                <i class="fas fa-play me-2"></i> XEM NGAY
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# 2. QUICK CATEGORIES (LỌC THẬT) #}
+    <div class="mb-5">
+        <div class="d-flex gap-3 overflow-auto pb-3 custom-scrollbar">
+            <a href="{% url 'home' %}" class="cat-chip {% if not request.GET.genre %}active-chip{% endif %}">
+                <i class="fas fa-th-large"></i> Tất cả
+            </a>
+            {% for g in genre_list %}
+            <a href="?genre={{ g }}" class="cat-chip {% if request.GET.genre == g %}active-chip{% endif %}">
+                <i class="fas 
+                    {% if g == 'Hành động' %}fa-fire
+                    {% elif g == 'Kinh dị' %}fa-ghost
+                    {% elif g == 'Tình cảm' %}fa-heart
+                    {% elif g == 'Viễn tưởng' %}fa-hat-wizard
+                    {% elif g == 'Hoạt hình' %}fa-child
+                    {% elif g == 'Hài hước' %}fa-laugh-squint
+                    {% else %}fa-film{% endif %}">
+                </i> 
+                {{ g }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-5">
+        {# 3. MAIN GRID MOVIE #}
+        <div class="col-lg-9">
+            <div class="d-flex align-items-end justify-content-between mb-5">
+                <div>
+                    <h2 class="glow-text m-0">
+                        {% if request.GET.genre %}{{ request.GET.genre }}{% elif request.GET.q %}Kết quả: {{ request.GET.q }}{% else %}Mới Cập Nhật{% endif %}
+                    </h2>
+                    <p class="text-secondary small mb-0">Hàng ngàn giờ xem phim chất lượng cao dành cho bạn</p>
+                </div>
+                <div class="text-secondary small opacity-50 fw-bold">{{ movies_page.paginator.count }} PHIM</div>
+            </div>
+            
+            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-4">
+                {% for movie in movies_page %}
+                <div class="col" style="animation-delay: calc({{ forloop.counter }} * 0.05s);">
+                    <div class="movie-card h-100">
+                        <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none">
+                            <div class="card-img-wrapper">
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" loading="lazy">
+                                <div class="play-overlay">
+                                    <div class="play-btn-blur"><i class="fas fa-play"></i></div>
+                                </div>
+                                <div class="badge-premium">4K HDR</div>
+                            </div>
+                            <div class="pt-3 px-2">
+                                <h6 class="text-white text-truncate mb-1 fw-bold">{{ movie.title }}</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-secondary small">{{ movie.release_date|date:"Y" }}</span>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-star text-warning me-1" style="font-size: 10px;"></i>
+                                        <span class="text-warning fw-bold small">{{ movie.imdb_rating }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-secondary">Chưa có phim nào trong danh mục này.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {# PHÂN TRANG #}
+            {% if movies_page.has_other_pages %}
+            <div class="d-flex justify-content-center mt-5 mb-5 pt-4">
+                <div class="pagination-modern d-flex align-items-center gap-3">
+                    {% if movies_page.has_previous %}
+                        <a href="?page={{ movies_page.previous_page_number }}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="social-icon"><i class="fas fa-arrow-left"></i></a>
+                    {% endif %}
+                    <div class="px-4 py-2 rounded-pill bg-dark border border-secondary">
+                        <span class="fw-bold">Trang {{ movies_page.number }} / {{ movies_page.paginator.num_pages }}</span>
+                    </div>
+                    {% if movies_page.has_next %}
+                        <a href="?page={{ movies_page.next_page_number }}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="social-icon"><i class="fas fa-arrow-right"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# 4. SIDEBAR RANKING #}
+        <div class="col-lg-3 d-none d-lg-block">
+            <div style="position: sticky; top: 100px;">
+                <h4 class="glow-text mb-4">Top Thịnh Hành</h4>
+                <div class="d-flex flex-column gap-3">
+                    {% for movie in featured_movies|slice:":6" %}
+                    <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none ranking-item d-flex align-items-center gap-3">
+                        <span class="rank-number">0{{ forloop.counter }}</span>
+                        <img src="{{ movie.poster_url }}" class="rounded-3 shadow" width="50" height="70" style="object-fit: cover;">
+                        <div class="overflow-hidden">
+                            <h6 class="text-white small fw-bold mb-1 text-truncate">{{ movie.title }}</h6>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 3px; width: 60px; background: rgba(255,255,255,0.1);">
+                                    <div class="progress-bar bg-danger" style="width: {{ movie.imdb_rating }}0%"></div>
+                                </div>
+                                <span class="text-warning small fw-bold">{{ movie.imdb_rating }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-5 p-4 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-20">
+                    <h6 class="fw-bold text-danger"><i class="fas fa-bell me-2"></i>Đăng ký nhận tin</h6>
+                    <p class="small text-secondary">Cập nhật phim mới qua Email hàng tuần.</p>
+                    <input type="email" class="form-control form-control-sm bg-dark border-secondary text-white mb-2 shadow-none" placeholder="Email của bạn">
+                    <button class="btn btn-danger btn-sm w-100 rounded-pill fw-bold">Đăng ký</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# 5. CINEMA FOOTER #}
+<footer class="cinema-footer">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <h2 class="fw-bold text-danger mb-4">CHV<span class="text-white">MOVIES</span></h2>
+                <p class="text-dim small" style="line-height: 2;">
+                    Trải nghiệm điện ảnh đỉnh cao ngay tại nhà với chất lượng 4K HDR.
+                </p>
+                <div class="d-flex gap-2 mt-4">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold mb-4">DANH MỤC</h6>
+                <ul class="list-unstyled d-flex flex-column gap-3">
+                    <li><a href="#" class="text-dim text-decoration-none small hover-red">Phim Bộ</a></li>
+                    <li><a href="#" class="text-dim text-decoration-none small hover-red">Phim Lẻ</a></li>
+                    <li><a href="#" class="text-dim text-decoration-none small hover-red">Chiếu Rạp</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold mb-4">LIÊN HỆ</h6>
+                <ul class="list-unstyled d-flex flex-column gap-3 text-dim small">
+                    <li>Email: support@chv.com</li>
+                    <li>Hotline: 1900 1234</li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="fw-bold mb-4">TẢI ỨNG DỤNG</h6>
+                <div class="row g-2">
+                    <div class="col-6"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/1200px-Google_Play_Store_badge_EN.svg.png" class="img-fluid rounded-2 border border-secondary"></div>
+                    <div class="col-6"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Download_on_the_App_Store_Badge.svg/1200px-Download_on_the_App_Store_Badge.svg.png" class="img-fluid rounded-2 border border-secondary"></div>
+                </div>
+            </div>
+        </div>
+        <hr class="my-5 opacity-10">
+        <p class="text-center text-dim small m-0">© 2026 CHV Movies. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    // Xử lý hiệu ứng Rank Number
+    document.querySelectorAll('.ranking-item').forEach(item => {
+        item.addEventListener('mouseover', () => {
+            const num = item.querySelector('.rank-number');
+            num.style.opacity = '0.6';
+            num.style.color = 'var(--primary-red)';
+        });
+        item.addEventListener('mouseout', () => {
+            const num = item.querySelector('.rank-number');
+            num.style.opacity = '0.1';
+            num.style.color = 'white';
+        });
+    });
+</script>
+{% endblock %}

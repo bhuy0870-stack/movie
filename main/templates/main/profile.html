@@ -1,0 +1,47 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0" style="border-radius: 15px; background: #1a1a1a; color: white; border: 1px solid #333 !important;">
+                <div class="card-header bg-danger text-center py-3" style="border-radius: 15px 15px 0 0;">
+                    <h4 class="mb-0 fw-bold">HỒ SƠ CÁ NHÂN</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" class="rounded-circle shadow mb-3" width="100 border border-3 border-danger">
+                        <h4 class="mt-2 fw-bold text-uppercase">{{ user.username }}</h4>
+                        <span class="text-secondary">{{ user.email }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-dark mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary"><i class="fas fa-calendar-alt me-2 text-danger"></i> Ngày sinh:</span>
+                            <span class="fw-bold">{{ user.last_name|default:"Chưa cập nhật" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary"><i class="fas fa-user-clock me-2 text-danger"></i> Tuổi hiện tại:</span>
+                            <span class="fw-bold text-warning">
+                                {% if user_age != "Chưa cập nhật" %}
+                                    {{ user_age }} tuổi
+                                {% else %}
+                                    <small class="text-muted italic">Cần cập nhật ngày sinh</small>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill">Quay lại trang chủ</a>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger w-100 rounded-pill">Đăng xuất tài khoản</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

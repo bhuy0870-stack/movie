@@ -1,0 +1,33 @@
+{% extends 'main/base.html' %}
+{% block title %}Phim đã lưu của tôi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="fw-bold mb-4"><i class="fas fa-bookmark text-warning me-2"></i>DANH SÁCH PHIM ĐÃ LƯU</h3>
+    
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+        {% for item in items %}
+        <div class="col">
+            <div class="card bg-transparent border-0 position-relative">
+                <a href="{% url 'movie_detail' item.movie.id %}">
+                    <img src="{{ item.movie.poster_url }}" class="card-img-top rounded-3 shadow" style="height: 250px; object-fit: cover;">
+                </a>
+                <div class="card-body px-0 py-2">
+                    <h6 class="text-white text-truncate mb-0 small">{{ item.movie.title }}</h6>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-secondary small">{{ item.movie.release_date|date:"Y" }}</span>
+                        <a href="{% url 'toggle_watchlist' item.movie.id %}" class="text-danger small text-decoration-none">Bỏ lưu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-folder-open fa-3x text-secondary mb-3"></i>
+            <p class="text-secondary">Bạn chưa lưu bộ phim nào.</p>
+            <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-4 mt-2">Khám phá ngay</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

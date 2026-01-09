@@ -1,0 +1,45 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Đăng Nhập - Movie CHV{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper d-flex align-items-center justify-content-center">
+    <div class="light-auth-container shadow-3d">
+        <h1 class="text-center mb-5 modern-heading fs-2">ĐĂNG NHẬP</h1>
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            
+            {% for field in form %}
+            <div class="mb-4 auth-field-group">
+                <label for="{{ field.id_for_label }}" class="form-label auth-label">{{ field.label }}</label>
+                
+                <input type="{{ field.field.widget.input_type }}" 
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       class="form-control auth-input" 
+                       placeholder="Nhập {{ field.label|lower }}..."
+                       {% if field.field.required %}required{% endif %}>
+                
+                {% for error in field.errors %}
+                <div class="auth-error-msg small mt-1 anim-fade-in">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-danger w-100 mt-4 py-3 fw-bold btn-auth-submit">
+                TIẾP TỤC <i class="fas fa-sign-in-alt ms-2"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer text-center mt-4 small">
+            <span class="text-muted">Chưa có tài khoản?</span>
+            <a href="{% url 'register' %}" class="text-danger fw-bold ms-1 hover-underline">Đăng ký ngay</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
