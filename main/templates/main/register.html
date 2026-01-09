@@ -47,7 +47,20 @@
         display: block;
     }
 
-    /* --- INPUT SẮC NÉT (ĐỒNG BỘ ĐĂNG NHẬP) --- */
+    /* --- HIỂN THỊ LỖI (QUAN TRỌNG) --- */
+    .alert-custom {
+        background-color: #e50914;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    /* --- INPUT --- */
     .auth-input {
         background: #2b2b2b !important;
         border: 1px solid #444 !important;
@@ -61,26 +74,10 @@
         outline: none;
     }
 
-    /* Fix Placeholder cực nét, không mờ */
-    .auth-input::placeholder {
-        color: #8c8c8c !important; 
-        opacity: 1 !important;
-        font-weight: 500;
-    }
-
     .auth-input:focus {
         border-color: #e50914 !important;
         background: #333 !important;
         box-shadow: 0 0 10px rgba(229, 9, 20, 0.4) !important;
-    }
-
-    /* Khử lỗi Autofill của trình duyệt */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover, 
-    input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0 30px #2b2b2b inset !important;
-        -webkit-text-fill-color: #ffffff !important;
-        transition: background-color 5000s ease-in-out 0s;
     }
 
     .password-wrapper { position: relative; }
@@ -95,7 +92,6 @@
         font-size: 18px;
     }
 
-    /* --- NÚT BẤM --- */
     .btn-auth-submit {
         background-color: #e50914 !important;
         border: none;
@@ -104,18 +100,17 @@
         font-weight: 800;
         margin-top: 20px;
         border-radius: 8px !important;
-        box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
         color: #ffffff !important;
         text-transform: uppercase;
         width: 100%;
         transition: 0.3s;
     }
+
     .btn-auth-submit:hover {
         background-color: #ff1f1f !important;
         transform: translateY(-2px);
     }
 
-    /* --- FOOTER ĐẸP HƠN --- */
     .auth-footer {
         margin-top: 40px;
         text-align: center;
@@ -123,49 +118,40 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .auth-footer span { 
-        color: #8c8c8c !important; 
-        font-size: 15px;
-        font-weight: 500;
-    }
-
     .auth-footer a {
-        color: #ffffff !important;
+        color: #e50914 !important;
         font-weight: 700;
         text-decoration: none !important;
-        margin-left: 8px;
-        transition: all 0.3s ease;
-        display: inline-block;
     }
 
-    .auth-footer a:hover {
-        color: #e50914 !important;
-        text-decoration: underline !important;
-        transform: scale(1.05);
-    }
-
-    /* Lịch ngày sinh sắc nét */
     input[type="date"]::-webkit-calendar-picker-indicator {
         filter: invert(1);
-        cursor: pointer;
     }
 </style>
 
 <div class="auth-page-wrapper">
     <div class="light-auth-container">
         <h1 class="modern-heading">Đăng ký</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-custom">
+                    <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
         
         <form method="post" id="registerForm">
             {% csrf_token %}
             
             <div class="mb-4">
                 <label class="auth-label">Tên đăng nhập</label>
-                <input type="text" name="username" class="form-control auth-input" placeholder="Nhập tên đăng nhập" required>
+                <input type="text" name="username" class="form-control auth-input" placeholder="Nhập tên đăng nhập" required value="{{ request.POST.username }}">
             </div>
 
             <div class="mb-4">
                 <label class="auth-label">Email</label>
-                <input type="email" name="email" class="form-control auth-input" placeholder="Nhập email" required>
+                <input type="email" name="email" class="form-control auth-input" placeholder="Nhập email" required value="{{ request.POST.email }}">
             </div>
 
             <div class="mb-4">
@@ -186,14 +172,14 @@
 
             <div class="mb-4">
                 <label class="auth-label">Ngày tháng năm sinh</label>
-                <input type="date" name="birth_date" class="form-control auth-input" required>
+                <input type="date" name="birth_date" class="form-control auth-input" required value="{{ request.POST.birth_date }}">
             </div>
 
             <button type="submit" class="btn btn-auth-submit">Hoàn tất đăng ký</button>
         </form>
 
         <div class="auth-footer">
-            <span>Đã có tài khoản BQH MOVIE?</span>
+            <span style="color: #8c8c8c;">Đã có tài khoản?</span>
             <a href="{% url 'login' %}">Đăng nhập ngay.</a>
         </div>
     </div>

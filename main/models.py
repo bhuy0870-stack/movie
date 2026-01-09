@@ -1,5 +1,26 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+from django.contrib.auth.models import User
+
+class Achievement(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255)
+    icon_class = models.CharField(max_length=50, help_text="Sử dụng FontAwesome, ví dụ: fas fa-moon")
+    color = models.CharField(max_length=20, default="#ffcc00") # Màu sắc của huy hiệu
+
+    def __str__(self):
+        return self.name
+
+class UserAchievement(models.Model):
+    # Sửa on_update thành on_delete ở dòng dưới đây
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="achievements")
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    date_unlocked = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'achievement')
+
 
 class Movie(models.Model):
     api_id = models.IntegerField(unique=True, null=True, blank=True)

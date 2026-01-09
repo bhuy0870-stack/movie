@@ -30,8 +30,8 @@
             z-index: 9999; transition: width 0.4s ease;
         }
 
-        /* --- NAVBAR & LOGO --- */
-        .navbar { padding: 18px 0; transition: var(--transition); backdrop-filter: blur(25px); }
+        /* --- NAVBAR --- */
+        .navbar { padding: 18px 0; transition: var(--transition); backdrop-filter: blur(25px); z-index: 1000; }
         .navbar.scrolled { background: var(--bg-nav) !important; padding: 12px 0; border-bottom: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .brand-logo { font-size: 1.8rem; font-weight: 900; text-decoration: none !important; display: flex; align-items: center; letter-spacing: -1.5px; text-transform: uppercase; }
@@ -67,35 +67,63 @@
         .dropdown-item { color: #fff !important; font-weight: 600; padding: 10px 15px; border-radius: 8px; transition: 0.2s; }
         .dropdown-item:hover { background: rgba(229, 9, 20, 0.1) !important; color: var(--primary) !important; }
 
+        /* --- TOAST & ACHIEVEMENT SYSTEM --- */
+        #toast-container {
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+            display: flex; flex-direction: column-reverse; gap: 12px;
+        }
+        .bqh-toast {
+            background: rgba(15, 15, 15, 0.95); color: white; padding: 16px 24px;
+            border-radius: 12px; border-left: 5px solid var(--primary);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(15px);
+            display: flex; align-items: center; min-width: 320px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: toastIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes toastIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .bqh-toast.success { border-left-color: #2ecc71; }
+        .bqh-toast.error { border-left-color: var(--primary); }
+        .bqh-toast.info { border-left-color: #3498db; }
+
+        /* Achievement Toast Style */
+        .bqh-toast.achievement {
+            border-left: none;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            border: 1px solid var(--gold);
+            position: relative;
+            overflow: hidden;
+        }
+        .bqh-toast.achievement::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.25), transparent);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine { to { left: 100%; } }
+        
+        .toast-icon { font-size: 1.2rem; margin-right: 15px; }
+        .toast-achievement-icon { color: var(--gold); font-size: 1.5rem; filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5)); }
+        .toast-msg { font-size: 0.95rem; font-weight: 600; }
+
+        /* --- BACK TO TOP --- */
         #backToTop {
-            position: fixed; bottom: 100px;
-            right: 30px; width: 50px; height: 50px;
+            position: fixed; bottom: 100px; right: 30px; width: 50px; height: 50px;
             background: var(--primary); color: white; border-radius: 15px; border: none;
             display: none; align-items: center; justify-content: center; z-index: 1000;
             box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4); transition: 0.3s;
         }
         #backToTop:hover { transform: translateY(-5px); background: var(--primary-hover); }
 
-        /* --- MODAL DONATE FIX --- */
-        .qr-container { 
-            background: white; 
-            padding: 20px; /* Tăng padding để không bị sát mép */
-            border-radius: 20px; 
-            display: inline-block; 
-            transition: 0.3s; 
-            border: 3px solid transparent; 
-        }
-        .qr-container img {
-            width: 250px;
-            height: 250px;
-            object-fit: contain; /* Đảm bảo không bị khuất phần trên */
-            display: block;
-        }
-        .qr-container:hover { transform: scale(1.03); border-color: var(--gold); box-shadow: 0 0 20px rgba(255, 204, 0, 0.3); }
+        /* --- MODAL DONATE --- */
+        .qr-container { background: white; padding: 20px; border-radius: 20px; display: inline-block; border: 3px solid transparent; }
+        .qr-container img { width: 250px; height: 250px; object-fit: contain; display: block; }
     </style>
 </head>
 <body>
     <div id="loading-bar"></div>
+    <div id="toast-container"></div>
 
     <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
         <div class="container">
@@ -137,7 +165,6 @@
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Hồ sơ cá nhân</a></li>
                                 <li><a class="dropdown-item" href="{% url 'watchlist' %}"><i class="fas fa-bookmark me-2"></i> Phim đã lưu</a></li>
-                                <li><a class="dropdown-item text-warning" href="#" data-bs-toggle="modal" data-bs-target="#donateModal"><i class="fas fa-coffee me-2"></i> Ủng hộ Admin</a></li>
                                 <li><hr class="dropdown-divider border-secondary"></li>
                                 <li>
                                     <form action="{% url 'logout' %}" method="post" class="m-0">
@@ -170,9 +197,8 @@
                 </div>
                 <div class="modal-body text-center p-4">
                     <div class="qr-container mb-3">
-                        <img src="https://img.vietqr.io/image/vcb-1025765518-compact2.jpg?amount=0&addInfo=Ung%20ho%20BQH%20Movie&accountName=BANH%20QUANG%20HUY" 
-                             alt="QR Donate">
-                        <p class="text-dark small mt-2 mb-0 fw-bold">Quét mã bằng App Ngân hàng / MoMo</p>
+                        <img src="https://img.vietqr.io/image/vcb-1025765518-compact2.jpg?amount=0&addInfo=Ung%20ho%20BQH%20Movie&accountName=BANH%20QUANG%20HUY" alt="QR Donate">
+                        <p class="text-dark small mt-2 mb-0 fw-bold">Quét mã bằng Ngân hàng / MoMo</p>
                     </div>
                     <div class="text-start bg-black bg-opacity-50 p-3 rounded-3 border border-secondary border-opacity-40">
                         <div class="d-flex justify-content-between mb-2">
@@ -184,11 +210,10 @@
                             <span class="text-white small fw-bold">1025765518</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span class="text-white-50 small">Chủ tài khoản:</span>
+                            <span class="text-white-50 small">Chủ TK:</span>
                             <span class="text-white small fw-bold text-uppercase">BANH QUANG HUY</span>
                         </div>
                     </div>
-                    <p class="text-white-50 small mt-3 italic">Nội dung: <strong>Ung ho BQH Movie</strong></p>
                 </div>
             </div>
         </div>
@@ -197,24 +222,62 @@
     <button id="backToTop" title="Lên đầu trang"><i class="fas fa-arrow-up"></i></button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // Loading Bar
+        /**
+         * HÀM HIỂN THỊ THÔNG BÁO TOAST & ACHIEVEMENT
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Tự động nhận diện nếu là thông báo Huy hiệu
+            const isAchievement = message.includes("huy hiệu") || message.includes("🏆");
+            toast.className = `bqh-toast ${isAchievement ? 'achievement' : type}`;
+            
+            let icon = 'fa-info-circle';
+            if (isAchievement) icon = 'fa-trophy';
+            else if (type === 'success') icon = 'fa-check-circle';
+            else if (type === 'error') icon = 'fa-exclamation-triangle';
+
+            toast.innerHTML = `
+                <div class="toast-icon ${isAchievement ? 'toast-achievement-icon' : ''}">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="toast-msg">${message}</div>
+            `;
+            container.appendChild(toast);
+
+            // Thời gian hiển thị (Huy hiệu hiện lâu hơn)
+            const duration = isAchievement ? 6000 : 4000;
+
+            setTimeout(() => {
+                toast.style.animation = 'toastIn 0.5s ease reverse forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, duration);
+        }
+
+        // Quét messages từ Django
+        {% if messages %}
+            {% for message in messages %}
+                showToast("{{ message|escapejs }}", "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}");
+            {% endfor %}
+        {% endif %}
+
+        // Hiệu ứng Loading
         window.addEventListener('load', () => { 
             const bar = document.getElementById('loading-bar');
             bar.style.width = '100%'; 
             setTimeout(() => { bar.style.opacity = '0'; }, 400); 
         });
 
-        // Scroll Logic
+        // Cuộn trang
         const nav = document.getElementById('mainNavbar');
         const btt = document.getElementById('backToTop');
-        
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) nav.classList.add('scrolled'); 
             else nav.classList.remove('scrolled'); 
-
-            if (window.scrollY > 400) btt.style.display = 'flex'; 
-            else btt.style.display = 'none'; 
+            btt.style.display = window.scrollY > 400 ? 'flex' : 'none';
         });
 
         btt.addEventListener('click', () => { 

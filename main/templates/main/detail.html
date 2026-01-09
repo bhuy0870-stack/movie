@@ -16,7 +16,7 @@
 
     /* --- HIỆU CHỈNH CHẾ ĐỘ RẠP CHIẾU --- */
     body.cinema-mode-active .navbar, 
-    body.cinema-mode-active footer { 
+    body.cinema-mode-active #backToTop { 
         display: none !important; 
     }
 
@@ -26,19 +26,12 @@
     }
     
     .player-section.cinema-mode { 
-        padding: 0; 
-        background: #000;
-        position: fixed; 
-        top: 0; left: 0; width: 100%; height: 100vh;
-        z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        padding: 0; background: #000;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+        z-index: 2000; display: flex; flex-direction: column; justify-content: center;
     }
 
-    .bg-blur-container {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-    }
+    .bg-blur-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
     .bg-blur-image {
         position: absolute; width: 100%; height: 120%;
         background: url('{{ movie.poster_url }}') center/cover;
@@ -86,48 +79,32 @@
     .btn-bookmark-premium.active { background: #fff; color: #000; }
     .btn-bookmark-premium:hover { transform: translateY(-3px); opacity: 0.9; color: white; }
 
-    /* --- ĐÁNH GIÁ & BÌNH LUẬN --- */
-    .review-input-wrapper {
-        background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
-        border-radius: 20px; padding: 25px;
+    .user-badge-item {
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-left: 4px; width: 20px; height: 20px;
+        background: rgba(255,255,255,0.1); border-radius: 4px;
+        font-size: 0.7rem; cursor: help; transition: 0.2s;
     }
 
-    .comment-area-premium {
-        background: #151515; border: 1px solid #333;
-        color: white; border-radius: 12px; padding: 15px; transition: 0.3s;
-    }
+    /* --- ĐÁNH GIÁ & BÌNH LUẬN --- */
+    .review-input-wrapper { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; }
+    .comment-area-premium { background: #151515; border: 1px solid #333; color: white; border-radius: 12px; padding: 15px; transition: 0.3s; }
     .comment-area-premium:focus { border-color: var(--accent); outline: none; background: #000; }
 
-    .star-rating-premium {
-        display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px;
-    }
+    .star-rating-premium { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px; }
     .star-rating-premium input { display: none; }
     .star-rating-premium label { font-size: 1.8rem; color: #333; cursor: pointer; transition: 0.2s; }
-    .star-rating-premium input:checked ~ label,
-    .star-rating-premium label:hover,
-    .star-rating-premium label:hover ~ label { color: var(--star-color); }
+    .star-rating-premium input:checked ~ label, .star-rating-premium label:hover, .star-rating-premium label:hover ~ label { color: var(--star-color); }
 
-    .user-avatar {
-        width: 50px; height: 50px; border-radius: 12px;
-        background: linear-gradient(45deg, var(--accent), #b00610);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 1.1rem;
-    }
+    .user-avatar-review { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(45deg, var(--accent), #b00610); display: flex; align-items: center; justify-content: center; font-weight: 800; }
 
-    .btn-like-premium {
-        background: var(--glass); border: 1px solid var(--glass-border);
-        color: #fff; padding: 5px 15px; border-radius: 10px; transition: 0.3s; font-size: 0.85rem;
-    }
+    .btn-like-premium { background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 5px 15px; border-radius: 10px; transition: 0.3s; font-size: 0.85rem; }
     .btn-like-premium.liked { background: var(--accent); border-color: var(--accent); }
 
-    /* --- SIDEBAR ĐỀ XUẤT --- */
-    .rec-item-premium {
-        display: flex; gap: 15px; padding: 10px; border-radius: 15px;
-        transition: 0.3s; text-decoration: none; align-items: center;
-    }
+    /* --- SIDEBAR --- */
+    .rec-item-premium { display: flex; gap: 15px; padding: 10px; border-radius: 15px; transition: 0.3s; text-decoration: none; align-items: center; }
     .rec-item-premium:hover { background: var(--glass); }
     .rec-poster { width: 70px; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border); }
-
 </style>
 
 <section class="player-section" id="player-area">
@@ -224,14 +201,25 @@
                 <div class="review-list">
                     {% for review in reviews %}
                     <div class="d-flex gap-3 mb-4 pb-4 border-bottom border-white border-opacity-5">
-                        <div class="user-avatar">{{ review.user.username|first|upper }}</div>
+                        <div class="user-avatar-review text-white">{{ review.user.username|first|upper }}</div>
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between">
-                                <h6 class="text-white fw-bold m-0 small">{{ review.user.username }}</h6>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="text-white fw-bold m-0 small">{{ review.user.username }}</h6>
+                                    <div class="ms-1 d-flex">
+                                        {% for ua in review.user.achievements.all %}
+                                        <div class="user-badge-item" title="{{ ua.achievement.name }}">
+                                            <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }}"></i>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                                 <small class="text-white-50" style="font-size: 0.7rem;">{{ review.created_at|timesince }} trước</small>
                             </div>
                             <div class="text-warning my-1" style="font-size:0.7rem">
-                                {% for i in "12345"|make_list %}<i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>{% endfor %}
+                                {% for i in "12345"|make_list %}
+                                    <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"></i>
+                                {% endfor %}
                             </div>
                             <p class="text-white-50 my-2 small">{{ review.comment }}</p>
                             <div class="d-flex align-items-center gap-3">
@@ -239,13 +227,13 @@
                                     <i class="fas fa-heart me-1"></i> <span class="like-count">{{ review.likes.count }}</span>
                                 </button>
                                 {% if review.user == user %}
-                                <a href="{% url 'delete_review' review.id %}" class="text-white-50 x-small text-decoration-none" style="font-size: 0.75rem;"><i class="fas fa-trash-alt me-1"></i> Xóa</a>
+                                <a href="{% url 'delete_review' review.id %}" class="text-white-50 text-decoration-none small"><i class="fas fa-trash-alt"></i></a>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-white-50 text-center py-4">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                    <p class="text-white-50 text-center py-4">Chưa có bình luận nào.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -259,8 +247,7 @@
                     <img src="{{ rec.poster_url }}" class="rec-poster">
                     <div class="overflow-hidden">
                         <div class="text-white small fw-bold text-truncate">{{ rec.title }}</div>
-                        <div class="text-warning x-small mt-1" style="font-size: 0.75rem;"><i class="fas fa-star me-1"></i>{{ rec.imdb_rating }}</div>
-                        <div class="text-white-50 x-small mt-1" style="font-size: 0.7rem;">{{ rec.release_date|date:"Y" }}</div>
+                        <div class="text-warning x-small mt-1"><i class="fas fa-star me-1"></i>{{ rec.imdb_rating }}</div>
                     </div>
                 </a>
                 {% endfor %}
@@ -270,6 +257,7 @@
 </div>
 
 <script>
+    // XỬ LÝ LIKE QUA AJAX (Sử dụng showToast từ base.html)
     function handleLike(btn, reviewId) {
         fetch(`/like-review/${reviewId}/`, {
             method: 'POST',
@@ -280,30 +268,41 @@
         })
         .then(res => res.json())
         .then(data => {
-            if(data.liked) btn.classList.add('liked');
-            else btn.classList.remove('liked');
+            if(data.liked) {
+                btn.classList.add('liked');
+                showToast('Đã thích bình luận!', 'success');
+            } else {
+                btn.classList.remove('liked');
+                showToast('Đã bỏ thích', 'info');
+            }
             btn.querySelector('.like-count').innerText = data.count;
-        });
+        })
+        .catch(() => showToast('Đăng nhập để thực hiện', 'error'));
     }
 
+    // ĐỔI SERVER
     function changeServer(btn, url) {
         const video = document.getElementById('main-video');
         if(video) {
             video.src = url;
             document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            showToast('Đã đổi Server VIP', 'success');
         }
     }
 
+    // FULLSCREEN
     function toggleFullscreen() {
         const container = document.getElementById('cinema-container');
         if (!document.fullscreenElement) {
-            container.requestFullscreen?.() || container.webkitRequestFullscreen?.();
+            if (container.requestFullscreen) container.requestFullscreen();
+            else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
         } else {
             document.exitFullscreen();
         }
     }
 
+    // CHẾ ĐỘ RẠP CHIẾU
     function toggleCinema() {
         const player = document.getElementById('player-area');
         const btn = document.getElementById('cinema-btn');
@@ -313,6 +312,7 @@
             document.body.classList.add('cinema-mode-active');
             document.body.style.overflow = 'hidden'; 
             btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>'; 
+            showToast('Bật chế độ rạp chiếu', 'info');
         } else {
             document.body.classList.remove('cinema-mode-active');
             document.body.style.overflow = 'auto'; 
@@ -321,6 +321,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // PHÍM TẮT
     document.addEventListener('keydown', (e) => {
         if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
         if (e.key.toLowerCase() === 'f') toggleFullscreen();

@@ -4,39 +4,75 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow border-0" style="border-radius: 15px; background: #1a1a1a; color: white; border: 1px solid #333 !important;">
-                <div class="card-header bg-danger text-center py-3" style="border-radius: 15px 15px 0 0;">
-                    <h4 class="mb-0 fw-bold">HỒ SƠ CÁ NHÂN</h4>
+            <div class="card shadow border-0" style="border-radius: 20px; background: #121212; color: white; border: 1px solid #222 !important;">
+                
+                <div class="card-header bg-danger text-center py-3" style="border-radius: 20px 20px 0 0; border-bottom: 2px solid rgba(0,0,0,0.2);">
+                    <h4 class="mb-0 fw-bold" style="letter-spacing: 2px;"><i class="fas fa-id-card me-2"></i>HỒ SƠ CÁ NHÂN</h4>
                 </div>
+
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
-                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" class="rounded-circle shadow mb-3" width="100 border border-3 border-danger">
-                        <h4 class="mt-2 fw-bold text-uppercase">{{ user.username }}</h4>
-                        <span class="text-secondary">{{ user.email }}</span>
+                        <div class="position-relative d-inline-block">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" 
+                                 class="rounded-circle shadow mb-3 border border-3 border-danger" width="110">
+                            {% if is_donor %}
+                            <div class="position-absolute" style="top: -15px; right: -10px; filter: drop-shadow(0 0 5px #ffcc00);">
+                                <i class="fas fa-crown text-warning" style="font-size: 1.8rem; transform: rotate(15deg);"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="mt-2 fw-bold text-uppercase" style="color: #ff4d4d; letter-spacing: 1px; margin-bottom: 5px;">{{ user.username }}</h4>
+                        <div class="text-white-50 small fw-light">{{ user.email }}</div>
                     </div>
 
-                    <div class="p-3 rounded bg-dark mb-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-secondary"><i class="fas fa-calendar-alt me-2 text-danger"></i> Ngày sinh:</span>
-                            <span class="fw-bold">{{ user.last_name|default:"Chưa cập nhật" }}</span>
+                    <div class="achievement-section mb-4 p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <h6 class="text-uppercase fw-bold text-warning mb-3 small d-flex align-items-center" style="letter-spacing: 1px;">
+                            <i class="fas fa-trophy me-2" style="font-size: 1.1rem;"></i>KHO THÀNH TỰU
+                        </h6>
+                        
+                        <div class="d-flex flex-wrap gap-3 justify-content-center py-2">
+                            {% for ua in user.achievements.all %}
+                            <div class="achievement-badge shadow-sm" title="{{ ua.achievement.description }}">
+                                <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
+                                <span class="badge-tooltip">{{ ua.achievement.name }}</span>
+                            </div>
+                            {% empty %}
+                            <div class="text-center w-100 py-4" style="background: rgba(0,0,0,0.2); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1);">
+                                <i class="fas fa-lock mb-2 d-block" style="color: rgba(255, 255, 255, 0.3); font-size: 1.5rem;"></i>
+                                <p class="mb-0 fw-light" style="color: rgba(255, 255, 255, 0.7); font-style: italic; font-size: 0.85rem;">
+                                    Chưa mở khóa thành tựu nào.<br>Xem phim để tích lũy ngay!
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="info-details p-3 rounded bg-dark mb-4 border border-secondary border-opacity-10 shadow-inner">
+                        <div class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                            <span class="text-white-50 small"><i class="fas fa-calendar-alt me-2 text-danger"></i>Ngày sinh</span>
+                            <span class="fw-bold small">{{ user.last_name|default:"Chưa cập nhật" }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span class="text-secondary"><i class="fas fa-user-clock me-2 text-danger"></i> Tuổi hiện tại:</span>
-                            <span class="fw-bold text-warning">
+                            <span class="text-white-50 small"><i class="fas fa-history me-2 text-danger"></i>Tuổi hiện tại</span>
+                            <span class="fw-bold text-warning small">
                                 {% if user_age != "Chưa cập nhật" %}
                                     {{ user_age }} tuổi
                                 {% else %}
-                                    <small class="text-muted italic">Cần cập nhật ngày sinh</small>
+                                    <small class="text-white-50 italic">Cần cập nhật</small>
                                 {% endif %}
                             </span>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2 mt-4">
-                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill">Quay lại trang chủ</a>
-                        <form action="{% url 'logout' %}" method="post">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill fw-bold py-2 shadow-sm" style="font-size: 0.85rem;">
+                            <i class="fas fa-home me-2"></i>VỀ TRANG CHỦ
+                        </a>
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger w-100 rounded-pill">Đăng xuất tài khoản</button>
+                            <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm shadow-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>ĐĂNG XUẤT
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -44,4 +80,64 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Thêm hiệu ứng phát sáng dựa trên màu của huy hiệu */
+    .achievement-badge i {
+        transition: all 0.3s ease;
+    }
+    .achievement-badge:hover i {
+        filter: drop-shadow(0 0 8px currentColor);
+    }
+
+    .achievement-badge {
+        width: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .achievement-badge:hover {
+        transform: translateY(-8px) rotate(5deg);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #ffcc00;
+        box-shadow: 0 8px 20px rgba(255, 204, 0, 0.2);
+    }
+
+    .badge-tooltip {
+        position: absolute;
+        bottom: 130%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ffcc00;
+        color: #000;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        white-space: nowrap;
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.3s;
+        z-index: 100;
+    }
+
+    .achievement-badge:hover .badge-tooltip {
+        visibility: visible;
+        opacity: 1;
+        bottom: 115%;
+    }
+
+    .shadow-inner {
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    }
+</style>
 {% endblock %}

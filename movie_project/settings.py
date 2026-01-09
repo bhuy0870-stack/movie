@@ -22,8 +22,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic', # Thêm dòng này để hỗ trợ static khi debug
     'django.contrib.staticfiles',
+    'main.apps.MainConfig'
     
-    'main', # App chính của bạn
+    
 ]
 
 MIDDLEWARE = [

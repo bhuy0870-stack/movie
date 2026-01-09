@@ -1,0 +1,66 @@
+.transition-scale {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.transition-scale:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(229, 9, 20, 0.2) !important;
+}
+
+.review-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.review-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.review-list::-webkit-scrollbar-thumb {
+    background: #E50914;
+    border-radius: 10px;
+}
+
+.review-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 5px solid #555;
+    transition: all 0.3s ease;
+}
+
+.review-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.sentiment-positive { border-left-color: #2ecc71 !important; }
+.sentiment-negative { border-left-color: #e74c3c !important; }
+.sentiment-neutral { border-left-color: #95a5a6 !important; }
+
+.avatar-circle {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(45deg, #E50914, #b20710);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.badge.rounded-pill {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+
+.img-fluid.rounded.shadow-lg {
+    transition: transform 0.5s ease;
+}
+
+.img-fluid.rounded.shadow-lg:hover {
+    transform: scale(1.02);
+}

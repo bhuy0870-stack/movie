@@ -3,6 +3,16 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from .models import Movie, Review
 from datetime import date
+from django.contrib import admin
+from .models import Achievement, UserAchievement
+
+@admin.register(Achievement)
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'color')
+
+@admin.register(UserAchievement)
+class UserAchievementAdmin(admin.ModelAdmin):
+    list_display = ('user', 'achievement', 'date_unlocked')
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):

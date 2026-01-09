@@ -2,31 +2,37 @@ import requests
 import re
 from datetime import date
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
-from django.http import JsonResponse  # Thêm dòng này vào đầu file views.py
+from django.http import JsonResponse
 
-# Import các model từ ứng dụng của bạn
-from .models import Movie, Watchlist, Review
+# Import các model
+from .models import Movie, Watchlist, Review, Achievement, UserAchievement
 
 # --- HELPER FUNCTIONS ---
 
+def check_and_assign_achievement(request, user, achievement_id):
+    """
+    Hàm hỗ trợ kiểm tra và trao huy hiệu cho người dùng
+    """
+    achievement = Achievement.objects.filter(id=achievement_id).first()
+    if achievement:
+        already_has = UserAchievement.objects.filter(user=user, achievement=achievement).exists()
+        if not already_has:
+            UserAchievement.objects.create(user=user, achievement=achievement)
+            messages.success(request, f"🏆 Chúc mừng! Bạn vừa nhận được huy hiệu: {achievement.name}")
+
 def fetch_direct_link(tmdb_id):
-    """
-    Hàm thử lấy link .m3u8 từ nhiều nguồn API khác nhau (Fallback System).
-    """
-    # Danh sách các API Consumet/Provider dự phòng
-    # Ưu tiên các Instance ít bị chặn
     providers = [
         f"https://api.consumet.org/meta/tmdb/watch/1?mediaId={tmdb_id}&server=vidsrc",
         f"https://consumet-api-production-e61a.up.railway.app/meta/tmdb/watch/1?mediaId={tmdb_id}",
         f"https://api.veremis.com/tmdb/movie/{tmdb_id}"
     ]
-
     for url in providers:
         try:
             response = requests.get(url, timeout=3)
@@ -34,9 +40,8 @@ def fetch_direct_link(tmdb_id):
                 data = response.json()
                 sources = data.get('sources', [])
                 if sources:
-                    # Tìm link có chất lượng auto hoặc lấy cái đầu tiên
                     for s in sources:
-                        if s.get('quality') == 'auto' or s.get('quality') == 'default':
+                        if s.get('quality') in ['auto', 'default']:
                             return s.get('url')
                     return sources[0].get('url')
         except:
@@ -98,11 +103,8 @@ def movie_detail(request, movie_id):
         is_bookmarked = Watchlist.objects.filter(user=request.user, movie=movie).exists()
     
     episodes = movie.episodes.all() if hasattr(movie, 'episodes') else []
-    
-    # LẤY LINK VIDEO SẠCH (.m3u8)
     clean_link = fetch_direct_link(movie.api_id)
     
-    # XÁC ĐỊNH LINK HIỂN THỊ (SẠCH HOẶC IFRAME DỰ PHÒNG)
     if clean_link:
         default_video_url = clean_link
         is_direct = True
@@ -113,7 +115,6 @@ def movie_detail(request, movie_id):
         else:
             default_video_url = movie.movie_url
 
-    # KIỂM TRA ĐỘ TUỔI
     can_watch = True
     age_message = ""
     if movie.age_limit > 0:
@@ -132,7 +133,6 @@ def movie_detail(request, movie_id):
                 can_watch = False
                 age_message = "Cập nhật ngày sinh trong Profile để xem phim này."
 
-    # PHIM GỢI Ý
     first_genre = movie.genres.split(',')[0].strip() if movie.genres else ""
     recommendations = Movie.objects.filter(genres__icontains=first_genre).exclude(id=movie.id).order_by('-imdb_rating')[:6]
     
@@ -153,18 +153,37 @@ def movie_detail(request, movie_id):
 
 def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
         birth_date = request.POST.get('birth_date')
-        if form.is_valid():
-            user = form.save(commit=False)
+
+        if password != password_confirm:
+            messages.error(request, "Mật khẩu xác nhận không khớp!")
+            return render(request, 'main/register.html')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Tên đăng nhập đã tồn tại!")
+            return render(request, 'main/register.html')
+
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password)
             user.last_name = birth_date 
             user.save()
+            
             login(request, user)
-            messages.success(request, "Đăng ký thành công!")
+            
+            # Huy hiệu 1: Thành viên mới
+            check_and_assign_achievement(request, user, 1)
+            
+            messages.success(request, f"Chào mừng {username}! Đăng ký thành công.")
             return redirect('home')
-    else: 
-        form = UserCreationForm()
-    return render(request, 'main/register.html', {'form': form})
+        except Exception as e:
+            messages.error(request, f"Lỗi hệ thống: {str(e)}")
+            return render(request, 'main/register.html')
+            
+    return render(request, 'main/register.html')
 
 def login_view(request):
     if request.method == 'POST':
@@ -185,20 +204,27 @@ def logout_view(request):
 def add_review(request, movie_id):
     if request.method == 'POST':
         movie = get_object_or_404(Movie, pk=movie_id)
-        comment = request.POST.get('comment', '').lower()
+        comment = request.POST.get('comment', '')
         rating = int(request.POST.get('rating', 5))
         
+        comment_lower = comment.lower()
         pos_words = ['hay', 'tốt', 'tuyệt', 'đỉnh', 'cuốn', 'thích', 'đáng xem', 'ý nghĩa', 'xuất sắc', 'hấp dẫn']
         neg_words = ['tệ', 'dở', 'chán', 'nhạt', 'phí', 'không hay', 'vớ vẩn', 'kém', 'thất vọng']
 
-        score = sum(1 for w in pos_words if w in comment) - sum(1 for w in neg_words if w in comment)
+        score = sum(1 for w in pos_words if w in comment_lower) - sum(1 for w in neg_words if w in comment_lower)
         sentiment_label = "Tích cực 😊" if score > 0 else "Tiêu cực 😡" if score < 0 else "Trung lập 😐"
 
         Review.objects.create(
             user=request.user, movie=movie, 
-            comment=request.POST.get('comment'),
+            comment=comment,
             rating=rating, sentiment_label=sentiment_label
         )
+        
+        # Huy hiệu 2: Chuyên gia bình luận (Nếu đã có >= 5 bình luận)
+        review_count = Review.objects.filter(user=request.user).count()
+        if review_count >= 5:
+            check_and_assign_achievement(request, request.user, 2)
+            
         messages.success(request, "Đã gửi bình luận!")
     return redirect('movie_detail', movie_id=movie_id)
 
@@ -210,28 +236,39 @@ def delete_review(request, review_id):
         review.delete()
     return redirect('movie_detail', movie_id=movie_id)
 
+@login_required
 def profile_view(request):
     user_age = "Chưa cập nhật"
-    if request.user.is_authenticated and request.user.last_name:
+    if request.user.last_name:
         try:
             birth_date = date.fromisoformat(request.user.last_name)
             today = date.today()
             user_age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        except: pass
-    return render(request, 'main/profile.html', {'user_age': user_age})
+        except: 
+            pass
+            
+    context = {
+        'user': request.user,
+        'user_age': user_age
+    }
+    return render(request, 'main/profile.html', context)
 
 @login_required
 def toggle_watchlist(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     watchlist_item = Watchlist.objects.filter(user=request.user, movie=movie)
-    
     if watchlist_item.exists():
         watchlist_item.delete()
         messages.info(request, "Đã xóa khỏi danh sách lưu.")
     else:
         Watchlist.objects.create(user=request.user, movie=movie)
-        messages.success(request, "Đã lưu phim vào danh sách.")
         
+        # Huy hiệu 3: Nhà sưu tầm (Lưu trên 10 bộ phim)
+        collect_count = Watchlist.objects.filter(user=request.user).count()
+        if collect_count >= 10:
+            check_and_assign_achievement(request, request.user, 3)
+            
+        messages.success(request, "Đã lưu phim vào danh sách.")
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 @login_required
