@@ -1,11 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-from .models import Movie, Review
+from .models import Movie, Episode, Review, Achievement, UserAchievement
 from datetime import date
-from django.contrib import admin
-from .models import Achievement, UserAchievement
 
+# 1. Quản lý Thành tích
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'color')
@@ -14,18 +13,32 @@ class AchievementAdmin(admin.ModelAdmin):
 class UserAchievementAdmin(admin.ModelAdmin):
     list_display = ('user', 'achievement', 'date_unlocked')
 
+# 2. Quản lý Tập phim (Hiển thị ngay bên trong trang sửa phim)
+class EpisodeInline(admin.TabularInline):
+    model = Episode
+    extra = 1 # Cho phép thêm nhanh 1 tập phim trống
+    fields = ('episode_name', 'server_name', 'link_ophim', 'link_bunny_id')
+
+# 3. Quản lý Phim
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    list_display = ('title', 'release_date', 'age_limit', 'genres')
-    list_filter = ('age_limit', 'genres')
-    search_fields = ('title', 'director')
-    # Hiển thị thêm các cột mới trong danh sách quản lý
-    list_display = ('title', 'release_date', 'country', 'is_series', 'imdb_rating')
-    # Thêm bộ lọc nhanh ở cột bên phải
+    # Cột hiển thị ở danh sách
+    list_display = ('title', 'origin_name', 'release_date', 'country', 'is_series', 'current_episode')
+    # Bộ lọc ở bên phải
     list_filter = ('is_series', 'country', 'release_date')
-    # Cho phép tìm kiếm theo tên phim
-    search_fields = ('title',)
+    # Ô tìm kiếm
+    search_fields = ('title', 'origin_name', 'slug')
+    # Tích hợp quản lý tập phim vào trang chi tiết phim
+    inlines = [EpisodeInline]
 
+# 4. Quản lý Đánh giá (Đã xóa sentiment_label bị lỗi)
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('user', 'movie', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('comment', 'user__username', 'movie__title')
+
+# 5. Quản lý User tùy chỉnh (Hiển thị tuổi từ last_name)
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_birth_date', 'get_age', 'is_staff')
 
@@ -45,10 +58,6 @@ class CustomUserAdmin(UserAdmin):
         return "N/A"
     get_age.short_description = 'Tuổi hiện tại'
 
+# Đăng ký lại UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-
-@admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('user', 'movie', 'rating', 'sentiment_label', 'created_at')
-    list_filter = ('sentiment_label', 'rating')

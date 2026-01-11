@@ -1,19 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db import models
-from django.contrib.auth.models import User
 
+# --- Hệ thống Thành tích (Giữ nguyên) ---
 class Achievement(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
     icon_class = models.CharField(max_length=50, help_text="Sử dụng FontAwesome, ví dụ: fas fa-moon")
-    color = models.CharField(max_length=20, default="#ffcc00") # Màu sắc của huy hiệu
+    color = models.CharField(max_length=20, default="#ffcc00")
 
     def __str__(self):
         return self.name
 
 class UserAchievement(models.Model):
-    # Sửa on_update thành on_delete ở dòng dưới đây
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="achievements")
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     date_unlocked = models.DateTimeField(auto_now_add=True)
@@ -21,61 +19,71 @@ class UserAchievement(models.Model):
     class Meta:
         unique_together = ('user', 'achievement')
 
-
+# --- Hệ thống Phim (Tối ưu cho Ophim & Bunny) ---
 class Movie(models.Model):
-    api_id = models.IntegerField(unique=True, null=True, blank=True)
+    # Dùng Slug của Ophim làm ID duy nhất để tránh trùng lặp khi cào dữ liệu
+    slug = models.SlugField(unique=True, max_length=255, help_text="Slug từ Ophim (ví dụ: spider-man-no-way-home)")
+    api_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     title = models.CharField(max_length=255)
-    description = models.TextField()
-    release_date = models.DateField(null=True, blank=True)
-    poster_url = models.URLField()
-    trailer_url = models.URLField(null=True, blank=True)
-    director = models.CharField(max_length=200, blank=True, null=True)
+    origin_name = models.CharField(max_length=255, blank=True, null=True) # Tên tiếng Anh/Gốc
+    description = models.TextField(blank=True, null=True)
+    release_date = models.CharField(max_length=50, null=True, blank=True) # Ophim thường trả về năm (String)
+    poster_url = models.URLField(max_length=500)
+    thumb_url = models.URLField(max_length=500, blank=True, null=True) # Ảnh ngang (Thumbnail)
+    
+    # Thông tin bổ sung
+    director = models.CharField(max_length=255, blank=True, null=True)
     cast = models.TextField(blank=True, null=True)
     genres = models.CharField(max_length=255, blank=True) 
-    age_limit = models.IntegerField(default=0)
-    # movie_url nên để trống nếu là phim bộ, hoặc dùng làm link tập 1 cho phim lẻ
-    movie_url = models.URLField(max_length=500, blank=True, null=True)
-    country = models.CharField(max_length=100, default="Âu Mỹ")
+    country = models.CharField(max_length=100, default="Đang cập nhật")
+    
+    # Phân loại phim
     is_series = models.BooleanField(default=False) 
-    total_episodes = models.CharField(max_length=50, default="1", help_text="Ví dụ: 12 hoặc Hoàn thành (12/12)")
-    imdb_rating = models.FloatField(default=0.0) # Thêm vào để đồng bộ với admin
+    total_episodes = models.CharField(max_length=50, default="1")
+    current_episode = models.CharField(max_length=50, default="Full", help_text="Ví dụ: Tập 5 hoặc Hoàn tất")
+    
+    # Rating & Settings
+    imdb_rating = models.FloatField(default=0.0)
+    age_limit = models.IntegerField(default=0)
+    
+    # Cấu hình Bunny chung cho cả bộ phim
+    bunny_library_id = models.CharField(max_length=50, default="577395") 
 
     def __str__(self):
         return self.title
 
-# BẢNG MỚI: Quản lý từng tập phim
 class Episode(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='episodes')
-    episode_number = models.IntegerField(default=1)
-    title = models.CharField(max_length=255, blank=True, help_text="Tên tập (nếu có)")
-    video_url = models.URLField(max_length=500) # Link phim của riêng tập này
+    server_name = models.CharField(max_length=100, default="Vietsub #1")
+    episode_name = models.CharField(max_length=100, help_text="Ví dụ: Tập 01, Full")
+    episode_slug = models.SlugField(max_length=100)
+    
+    # Link phim
+    link_ophim = models.URLField(max_length=1000, help_text="Link .m3u8 từ Ophim")
+    link_bunny_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID Video trên Bunny (nếu có)")
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['episode_number']
+        ordering = ['id'] # Sắp xếp theo thứ tự thêm vào
 
     def __str__(self):
-        return f"{self.movie.title} - Tập {self.episode_number}"
+        return f"{self.movie.title} - {self.episode_name}"
 
-
-
+# --- Tương tác Người dùng ---
 class Review(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField()
     rating = models.IntegerField(default=5)
+    sentiment_label = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    sentiment_score = models.FloatField(default=0.0)
-    sentiment_label = models.CharField(max_length=50, blank=True, null=True)
-    likes = models.ManyToManyField(User, related_name='liked_reviews', blank=True)    
-    def __str__(self):
-        return f"{self.user.username} - {self.movie.title}"
-    
-    # main/models.py
+    likes = models.ManyToManyField(User, related_name='liked_reviews', blank=True)
+
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'movie') # Tránh lưu trùng 1 bộ phim nhiều lần
+        unique_together = ('user', 'movie')

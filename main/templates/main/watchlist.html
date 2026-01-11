@@ -1,33 +1,146 @@
 {% extends 'main/base.html' %}
+{% load static %}
+
 {% block title %}Phim đã lưu của tôi{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h3 class="fw-bold mb-4"><i class="fas fa-bookmark text-warning me-2"></i>DANH SÁCH PHIM ĐÃ LƯU</h3>
-    
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+<style>
+    :root {
+        --primary-red: #e50914;
+        --dark-bg: #060606;
+        --card-bg: #121212;
+        --glass: rgba(255, 255, 255, 0.05);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .glow-text {
+        font-weight: 900;
+        background: linear-gradient(to bottom, #fff 50%, #888 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Tối ưu Card phim yêu thích */
+    .watchlist-card {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .watchlist-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary-red);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    }
+
+    .img-container {
+        border-radius: 10px;
+        overflow: hidden;
+        aspect-ratio: 2/3;
+        position: relative;
+    }
+
+    .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+
+    .watchlist-card:hover img {
+        transform: scale(1.1);
+    }
+
+    /* Nút xóa nhanh */
+    .remove-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        transition: 0.3s;
+        z-index: 10;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .remove-btn:hover {
+        background: var(--primary-red);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .empty-state {
+        min-height: 60vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, rgba(229, 9, 20, 0.05) 0%, transparent 70%);
+    }
+</style>
+
+<div class="container-fluid px-lg-5 mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-5">
+        <h3 class="glow-text mb-0">
+            <i class="fas fa-bookmark text-danger me-2"></i>Bộ sưu tập của tôi
+        </h3>
+        <span class="badge bg-dark border border-secondary px-3 py-2 rounded-pill">
+            {{ items|length }} Phim đã lưu
+        </span>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4">
         {% for item in items %}
         <div class="col">
-            <div class="card bg-transparent border-0 position-relative">
-                <a href="{% url 'movie_detail' item.movie.id %}">
-                    <img src="{{ item.movie.poster_url }}" class="card-img-top rounded-3 shadow" style="height: 250px; object-fit: cover;">
+            <div class="watchlist-card h-100">
+                <a href="{% url 'toggle_watchlist' item.movie.id %}" class="remove-btn" title="Bỏ lưu">
+                    <i class="fas fa-times"></i>
                 </a>
-                <div class="card-body px-0 py-2">
-                    <h6 class="text-white text-truncate mb-0 small">{{ item.movie.title }}</h6>
-                    <div class="d-flex justify-content-between align-items-center mt-1">
-                        <span class="text-secondary small">{{ item.movie.release_date|date:"Y" }}</span>
-                        <a href="{% url 'toggle_watchlist' item.movie.id %}" class="text-danger small text-decoration-none">Bỏ lưu</a>
+
+                <a href="{% url 'movie_detail' item.movie.slug %}" class="text-decoration-none">
+                    <div class="img-container shadow-lg">
+                        <img src="{{ item.movie.poster_url }}" alt="{{ item.movie.title }}" loading="lazy">
+                        <div class="position-absolute bottom-0 start-0 w-100 p-2" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                             <span class="text-warning small"><i class="fas fa-star me-1"></i>{{ item.movie.imdb_rating }}</span>
+                        </div>
                     </div>
-                </div>
+                    <div class="pt-3">
+                        <h6 class="text-white text-truncate mb-1 fw-bold small">{{ item.movie.title }}</h6>
+                        <p class="text-secondary small mb-0">{{ item.movie.release_date|date:"Y" }} • {{ item.movie.genres|truncatechars:15 }}</p>
+                    </div>
+                </a>
             </div>
         </div>
         {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-folder-open fa-3x text-secondary mb-3"></i>
-            <p class="text-secondary">Bạn chưa lưu bộ phim nào.</p>
-            <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-4 mt-2">Khám phá ngay</a>
+        <div class="col-12">
+            <div class="empty-state text-center">
+                <div class="mb-4">
+                    <i class="fas fa-film fa-4x text-secondary opacity-25"></i>
+                </div>
+                <h4 class="text-white fw-bold">Danh sách đang trống</h4>
+                <p class="text-white-50 mb-4">Hãy thêm những bộ phim yêu thích để xem lại sau nhé!</p>
+                <a href="{% url 'home' %}" class="btn btn-danger px-5 py-3 rounded-pill fw-bold shadow-lg transition">
+                    KHÁM PHÁ PHIM MỚI
+                </a>
+            </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<div class="py-5"></div>
+
 {% endblock %}

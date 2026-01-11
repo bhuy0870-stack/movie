@@ -15,6 +15,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),  
     path('like-review/<int:review_id>/', views.like_review, name='like_review'), 
+    path('movie/<slug:slug>/', views.movie_detail, name='movie_detail'),    
     # Xử lý Review/Bình luận
     path('movie/<int:movie_id>/review/add/', views.add_review, name='add_review'),
     path('review/delete/<int:review_id>/', views.delete_review, name='delete_review'),

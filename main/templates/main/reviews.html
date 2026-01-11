@@ -1,0 +1,109 @@
+<div class="reviews-section mt-5 px-0">
+    <h3 class="text-white fw-900 mb-5" style="letter-spacing: -1px;">Bình luận</h3>
+
+    {% if user.is_authenticated %}
+    <div class="mb-5">
+        <form action="{% url 'add_review' movie.id %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="d-flex gap-3 mb-3">
+                <select name="rating" class="minimal-rating-select">
+                    <option value="5">5 ★★★★★</option>
+                    <option value="4">4 ★★★★</option>
+                    <option value="3">3 ★★★</option>
+                    <option value="2">2 ★★</option>
+                    <option value="1">1 ★</option>
+                </select>
+                <span class="text-white-25 small border-start ps-3 fw-light">{{ user.username }}</span>
+            </div>
+
+            <div class="input-container">
+                <textarea name="comment" class="simple-textarea" placeholder="Viết cảm nghĩ..." required></textarea>
+                <div class="input-line"></div>
+            </div>
+            
+            <div class="text-end mt-3">
+                <button type="submit" class="btn-simple">ĐĂNG</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="review-list">
+        {% for review in reviews %}
+        <div class="review-item mb-4 pb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="text-white fw-bold me-2">{{ review.user.username }}</span>
+                    <span class="text-white-25 small fw-light">{{ review.created_at|timesince }}</span>
+                </div>
+                <div class="text-warning small" style="letter-spacing: 2px;">
+                    {% for i in "12345" %}{% if forloop.counter <= review.rating %}•{% endif %}{% endfor %}
+                </div>
+            </div>
+            
+            <p class="text-secondary m-0 fw-light" style="line-height: 1.6;">{{ review.comment }}</p>
+
+            <div class="d-flex gap-3 mt-2 align-items-center">
+                <span class="text-info x-small fw-bold opacity-50">{{ review.sentiment_label }}</span>
+                <button class="like-minimal {% if user in review.likes.all %}active{% endif %}" onclick="likeReview({{ review.id }}, this)">
+                    <i class="fas fa-heart"></i> <span class="count">{{ review.likes.count }}</span>
+                </button>
+                {% if user == review.user or user.is_staff %}
+                <a href="{% url 'delete_review' review.id %}" class="delete-minimal">Xóa</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-white-25 fw-light">Chưa có bình luận.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* CSS TỐI GIẢN TUYỆT ĐỐI */
+    .minimal-rating-select {
+        background: transparent; color: #ffc107; border: none; 
+        outline: none; font-size: 0.8rem; font-weight: bold;
+    }
+    
+    .simple-textarea {
+        width: 100%; background: transparent; border: none; color: #fff;
+        padding: 10px 0; outline: none; min-height: 40px; resize: none;
+    }
+
+    .input-container { position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .input-line { 
+        position: absolute; bottom: -1px; left: 0; width: 0; height: 1px; 
+        background: #e50914; transition: 0.4s; 
+    }
+    .simple-textarea:focus + .input-line { width: 100%; }
+
+    .btn-simple {
+        background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2);
+        padding: 5px 20px; font-size: 0.7rem; font-weight: bold; transition: 0.3s;
+    }
+    .btn-simple:hover { background: #fff; color: #000; border-color: #fff; }
+
+    .review-item { border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .x-small { font-size: 10px; text-transform: uppercase; }
+
+    .like-minimal { background: transparent; border: none; color: #444; font-size: 0.8rem; transition: 0.3s; padding: 0; }
+    .like-minimal.active { color: #e50914; }
+    .delete-minimal { color: rgba(255,255,255,0.1); text-decoration: none; font-size: 0.75rem; }
+    .delete-minimal:hover { color: #fff; }
+</style>
+
+<script>
+function likeReview(reviewId, btn) {
+    fetch(`/like-review/${reviewId}/`, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.querySelector('.count').innerText = data.count;
+        btn.classList.toggle('active', data.liked);
+    });
+}
+</script>
