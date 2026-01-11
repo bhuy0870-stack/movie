@@ -4,232 +4,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}BQH MOVIE - Đỉnh Cao Điện Ảnh{% endblock %}</title>
+    <title>{% block title %}BQH MOVIE - Trải Nghiệm Điện Ảnh Thượng Lưu{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #e50914;
-            --primary-hover: #ff1f1f;
-            --bg-body: #060606;
-            --bg-nav: rgba(6, 6, 6, 0.98);
-            --border: rgba(255, 255, 255, 0.12);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --gold: #ffcc00;
+            --primary: #c40000;
+            --primary-dark: #800000;
+            --primary-glow: rgba(196, 0, 0, 0.4);
+            --accent: #ffcc00;
+            --bg-deep: #050505;
+            --surface: rgba(15, 15, 15, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-gold: #ffcc33;
+            --text-display: 'Outfit', sans-serif;
         }
 
-        body { background-color: var(--bg-body); color: #ffffff; font-family: 'Inter', sans-serif; padding-top: 80px; overflow-x: hidden; }
+        body { 
+            background-color: var(--bg-deep); color: #e0e0e0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; padding-top: 100px;
+            overflow-x: hidden; -webkit-font-smoothing: antialiased;
+        }
 
-        /* --- LOADING BAR --- */
+        /* --- THANH TẢI TRANG --- */
         #loading-bar {
             position: fixed; top: 0; left: 0; width: 0%; height: 3px;
-            background: linear-gradient(to right, var(--primary), var(--gold)); 
-            z-index: 9999; transition: width 0.4s ease;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            z-index: 99999; transition: width 0.3s ease;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* --- NAVBAR --- */
-        .navbar { padding: 18px 0; transition: var(--transition); backdrop-filter: blur(25px); z-index: 1000; }
-        .navbar.scrolled { background: var(--bg-nav) !important; padding: 12px 0; border-bottom: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* --- NAVBAR HIỆN ĐẠI --- */
+        .navbar { 
+            background: var(--surface) !important; 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--border); border-radius: 20px;
+            margin: 10px 4%; padding: 8px 25px; z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: var(--transition-fast);
+        }
 
-        .brand-logo { font-size: 1.8rem; font-weight: 900; text-decoration: none !important; display: flex; align-items: center; letter-spacing: -1.5px; text-transform: uppercase; }
-        .logo-main { background: linear-gradient(to bottom, #ffffff 60%, #aaaaaa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo-sub { color: var(--primary); margin-left: 4px; font-style: italic; letter-spacing: 1px; text-shadow: 0 0 12px rgba(229, 9, 20, 0.5); }
-        .brand-logo i { color: var(--primary); margin-right: 10px; font-size: 1.5rem; }
+        .brand-logo { 
+            font-size: 1.4rem; font-weight: 800; color: #fff !important; 
+            text-decoration: none !important; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+        }
+        .brand-logo .logo-mark {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff; width: 40px; height: 40px; display: flex; 
+            align-items: center; justify-content: center; border-radius: 12px;
+            box-shadow: 0 5px 15px var(--primary-glow);
+        }
 
-        .nav-link { font-weight: 700; font-size: 0.85rem; color: rgba(255,255,255,0.7) !important; text-transform: uppercase; padding: 10px 15px !important; }
-        .nav-link:hover, .nav-link.active { color: var(--primary) !important; }
+        .nav-link { 
+            font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5) !important; 
+            text-transform: uppercase; letter-spacing: 1px; padding: 10px 15px !important;
+            transition: var(--transition-fast);
+        }
+        .nav-link:hover, .nav-link.active { color: #fff !important; transform: translateY(-1px); }
 
-        /* Nâng cấp Dropdown */
-        .dropdown-menu { background: #121212 !important; border: 1px solid var(--border) !important; border-radius: 15px; padding: 15px; margin-top: 15px !important; box-shadow: 0 15px 50px rgba(0,0,0,0.8); }
-        .mega-genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; min-width: 450px; }
+        /* --- SEARCH BOX --- */
+        .search-container { position: relative; width: 260px; z-index: 3001; transition: width 0.3s ease; }
+        .search-wrapper {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: 12px; padding: 7px 15px; display: flex; align-items: center; gap: 10px;
+            transition: var(--transition-fast);
+        }
+        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(196, 0, 0, 0.15); }
+        .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 0.85rem; width: 100%; }
+
+        #search-results-box {
+            position: absolute; top: calc(100% + 15px); right: 0; width: 380px; 
+            background: #111; border: 1px solid var(--border); border-radius: 15px;
+            overflow: hidden; display: none; z-index: 100000;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+        }
+        .search-item { 
+            display: flex !important; align-items: center; gap: 15px; padding: 12px 18px;
+            color: #fff !important; text-decoration: none !important; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;
+        }
+        .search-item:hover { background: rgba(196, 0, 0, 0.2); }
+        .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
         
-        .dropdown-item { color: #fff !important; font-weight: 600; padding: 10px 15px; border-radius: 8px; transition: 0.2s; font-size: 0.85rem; }
-        .dropdown-item:hover { background: rgba(229, 9, 20, 0.1) !important; color: var(--primary) !important; transform: translateX(5px); }
+        /* --- HIỆU ỨNG TIM BAY (UI HEART EFFECT) --- */
+        .heart-particle {
+            position: fixed; pointer-events: none; font-size: 20px; z-index: 10000;
+            animation: heartFly 1s ease-out forwards;
+        }
+        @keyframes heartFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
 
-        .nav-donate { color: var(--gold) !important; font-weight: 800 !important; }
-        .nav-donate i { animation: heartBeat 1.5s infinite; margin-right: 5px; }
-        @keyframes heartBeat { 0%, 70%, 100% { transform: scale(1); } 15% { transform: scale(1.3); } 30% { transform: scale(1); } 45% { transform: scale(1.3); } }
+        /* --- DROPDOWN --- */
+        .dropdown-menu {
+            display: none; opacity: 0; transform: translateY(10px);
+            transition: 0.3s ease; background: rgba(18, 18, 18, 0.98) !important;
+            backdrop-filter: blur(30px); border: 1px solid var(--border) !important;
+            border-radius: 15px; padding: 15px; margin-top: 10px !important;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+        .nav-item.dropdown:hover .dropdown-menu { display: block !important; opacity: 1; transform: translateY(0); }
+        .genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 380px; }
+        .dropdown-item { color: rgba(255,255,255,0.6) !important; font-size: 0.8rem; padding: 8px 12px; border-radius: 8px; }
+        .dropdown-item:hover { background: var(--primary) !important; color: #fff !important; }
 
-        .search-box { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 6px 15px; border: 1px solid transparent; transition: 0.3s; }
-        .search-box:focus-within { border-color: var(--primary); background: rgba(255,255,255,0.15); }
-        .search-box input { background: transparent; border: none; color: #fff; font-size: 0.9rem; width: 140px; outline: none; }
+        /* --- DONATE BUTTON ANIMATION --- */
+        .btn-donate-nav { color: var(--accent) !important; cursor: pointer; }
+        .btn-donate-nav i { animation: heartBeat 1.5s infinite; color: #ff4757; }
+        @keyframes heartBeat { 0%, 70%, 100% { transform: scale(1); } 15% { transform: scale(1.2); } 45% { transform: scale(1.2); } }
 
-        .user-avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), #8e0000); display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        /* --- USER & MODAL --- */
+        .user-gate { padding: 2px 12px 2px 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 50px; }
+        .avatar-box { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #222; display: flex; align-items: center; justify-content: center; }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-content { background: #111; border-radius: 28px; border: 1px solid var(--border); }
+        .qr-frame { background: #fff; padding: 15px; border-radius: 20px; display: inline-block; }
 
-        /* --- TOAST & ACHIEVEMENT --- */
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 12px; }
-        .bqh-toast { background: rgba(15, 15, 15, 0.95); color: white; padding: 16px 24px; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 15px 40px rgba(0,0,0,0.6); backdrop-filter: blur(15px); display: flex; align-items: center; min-width: 320px; border: 1px solid rgba(255,255,255,0.1); animation: toastIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        .bqh-toast.achievement { border-left: none; background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%); border: 1px solid var(--gold); position: relative; overflow: hidden; }
-        .bqh-toast.achievement::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.25), transparent); animation: shine 3s infinite; }
-        @keyframes shine { to { left: 100%; } }
-
-        #backToTop { position: fixed; bottom: 100px; right: 30px; width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 15px; border: none; display: none; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4); }
+        .btn-login {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff; font-weight: 800; padding: 8px 22px; border-radius: 12px; 
+            font-size: 0.75rem; text-decoration: none; transition: 0.3s;
+        }
     </style>
 </head>
 <body>
     <div id="loading-bar"></div>
-    <div id="toast-container"></div>
 
-    <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top shadow-lg">
+        <div class="container-fluid px-0 d-flex flex-row align-items-center justify-content-between">
             <a class="brand-logo" href="{% url 'home' %}">
-                <i class="fas fa-film"></i>
-                <span class="logo-main">BQH</span><span class="logo-sub">MOVIE</span>
+                <div class="logo-mark">B</div><span>QH MOVIE</span>
             </a>
 
-            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navRes">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navRes">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Trang Chủ</a></li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Thể Loại</a>
-                        <div class="dropdown-menu">
-                            <div class="mega-genre-grid">
-                                {% for g in genre_list %}
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre={{ g }}">{{ g }}</a>
-                                {% empty %}
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=Hành động">Hành động</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=Kinh dị">Kinh dị</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=Viễn tưởng">Viễn tưởng</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=Hoạt hình">Hoạt hình</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=Tình cảm">Tình cảm</a>
-                                {% endfor %}
-                            </div>
+            <ul class="navbar-nav mx-auto d-flex flex-row align-items-center">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#">Danh mục</a>
+                    <div class="dropdown-menu">
+                        <div class="genre-grid">
+                            {% for g in genre_list %}<a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>{% endfor %}
                         </div>
-                    </li>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn-donate-nav" data-bs-toggle="modal" data-bs-target="#donateModal" onclick="createHeartBurst(event)">
+                        <i class="fas fa-heart me-1"></i> <span>Ủng hộ</span>
+                    </a>
+                </li>
+            </ul>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Quốc Gia</a>
-                        <div class="dropdown-menu">
-                            {% for c in country_list %}
-                                <a class="dropdown-item" href="{% url 'home' %}?country={{ c }}">{{ c }}</a>
-                            {% empty %}
-                                <a class="dropdown-item" href="{% url 'home' %}?country=Việt Nam">Việt Nam</a>
-                                <a class="dropdown-item" href="{% url 'home' %}?country=Âu Mỹ">Âu Mỹ</a>
-                                <a class="dropdown-item" href="{% url 'home' %}?country=Hàn Quốc">Hàn Quốc</a>
-                                <a class="dropdown-item" href="{% url 'home' %}?country=Trung Quốc">Trung Quốc</a>
-                            {% endfor %}
-                        </div>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link nav-donate" href="#" data-bs-toggle="modal" data-bs-target="#donateModal">
-                            <i class="fas fa-heart"></i> Donate
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="d-flex align-items-center gap-3">
-                    <form class="search-box d-none d-xl-flex align-items-center" action="{% url 'home' %}" method="GET">
-                        <input type="text" name="q" placeholder="Tìm phim..." value="{{ request.GET.q|default:'' }}">
-                        <button type="submit" class="btn p-0 text-white"><i class="fas fa-search"></i></button>
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="search-container">
+                    <form action="{% url 'home' %}" method="GET" class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="live-search" name="q" placeholder="Tìm kiếm..." autocomplete="off" value="{{ query|default:'' }}">
                     </form>
-
-                    {% if user.is_authenticated %}
-                        <div class="dropdown">
-                            <div class="user-avatar text-white" data-bs-toggle="dropdown">
-                                {{ user.username|first|upper }}
-                            </div>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-                                <li>
-                                    <div class="px-3 py-2 border-bottom border-secondary border-opacity-25 mb-2">
-                                        <small class="text-white-50 d-block">Tài khoản</small>
-                                        <span class="fw-bold text-white">{{ user.username }}</span>
-                                    </div>
-                                </li>
-                                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Hồ sơ cá nhân</a></li>
-                                <li><a class="dropdown-item" href="{% url 'watchlist' %}"><i class="fas fa-bookmark me-2"></i> Phim đã lưu</a></li>
-                                <li><hr class="dropdown-divider border-secondary"></li>
-                                <li>
-                                    <form action="{% url 'logout' %}" method="post" class="m-0">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item text-danger fw-bold bg-transparent border-0 w-100 text-start">
-                                            <i class="fas fa-power-off me-2"></i> Đăng xuất
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-danger px-4 rounded-pill fw-bold">ĐĂNG NHẬP</a>
-                    {% endif %}
+                    <div id="search-results-box"></div>
                 </div>
+
+                {% if user.is_authenticated %}
+                    <div class="nav-item dropdown">
+                        <div class="user-gate" data-bs-toggle="dropdown">
+                            <div class="avatar-box">
+                                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<div class="fw-bold text-white small" style="font-size: 10px;">{{ user.username|first|upper }}</div>{% endif %}
+                            </div>
+                            <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.7rem;">{{ user.username }}</span>
+                        </div>
+                        <div class="dropdown-menu menu-user-premium shadow-lg dropdown-menu-end" style="min-width: 220px;">
+                            <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Tài khoản</a>
+                            <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart me-2"></i> Yêu thích</a>
+                            <li><hr class="dropdown-divider border-white border-opacity-10"></li>
+                            <form action="{% url 'logout' %}" method="post" class="m-0 px-3 py-1">
+                                {% csrf_token %}
+                                <button type="submit" class="text-danger fw-bold border-0 bg-transparent w-100 text-start p-0">
+                                    <i class="fas fa-power-off me-2"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-login shadow-lg">LOGIN</a>
+                {% endif %}
             </div>
         </div>
     </nav>
-    
+
     <div class="content-wrapper">
         {% block content %}{% endblock %}
     </div>
 
     <div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark border border-secondary shadow-lg" style="border-radius: 25px;">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-warning fw-bold"><i class="fas fa-university me-2"></i>Thông tin chuyển khoản</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center p-4">
-                    <div class="qr-container mb-3" style="background: white; padding: 20px; border-radius: 20px;">
-                        <img src="https://img.vietqr.io/image/vcb-1025765518-compact2.jpg?amount=0&addInfo=Ung%20ho%20BQH%20Movie&accountName=BANH%20QUANG%20HUY" alt="QR Donate" style="width: 250px;">
+            <div class="modal-content">
+                <div class="p-5 text-center">
+                    <div class="qr-frame mb-4">
+                        <img src="{% static 'images/vcb_qr.jpg' %}" width="200" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=STK:1025765518'">
                     </div>
-                    <div class="text-start bg-black bg-opacity-50 p-3 rounded-3 border border-secondary border-opacity-40">
-                        <p class="text-white small mb-1">STK: <b class="text-warning">1025765518</b></p>
-                        <p class="text-white small mb-0">Chủ TK: <b class="text-uppercase">Banh Quang Huy</b></p>
-                    </div>
+                    <h5 class="fw-bold text-white mb-1">Vietcombank</h5>
+                    <h3 class="fw-bold text-warning mb-3" id="bankNumber">1025765518</h3>
+                    <p class="text-white-50 small mb-4">BANH QUANG HUY</p>
+                    <button class="btn btn-light w-100 rounded-pill fw-bold py-3" onclick="copyBank(this)">SAO CHÉP SỐ TÀI KHOẢN</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <button id="backToTop"><i class="fas fa-arrow-up"></i></button>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // TOAST & LOADING SYSTEM
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const isAchievement = message.includes("huy hiệu") || message.includes("🏆");
-            toast.className = `bqh-toast ${isAchievement ? 'achievement' : type}`;
-            let icon = isAchievement ? 'fa-trophy' : (type === 'success' ? 'fa-check-circle' : 'fa-info-circle');
-            toast.innerHTML = `<div class="toast-icon"><i class="fas ${icon}"></i></div><div class="toast-msg">${message}</div>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'toastIn 0.5s ease reverse forwards';
-                setTimeout(() => toast.remove(), 500);
-            }, isAchievement ? 6000 : 4000);
+        // Hiệu ứng tim bay khi bấm Donate
+        function createHeartBurst(e) {
+            const colors = ['#ff4757', '#ffcc00', '#ff6b81', '#ffffff'];
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fas fa-heart heart-particle';
+                heart.style.left = e.clientX + 'px';
+                heart.style.top = e.clientY + 'px';
+                heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+                heart.style.setProperty('--tx', `${(Math.random() - 0.5) * 200}px`);
+                heart.style.setProperty('--ty', `${(Math.random() - 0.5) * 200}px`);
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
+            }
         }
 
-        {% if messages %}
-            {% for message in messages %}
-                showToast("{{ message|escapejs }}", "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}");
-            {% endfor %}
-        {% endif %}
+        // Sao chép số tài khoản mượt mà
+        function copyBank(btn) {
+            const num = "1025765518";
+            navigator.clipboard.writeText(num);
+            const originalText = btn.innerText;
+            btn.innerText = "ĐÃ SAO CHÉP!";
+            btn.classList.replace('btn-light', 'btn-success');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace('btn-success', 'btn-light');
+            }, 2000);
+        }
 
-        window.addEventListener('load', () => { 
+        // Progress Bar khi load trang
+        window.addEventListener('load', () => {
             const bar = document.getElementById('loading-bar');
-            bar.style.width = '100%'; 
-            setTimeout(() => bar.style.opacity = '0', 400); 
+            if(bar) {
+                bar.style.width = '100%';
+                setTimeout(() => { bar.style.opacity = '0'; }, 500);
+            }
         });
 
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('mainNavbar');
-            const btt = document.getElementById('backToTop');
-            if (window.scrollY > 50) nav.classList.add('scrolled'); else nav.classList.remove('scrolled');
-            btt.style.display = window.scrollY > 400 ? 'flex' : 'none';
-        });
+        // Ajax Search Logic
+        const searchInput = document.getElementById('live-search');
+        const resultsBox = document.getElementById('search-results-box');
 
-        document.getElementById('backToTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const q = this.value.trim();
+                if (q.length < 2) { resultsBox.style.display = 'none'; return; }
+                fetch(`/ajax-search/?q=${q}`).then(r => r.json()).then(res => {
+                    if (res.status === 'success' && res.data.length > 0) {
+                        let html = '';
+                        res.data.forEach(m => {
+                            html += `<a href="/movie/${m.slug}/" class="search-item">
+                                        <img src="${m.poster}">
+                                        <div class="search-item-info">
+                                            <span class="title text-white">${m.title}</span>
+                                        </div>
+                                    </a>`;
+                        });
+                        resultsBox.innerHTML = html;
+                        resultsBox.style.display = 'block';
+                    } else { resultsBox.style.display = 'none'; }
+                });
+            });
+        }
+        document.addEventListener('click', (e) => {
+            if (searchInput && !searchInput.contains(e.target) && resultsBox && !resultsBox.contains(e.target)) resultsBox.style.display = 'none';
+        });
     </script>
 </body>
 </html>

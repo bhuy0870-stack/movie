@@ -5,81 +5,114 @@
 
 {% block content %}
 <style>
-    /* --- NỀN TỔNG THỂ --- */
+    /* --- HỆ THỐNG PHÔNG CHỮ --- */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Outfit:wght@700;900&display=swap');
+
     .auth-page-wrapper {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
-                    url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07583f8b564e/vnm/VN-vi-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
+        background: #000;
+        background-image: 
+            radial-gradient(circle at 50% -20%, #440000 0%, transparent 50%),
+            linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+            url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07583f8b564e/vnm/VN-vi-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
         background-size: cover;
         background-position: center;
+        background-attachment: fixed;
         padding: 40px 20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
+    /* --- KHUNG ĐĂNG KÝ TỐI GIẢN --- */
     .light-auth-container {
-        background: rgba(0, 0, 0, 0.95); 
-        border-radius: 15px;
-        padding: 50px;
         width: 100%;
-        max-width: 480px;
-        border: 1px solid rgba(229, 9, 20, 0.5);
-        box-shadow: 0 0 25px rgba(229, 9, 20, 0.3), 
-                    0 15px 40px rgba(0, 0, 0, 0.9);
+        max-width: 420px;
+        padding: 40px 30px;
+        background: rgba(15, 15, 15, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     }
+
+    .brand-logo-auth {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 5px;
+        letter-spacing: -1.5px;
+    }
+    .brand-logo-auth span { color: #c40000; }
 
     .modern-heading {
-        color: #ffffff !important;
-        font-weight: 800;
+        font-family: 'Outfit', sans-serif;
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 700;
         margin-bottom: 30px;
-        font-size: 32px;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+        opacity: 0.9;
     }
 
-    .auth-label {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        font-size: 15px;
-        margin-bottom: 10px;
-        display: block;
-    }
-
-    /* --- HIỂN THỊ LỖI (QUAN TRỌNG) --- */
+    /* --- ALERT CUSTOM --- */
     .alert-custom {
-        background-color: #e50914;
-        color: white;
-        border: none;
-        border-radius: 8px;
+        background: rgba(196, 0, 0, 0.2);
+        color: #ff4d4d;
+        border: 1px solid rgba(196, 0, 0, 0.3);
+        border-radius: 12px;
         padding: 12px;
         margin-bottom: 20px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        text-align: center;
     }
 
-    /* --- INPUT --- */
+    /* --- INPUT STYLE --- */
+    .auth-group {
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .auth-label-fixed {
+        display: block;
+        text-align: center;
+        color: rgba(255,255,255,0.5);
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
     .auth-input {
-        background: #2b2b2b !important;
-        border: 1px solid #444 !important;
-        border-radius: 8px !important;
-        color: #ffffff !important; 
-        height: 55px;
-        font-size: 16px;
-        font-weight: 600 !important;
-        padding: 0 15px !important;
         width: 100%;
-        outline: none;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        color: #fff !important;
+        font-size: 15px;
+        padding: 0 20px !important;
+        text-align: center;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .auth-input:focus {
-        border-color: #e50914 !important;
-        background: #333 !important;
-        box-shadow: 0 0 10px rgba(229, 9, 20, 0.4) !important;
+        border-color: #c40000 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 0 20px rgba(196, 0, 0, 0.15);
+        outline: none;
     }
 
+    .auth-input::placeholder {
+        color: rgba(255, 255, 255, 0.3) !important;
+        font-size: 13px;
+    }
+
+    /* Password Toggle */
     .password-wrapper { position: relative; }
     .password-toggle {
         position: absolute;
@@ -87,56 +120,74 @@
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
-        color: #888;
-        z-index: 10;
-        font-size: 18px;
-    }
-
-    .btn-auth-submit {
-        background-color: #e50914 !important;
-        border: none;
-        height: 55px;
-        font-size: 18px;
-        font-weight: 800;
-        margin-top: 20px;
-        border-radius: 8px !important;
-        color: #ffffff !important;
-        text-transform: uppercase;
-        width: 100%;
+        color: rgba(255,255,255,0.3);
+        font-size: 16px;
         transition: 0.3s;
     }
+    .password-toggle:hover { color: #fff; }
 
-    .btn-auth-submit:hover {
-        background-color: #ff1f1f !important;
-        transform: translateY(-2px);
+    /* Date Input Specific */
+    input[type="date"] {
+        color-scheme: dark;
+        text-align: center;
     }
 
+    /* --- NÚT BẤM --- */
+    .btn-auth-submit {
+        width: 100%;
+        height: 55px;
+        background: #c40000 !important;
+        border: none;
+        border-radius: 12px !important;
+        color: #fff !important;
+        font-weight: 800;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 10px;
+        transition: 0.3s;
+        box-shadow: 0 10px 20px rgba(196, 0, 0, 0.2);
+    }
+
+    .btn-auth-submit:active { transform: scale(0.98); }
+
+    /* --- FOOTER --- */
     .auth-footer {
-        margin-top: 40px;
-        text-align: center;
-        padding-top: 25px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 30px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.4);
     }
 
     .auth-footer a {
-        color: #e50914 !important;
+        color: #fff;
         font-weight: 700;
-        text-decoration: none !important;
+        text-decoration: none;
+        margin-left: 5px;
     }
 
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
+    /* --- MOBILE --- */
+    @media (max-width: 480px) {
+        .auth-page-wrapper { padding: 20px 15px; }
+        .light-auth-container {
+            padding: 35px 20px;
+            background: rgba(10, 10, 10, 0.8);
+            border-radius: 20px;
+        }
+        .brand-logo-auth { font-size: 1.7rem; }
+        .modern-heading { font-size: 1.2rem; }
+        .auth-input { height: 50px; font-size: 14px; }
     }
 </style>
 
 <div class="auth-page-wrapper">
     <div class="light-auth-container">
-        <h1 class="modern-heading">Đăng ký</h1>
+        <div class="brand-logo-auth"><span>B</span>QH MOVIE</div>
+        <h1 class="modern-heading">Tạo tài khoản</h1>
 
         {% if messages %}
             {% for message in messages %}
                 <div class="alert-custom">
-                    <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                    <i class="fas fa-exclamation-triangle me-2"></i> {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
@@ -144,43 +195,38 @@
         <form method="post" id="registerForm">
             {% csrf_token %}
             
-            <div class="mb-4">
-                <label class="auth-label">Tên đăng nhập</label>
-                <input type="text" name="username" class="form-control auth-input" placeholder="Nhập tên đăng nhập" required value="{{ request.POST.username }}">
+            <div class="auth-group">
+                <input type="text" name="username" class="auth-input" placeholder="Tên đăng nhập" required value="{{ request.POST.username }}">
             </div>
 
-            <div class="mb-4">
-                <label class="auth-label">Email</label>
-                <input type="email" name="email" class="form-control auth-input" placeholder="Nhập email" required value="{{ request.POST.email }}">
+            <div class="auth-group">
+                <input type="email" name="email" class="auth-input" placeholder="Địa chỉ Email" required value="{{ request.POST.email }}">
             </div>
 
-            <div class="mb-4">
-                <label class="auth-label">Mật khẩu</label>
+            <div class="auth-group">
                 <div class="password-wrapper">
-                    <input type="password" name="password" id="id_password" class="form-control auth-input" placeholder="Nhập mật khẩu" required>
+                    <input type="password" name="password" id="id_password" class="auth-input" placeholder="Mật khẩu" required>
                     <i class="fas fa-eye password-toggle" onclick="togglePass('id_password', this)"></i>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="auth-label">Xác nhận mật khẩu</label>
+            <div class="auth-group">
                 <div class="password-wrapper">
-                    <input type="password" name="password_confirm" id="id_password_confirm" class="form-control auth-input" placeholder="Nhập lại mật khẩu" required>
+                    <input type="password" name="password_confirm" id="id_password_confirm" class="auth-input" placeholder="Xác nhận mật khẩu" required>
                     <i class="fas fa-eye password-toggle" onclick="togglePass('id_password_confirm', this)"></i>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="auth-label">Ngày tháng năm sinh</label>
-                <input type="date" name="birth_date" class="form-control auth-input" required value="{{ request.POST.birth_date }}">
+            <div class="auth-group">
+                <label class="auth-label-fixed">Ngày sinh của bạn</label>
+                <input type="date" name="birth_date" class="auth-input" required value="{{ request.POST.birth_date }}">
             </div>
 
-            <button type="submit" class="btn btn-auth-submit">Hoàn tất đăng ký</button>
+            <button type="submit" class="btn btn-auth-submit">Gia nhập ngay</button>
         </form>
 
         <div class="auth-footer">
-            <span style="color: #8c8c8c;">Đã có tài khoản?</span>
-            <a href="{% url 'login' %}">Đăng nhập ngay.</a>
+            Đã có tài khoản? <a href="{% url 'login' %}">Đăng nhập ngay</a>
         </div>
     </div>
 </div>

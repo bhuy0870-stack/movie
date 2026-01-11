@@ -4,174 +4,193 @@
 
 {% block content %}
 <style>
-    /* --- HỆ THỐNG GIAO DIỆN --- */
+    /* --- HỆ THỐNG PHÔNG CHỮ --- */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Outfit:wght@700;900&display=swap');
+
     .auth-page-wrapper {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
-                    url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07583f8b564e/vnm/VN-vi-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
+        background: #000; /* Nền đen sâu thẳm sang trọng */
+        background-image: 
+            radial-gradient(circle at 50% -20%, #440000 0%, transparent 50%),
+            linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+            url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07583f8b564e/vnm/VN-vi-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
         background-size: cover;
         background-position: center;
-        padding: 40px 20px;
+        padding: 20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
+    /* --- KHUNG ĐĂNG NHẬP TỐI GIẢN --- */
     .light-auth-container {
-        background: rgba(0, 0, 0, 0.95); 
-        border-radius: 15px;
-        padding: 60px 50px;
         width: 100%;
-        max-width: 450px;
-        border: 1px solid rgba(229, 9, 20, 0.5);
-        box-shadow: 0 0 25px rgba(229, 9, 20, 0.3), 
-                    0 15px 40px rgba(0, 0, 0, 0.9);
-        transition: all 0.4s ease;
+        max-width: 400px; /* Nhỏ gọn hơn để tinh tế */
+        padding: 40px 30px;
+        background: rgba(15, 15, 15, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center; /* Căn giữa toàn bộ nội dung */
     }
 
-    .light-auth-container:hover {
-        border-color: rgba(229, 9, 20, 1);
-        box-shadow: 0 0 35px rgba(229, 9, 20, 0.5);
+    /* --- LOGO QUẢNG BÁ BQH --- */
+    .brand-logo-auth {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 10px;
+        letter-spacing: -1.5px;
+    }
+    .brand-logo-auth span {
+        color: #c40000; /* Chữ B màu đỏ tạo điểm nhấn */
     }
 
     .modern-heading {
-        color: #ffffff !important;
-        font-weight: 800;
+        font-family: 'Outfit', sans-serif;
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 700;
         margin-bottom: 35px;
-        font-size: 32px;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+        opacity: 0.9;
     }
 
-    .auth-label {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        font-size: 15px;
-        margin-bottom: 10px;
-        display: block;
+    /* --- INPUT STYLE --- */
+    .auth-group {
+        margin-bottom: 20px;
+        position: relative;
     }
 
-    /* --- INPUT SẮC NÉT (ĐỒNG BỘ ĐĂNG KÝ) --- */
     .auth-input {
-        background: #2b2b2b !important;
-        border: 1px solid #444 !important;
-        border-radius: 8px !important;
-        color: #ffffff !important; 
-        height: 55px;
-        font-size: 16px;
-        font-weight: 600 !important;
-        padding: 0 15px !important;
         width: 100%;
-        outline: none;
-        transition: all 0.3s;
-    }
-
-    /* Fix Placeholder cực nét, giống hệt Đăng ký */
-    .auth-input::placeholder {
-        color: #8c8c8c !important; 
-        opacity: 1 !important;
-        font-weight: 500;
+        height: 55px;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        color: #fff !important;
+        font-size: 16px;
+        padding: 0 20px !important;
+        text-align: center; /* Chữ nhập vào cũng ở giữa cho đồng bộ */
+        transition: 0.3s;
     }
 
     .auth-input:focus {
-        border-color: #e50914 !important;
-        background: #333 !important;
-        box-shadow: 0 0 10px rgba(229, 9, 20, 0.4) !important;
+        border-color: #c40000 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        outline: none;
+        box-shadow: 0 0 20px rgba(196, 0, 0, 0.15);
     }
 
-    /* ĐẶC TRỊ LỖI CHỮ MỜ KHI TRÌNH DUYỆT TỰ ĐIỀN */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover, 
-    input:-webkit-autofill:focus, 
-    input:-webkit-autofill:active {
-        -webkit-box-shadow: 0 0 0 30px #2b2b2b inset !important;
-        -webkit-text-fill-color: #ffffff !important;
-        transition: background-color 5000s ease-in-out 0s;
+    /* Placehoder trắng rõ, sắc nét */
+    .auth-input::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+        font-size: 14px;
     }
 
     /* --- NÚT BẤM --- */
     .btn-auth-submit {
-        background-color: #e50914 !important;
-        border: none;
-        height: 55px;
-        font-size: 18px;
-        font-weight: 800;
-        margin-top: 30px;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-        color: #ffffff !important;
         width: 100%;
+        height: 55px;
+        background: #c40000 !important;
+        border: none;
+        border-radius: 12px !important;
+        color: #fff !important;
+        font-weight: 700;
+        font-size: 16px;
         text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 15px;
         transition: 0.3s;
+        cursor: pointer;
     }
 
     .btn-auth-submit:hover {
-        background-color: #ff1f1f !important;
+        background: #e50000 !important;
         transform: translateY(-2px);
     }
 
-    /* --- FOOTER SANG TRỌNG --- */
-    .auth-footer {
-        margin-top: 40px;
-        text-align: center;
-        padding-top: 25px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    .btn-auth-submit:active {
+        transform: scale(0.98);
     }
 
-    .auth-footer span { 
-        color: #8c8c8c !important; 
-        font-size: 15px; 
-        font-weight: 500;
+    /* --- FOOTER --- */
+    .auth-footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.5);
     }
 
     .auth-footer a {
-        color: #ffffff !important;
-        font-weight: 700;
-        text-decoration: none !important;
-        margin-left: 8px;
-        transition: all 0.3s ease;
-        display: inline-block;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 5px;
+        transition: 0.3s;
     }
 
     .auth-footer a:hover {
-        color: #e50914 !important;
-        text-decoration: underline !important;
-        transform: scale(1.05);
+        color: #c40000;
+    }
+
+    /* --- TỐI ƯU MOBILE --- */
+    @media (max-width: 480px) {
+        .light-auth-container {
+            padding: 30px 20px;
+            background: transparent; /* Trên Mobile bỏ nền khung để trông thoáng hơn */
+            border: none;
+            backdrop-filter: none;
+        }
+        .brand-logo-auth { font-size: 1.8rem; }
+        .modern-heading { font-size: 1.3rem; }
     }
 </style>
 
 <div class="auth-page-wrapper">
     <div class="light-auth-container">
+        <div class="brand-logo-auth"><span>B</span>QH MOVIE</div>
+        
         <h1 class="modern-heading">Đăng nhập</h1>
+        
         <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
+            
             {% for field in form %}
-            <div class="mb-4">
-                <label for="{{ field.id_for_label }}" class="auth-label">{{ field.label }}</label>
+            <div class="auth-group">
                 <input type="{{ field.field.widget.input_type }}" 
                        name="{{ field.name }}" 
                        id="{{ field.id_for_label }}"
-                       class="form-control auth-input" 
-                       placeholder="Nhập {{ field.label|lower }}..." 
+                       class="auth-input" 
+                       placeholder="{{ field.label }}" 
                        autocomplete="off"
                        required>
                 
-                {% for error in field.errors %}
-                <div class="text-warning small mt-2 fw-bold">
-                    <i class="fas fa-exclamation-circle me-1"></i> {{ error }}
-                </div>
-                {% endfor %}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <div class="text-danger small mt-1 fw-bold" style="font-size: 11px;">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
             </div>
             {% endfor %}
             
-            <button type="submit" class="btn btn-auth-submit">Tiếp tục</button>
+            <button type="submit" class="btn btn-auth-submit">Bắt đầu xem</button>
         </form>
 
         <div class="auth-footer">
-            <span>Bạn mới tham gia BQH MOVIE?</span>
-            <a href="{% url 'register' %}">Đăng ký ngay.</a>
+            Chưa có tài khoản? <a href="{% url 'register' %}">Đăng ký ngay</a>
         </div>
     </div>
 </div>
+
+<script>
+    // Tự động focus để người dùng không phải chạm nhiều lần trên đt
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.auth-input');
+        if(inputs.length > 0) inputs[0].focus();
+    });
+</script>
 {% endblock %}

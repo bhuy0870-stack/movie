@@ -1,79 +1,254 @@
 {% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Hồ sơ - {{ user.username }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow border-0" style="border-radius: 20px; background: #121212; color: white; border: 1px solid #222 !important;">
-                
-                <div class="card-header bg-danger text-center py-3" style="border-radius: 20px 20px 0 0; border-bottom: 2px solid rgba(0,0,0,0.2);">
-                    <h4 class="mb-0 fw-bold" style="letter-spacing: 2px;"><i class="fas fa-id-card me-2"></i>HỒ SƠ CÁ NHÂN</h4>
-                </div>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-                <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
-                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" 
-                                 class="rounded-circle shadow mb-3 border border-3 border-danger" width="110">
-                            {% if is_donor %}
-                            <div class="position-absolute" style="top: -15px; right: -10px; filter: drop-shadow(0 0 5px #ffcc00);">
-                                <i class="fas fa-crown text-warning" style="font-size: 1.8rem; transform: rotate(15deg);"></i>
-                            </div>
-                            {% endif %}
+<style>
+    :root {
+        --primary-red: #e50914;
+        --gold: #ffcc00;
+        --surface: rgba(255, 255, 255, 0.03);
+        --border: rgba(255, 255, 255, 0.08);
+        --transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    body { 
+        background: radial-gradient(circle at top, #1a1a1a 0%, #050505 100%); 
+        color: #fff; 
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* --- PROFILE CARD PREMIUM --- */
+    .profile-card {
+        background: rgba(15, 15, 15, 0.7);
+        backdrop-filter: blur(20px);
+        border-radius: 35px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        margin-top: 50px;
+        margin-bottom: 80px;
+    }
+
+    .profile-header {
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(to bottom, rgba(229, 9, 20, 0.05), transparent);
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* Avatar Glow Effect */
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .avatar-main {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #fff;
+        padding: 3px;
+        background: #000;
+        transition: var(--transition);
+        box-shadow: 0 0 30px rgba(255,255,255,0.1);
+    }
+
+    .avatar-wrapper:hover .avatar-main {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 40px rgba(229, 9, 20, 0.4);
+        transform: scale(1.02);
+    }
+
+    .camera-overlay {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background: var(--primary-red);
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid #0f0f0f;
+        color: white;
+        transition: 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    .username-display {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 2.2rem;
+        letter-spacing: -1px;
+        margin-top: 25px;
+        background: linear-gradient(to bottom, #fff, #999);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* --- ACHIEVEMENT CHIP --- */
+    .achievement-section {
+        background: var(--surface);
+        border-radius: 25px;
+        padding: 25px;
+        border: 1px solid var(--border);
+    }
+
+    .badge-item {
+        width: 65px;
+        height: 65px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        transition: 0.3s;
+        border: 1px solid var(--border);
+        cursor: pointer;
+    }
+
+    .badge-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--gold);
+        transform: translateY(-5px) rotate(5deg);
+    }
+
+    /* --- INFO LIST --- */
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .info-item:last-child { border-bottom: none; }
+
+    .info-label { color: #888; font-size: 0.9rem; font-weight: 500; }
+    .info-value { font-weight: 700; color: #eee; }
+
+    /* --- ACTION BUTTONS --- */
+    .btn-action {
+        border-radius: 18px;
+        padding: 16px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }
+
+    .btn-logout {
+        background: #fff;
+        color: #000;
+        border: none;
+    }
+
+    .btn-logout:hover {
+        background: var(--primary-red);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .btn-home {
+        background: transparent;
+        color: #fff;
+        border: 1px solid var(--border);
+    }
+
+    .btn-home:hover {
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .profile-card { margin-top: 0; border-radius: 0; border: none; }
+        .username-display { font-size: 1.8rem; }
+        .avatar-main { width: 120px; height: 120px; }
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-5 col-lg-6 col-md-8 col-12 px-0 px-md-3">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <form id="avatar-form" action="{% url 'update_avatar' %}" method="post" enctype="multipart/form-data" class="d-none">
+                        {% csrf_token %}
+                        <input type="file" id="avatar-input" name="avatar" accept="image/*" onchange="submitAvatar()">
+                    </form>
+
+                    <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
+                        {% if profile.avatar %}
+                            <img src="{{ profile.avatar.url }}" class="avatar-main" id="avatar-display">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=e50914&color=fff&size=250" class="avatar-main" id="avatar-display">
+                        {% endif %}
+                        <div class="camera-overlay">
+                            <i class="fas fa-camera" id="camera-icon"></i>
                         </div>
-                        <h4 class="mt-2 fw-bold text-uppercase" style="color: #ff4d4d; letter-spacing: 1px; margin-bottom: 5px;">{{ user.username }}</h4>
-                        <div class="text-white-50 small fw-light">{{ user.email }}</div>
                     </div>
 
-                    <div class="achievement-section mb-4 p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                        <h6 class="text-uppercase fw-bold text-warning mb-3 small d-flex align-items-center" style="letter-spacing: 1px;">
-                            <i class="fas fa-trophy me-2" style="font-size: 1.1rem;"></i>KHO THÀNH TỰU
-                        </h6>
+                    <h2 class="username-display">{{ user.username|upper }}</h2>
+                    <div class="d-flex align-items-center justify-content-center gap-2 mt-2">
+                        <span class="badge bg-warning text-dark fw-bold rounded-pill px-3" style="font-size: 0.65rem;">
+                            <i class="fas fa-crown me-1"></i>MEMBER VIP
+                        </span>
+                    </div>
+                    <p class="text-white-50 small mt-3 mb-0">{{ user.email }}</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="achievement-section mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; color: var(--gold);">THÀNH TỰU</span>
+                            <span class="text-white-50 small">{{ achievements|length }} badges</span>
+                        </div>
                         
-                        <div class="d-flex flex-wrap gap-3 justify-content-center py-2">
-                            {% for ua in user.achievements.all %}
-                            <div class="achievement-badge shadow-sm" title="{{ ua.achievement.description }}">
-                                <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
-                                <span class="badge-tooltip">{{ ua.achievement.name }}</span>
-                            </div>
+                        <div class="d-flex flex-wrap gap-3 justify-content-start">
+                            {% for ua in achievements %}
+                                <div class="badge-item" onclick="showBadge('{{ ua.achievement.name }}', '{{ ua.achievement.description }}')" title="{{ ua.achievement.name }}">
+                                    <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
+                                </div>
                             {% empty %}
-                            <div class="text-center w-100 py-4" style="background: rgba(0,0,0,0.2); border-radius: 15px; border: 1px dashed rgba(255,255,255,0.1);">
-                                <i class="fas fa-lock mb-2 d-block" style="color: rgba(255, 255, 255, 0.3); font-size: 1.5rem;"></i>
-                                <p class="mb-0 fw-light" style="color: rgba(255, 255, 255, 0.7); font-style: italic; font-size: 0.85rem;">
-                                    Chưa mở khóa thành tựu nào.<br>Xem phim để tích lũy ngay!
-                                </p>
-                            </div>
+                                <div class="w-100 text-center py-2 opacity-25">
+                                    <p class="small mb-0 italic">Bắt đầu khám phá để nhận huy hiệu</p>
+                                </div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <div class="info-details p-3 rounded bg-dark mb-4 border border-secondary border-opacity-10 shadow-inner">
-                        <div class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
-                            <span class="text-white-50 small"><i class="fas fa-calendar-alt me-2 text-danger"></i>Ngày sinh</span>
-                            <span class="fw-bold small">{{ user.last_name|default:"Chưa cập nhật" }}</span>
+                    <div class="mb-5">
+                        <div class="info-item">
+                            <span class="info-label">Ngày sinh</span>
+                            <span class="info-value">{{ user.last_name|default:"Chưa cập nhật" }}</span>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-white-50 small"><i class="fas fa-history me-2 text-danger"></i>Tuổi hiện tại</span>
-                            <span class="fw-bold text-warning small">
-                                {% if user_age != "Chưa cập nhật" %}
-                                    {{ user_age }} tuổi
-                                {% else %}
-                                    <small class="text-white-50 italic">Cần cập nhật</small>
-                                {% endif %}
-                            </span>
+                        <div class="info-item">
+                            <span class="info-label">Tuổi hội viên</span>
+                            <span class="info-value text-warning">{{ user_age }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Gia nhập ngày</span>
+                            <span class="info-value small text-white-50">{{ user.date_joined|date:"d/m/Y" }}</span>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill fw-bold py-2 shadow-sm" style="font-size: 0.85rem;">
-                            <i class="fas fa-home me-2"></i>VỀ TRANG CHỦ
-                        </a>
-                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                    <div class="d-grid gap-3">
+                        <form action="{% url 'logout' %}" method="post" class="m-0 d-grid">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm shadow-danger">
-                                <i class="fas fa-sign-out-alt me-2"></i>ĐĂNG XUẤT
+                            <button type="submit" class="btn btn-action btn-logout">
+                                <i class="fas fa-power-off me-2"></i> ĐĂNG XUẤT
                             </button>
                         </form>
+                        <a href="{% url 'home' %}" class="btn btn-action btn-home">
+                            <i class="fas fa-arrow-left me-2"></i> VỀ TRANG CHỦ
+                        </a>
                     </div>
                 </div>
             </div>
@@ -81,63 +256,17 @@
     </div>
 </div>
 
-<style>
-    /* Thêm hiệu ứng phát sáng dựa trên màu của huy hiệu */
-    .achievement-badge i {
-        transition: all 0.3s ease;
-    }
-    .achievement-badge:hover i {
-        filter: drop-shadow(0 0 8px currentColor);
-    }
-
-    .achievement-badge {
-        width: 52px;
-        height: 52px;
-        background: rgba(255, 255, 255, 0.07);
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+<script>
+    function submitAvatar() {
+        const icon = document.getElementById('camera-icon');
+        icon.className = "fas fa-circle-notch fa-spin";
+        document.getElementById('avatar-display').style.opacity = "0.4";
+        document.getElementById('avatar-form').submit();
     }
 
-    .achievement-badge:hover {
-        transform: translateY(-8px) rotate(5deg);
-        background: rgba(255, 255, 255, 0.15);
-        border-color: #ffcc00;
-        box-shadow: 0 8px 20px rgba(255, 204, 0, 0.2);
+    function showBadge(name, desc) {
+        // Có thể thay thế bằng một Modal đẹp hơn sau này
+        alert(name + ": " + desc);
     }
-
-    .badge-tooltip {
-        position: absolute;
-        bottom: 130%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #ffcc00;
-        color: #000;
-        padding: 4px 12px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        white-space: nowrap;
-        visibility: hidden;
-        opacity: 0;
-        transition: 0.3s;
-        z-index: 100;
-    }
-
-    .achievement-badge:hover .badge-tooltip {
-        visibility: visible;
-        opacity: 1;
-        bottom: 115%;
-    }
-
-    .shadow-inner {
-        box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-    }
-</style>
+</script>
 {% endblock %}

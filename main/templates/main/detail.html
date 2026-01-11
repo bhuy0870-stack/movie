@@ -2,240 +2,317 @@
 {% block title %}{{ movie.title }} - BQH MOVIE{% endblock %}
 
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <style>
     :root { 
-        --accent: #e50914; 
-        --star-color: #ffc107;
-        --dark-bg: #060606;
-        --glass: rgba(255, 255, 255, 0.05);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --text-dim: #9ca3af;
+        --accent: #ffcc33; 
+        --bg: #050505; 
+        --surface: rgba(255, 255, 255, 0.03);
+        --border: rgba(255, 255, 255, 0.08);
+        --primary-gold: #ffcc33;
     }
 
-    body { background-color: var(--dark-bg); color: white; transition: background 0.5s; }
-
-    /* --- HIỆU CHỈNH CHẾ ĐỘ RẠP CHIẾU --- */
-    body.cinema-mode-active .navbar, 
-    body.cinema-mode-active #backToTop,
-    body.cinema-mode-active footer { 
-        display: none !important; 
+    body { 
+        background-color: var(--bg); 
+        color: #efefef; 
+        font-family: 'Inter', sans-serif !important;
+        -webkit-font-smoothing: antialiased;
     }
 
-    .player-section { 
-        padding: 40px 0 60px; position: relative; z-index: 10;
-        overflow: hidden; transition: 0.5s;
-    }
-    
-    .player-section.cinema-mode { 
-        padding: 0; background: #000;
-        position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-        z-index: 2000; display: flex; flex-direction: column; justify-content: center;
-    }
-
-    .bg-blur-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-    .bg-blur-image {
-        position: absolute; width: 100%; height: 120%;
-        background: url('{{ movie.poster_url }}') center/cover;
-        filter: blur(100px) brightness(0.2); transform: scale(1.1);
+    /* --- TIÊU ĐỀ PHIM --- */
+    .movie-title { 
+        font-family: 'Montserrat', sans-serif !important; 
+        font-size: clamp(1.8rem, 4vw, 2.4rem); 
+        font-weight: 800; 
+        letter-spacing: -0.02em; 
+        color: #fff;
+        margin-bottom: 10px;
     }
 
+    .description-box p {
+        font-family: 'Inter', sans-serif !important;
+        color: #bbb;
+        line-height: 1.8;
+    }
+
+    /* --- PLAYER AREA --- */
+    .player-section { padding: 30px 0; }
     .cinema-wrapper { 
-        max-width: 1240px; margin: 0 auto; border-radius: 16px; overflow: hidden;
-        box-shadow: 0 40px 80px rgba(0,0,0,0.9); border: 1px solid var(--glass-border);
-        background: #000; transition: 0.5s;
-    }
-    .player-section.cinema-mode .cinema-wrapper { max-width: 100% !important; border-radius: 0; border: none; }
-
-    .player-controls {
-        background: #111; padding: 12px 25px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;
-        border-top: 1px solid var(--glass-border);
+        max-width: 1100px; margin: 0 auto; border-radius: 20px; overflow: hidden; 
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 25px rgba(255, 204, 51, 0.08); 
+        border: 1px solid var(--border); background: #000; position: relative;
     }
     
-    .server-btn {
-        background: var(--glass); color: #fff; border: 1px solid var(--glass-border);
-        padding: 6px 18px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; 
-        cursor: pointer; transition: 0.3s;
+    body.cinema-mode-active .navbar, body.cinema-mode-active footer { display: none !important; }
+    .player-section.cinema-mode { padding: 0; position: fixed; inset: 0; z-index: 3000; background: #000; display: flex; align-items: center; }
+    .player-section.cinema-mode .cinema-wrapper { max-width: 100% !important; border-radius: 0; border: none; }
+    
+    .close-cinema-btn { 
+        position: fixed; top: 25px; right: 25px; z-index: 4000; display: none;
+        background: rgba(255,255,255,0.1); color: white; width: 45px; height: 45px; 
+        border-radius: 50%; border: 1px solid var(--border); cursor: pointer; backdrop-filter: blur(10px);
     }
-    .server-btn.active { background: var(--accent); border-color: var(--accent); }
+    body.cinema-mode-active .close-cinema-btn { display: flex; align-items: center; justify-content: center; }
 
-    .control-btn {
-        background: var(--glass); border: 1px solid var(--glass-border); color: #fff; 
-        padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; transition: 0.3s;
+    /* --- WATCHLIST BUTTON --- */
+    .btn-watchlist-ajax { 
+        background: #fff; color: #000; padding: 10px 25px; border-radius: 12px;
+        font-weight: 700; border: none; transition: 0.3s; font-size: 0.85rem;
+        display: inline-flex; align-items: center; gap: 10px;
     }
-    .control-btn:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-watchlist-ajax.active { background: var(--surface); color: #fff; border: 1px solid var(--border); }
 
-    .episode-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    .ep-btn {
-        background: var(--glass); border: 1px solid var(--glass-border); color: white;
-        min-width: 45px; height: 45px; border-radius: 10px; display: flex;
-        align-items: center; justify-content: center; font-weight: bold;
-        transition: 0.3s; cursor: pointer; text-decoration: none;
+    /* --- EPISODES (LOAD LẠI TRANG) --- */
+    .ep-label { font-size: 0.75rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; }
+    .ep-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 50px; }
+    .ep-btn { 
+        background: var(--surface); border: 1px solid var(--border); color: #777; 
+        min-width: 50px; height: 50px; border-radius: 10px; display: flex; 
+        align-items: center; justify-content: center; font-weight: 700; transition: 0.25s;
+        text-decoration: none; font-size: 0.95rem;
     }
-    .ep-btn:hover, .ep-btn.active { background: var(--accent); border-color: var(--accent); }
+    .ep-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+    .ep-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
 
-    .info-card-premium {
-        background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border); border-radius: 24px;
-        padding: 35px; margin-bottom: 40px;
+    /* --- BÌNH LUẬN --- */
+    .comment-item { 
+        padding: 20px; background: var(--surface); border-radius: 18px; 
+        border: 1px solid var(--border); display: flex; gap: 18px; margin-bottom: 20px; 
     }
+    .user-img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border); }
+    .user-name { font-weight: 700; color: #fff; font-size: 0.95rem; }
+    .comment-text { color: #ccc; font-size: 0.95rem; margin: 8px 0; line-height: 1.6; }
+    
+    .btn-delete-cmt, .btn-like-ajax { 
+        background: transparent !important; border: none !important; 
+        padding: 0 !important; cursor: pointer !important; font-size: 0.8rem !important; 
+        color: #555 !important; transition: 0.2s; position: relative; z-index: 10;
+    }
+    .btn-delete-cmt:hover { color: #ff4d4d !important; }
+    .btn-like-ajax:hover { color: #fff !important; }
 
-    .btn-bookmark-premium {
-        background: var(--accent); color: white; padding: 12px 25px;
-        border-radius: 12px; text-decoration: none; font-weight: 800;
-        display: inline-flex; align-items: center; gap: 10px; transition: 0.3s;
-        border: none; font-size: 0.9rem;
-    }
-    .btn-bookmark-premium.active { background: #fff; color: #000; }
+    /* Sidebar */
+    .rec-item { display: flex; gap: 15px; margin-bottom: 20px; text-decoration: none; transition: 0.3s; }
+    .rec-img { width: 80px; height: 110px; border-radius: 10px; object-fit: cover; }
+    .rec-title { font-family: 'Montserrat', sans-serif !important; color: #fff; font-weight: 600; font-size: 0.9rem; }
 
-    .rec-item-premium {
-        display: flex; gap: 15px; text-decoration: none; padding: 10px;
-        border-radius: 12px; transition: 0.3s; background: var(--glass); margin-bottom: 10px;
-    }
-    .rec-item-premium:hover { background: rgba(255,255,255,0.1); }
-    .rec-poster { width: 70px; height: 100px; object-fit: cover; border-radius: 8px; }
+    /* Toast */
+    #toast-box { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; }
+    .custom-toast { background: #fff; color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 </style>
 
+<div id="toast-box"></div>
+<button class="close-cinema-btn" onclick="toggleCinema()"><i class="fas fa-times"></i></button>
+
 <section class="player-section" id="player-area">
-    <div class="bg-blur-container">
-        <div class="bg-blur-image"></div>
-    </div>
-    <div class="container">
+    <div class="container px-0 px-md-5">
         <div class="cinema-wrapper" id="cinema-container">
+            <div id="player-loader" style="position: absolute; inset: 0; background: #000; z-index: 100; display: none; align-items: center; justify-content: center;">
+                <div class="spinner-border text-warning" role="status"></div>
+            </div>
             <div class="ratio ratio-16x9">
                 {% if can_watch %}
-                    <iframe id="main-iframe-player" src="{{ default_video_url }}" allowfullscreen allow="autoplay; encrypted-media" style="width:100%;height:100%;border:none;"></iframe>
+                    <iframe id="main-video-player" src="{{ default_video_url }}" allowfullscreen style="border:none;"></iframe>
                 {% else %}
-                    <div class="d-flex flex-column align-items-center justify-content-center bg-dark text-center h-100 p-4">
-                        <i class="fas fa-lock fa-4x text-danger mb-4"></i>
-                        <h2 class="fw-bold text-white">NỘI DUNG GIỚI HẠN</h2>
-                        <p class="text-white-50 fs-6">{{ age_message }}</p>
-                        <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-5 mt-3 fw-bold">QUAY LẠI TRANG CHỦ</a>
+                    <div class="d-flex flex-column align-items-center justify-content-center bg-black h-100 p-5 text-center">
+                        <p class="text-white-50 mb-3">{{ age_message }}</p>
+                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill px-4 btn-sm">Quay về trang chủ</a>
                     </div>
                 {% endif %}
             </div>
-            
             {% if can_watch %}
-            <div class="player-controls">
-                <div class="server-list d-flex gap-2">
-                    <button class="server-btn active">NGUỒN OPHIM</button>
-                </div>
-                <div class="ms-auto d-flex gap-2">
-                    <button class="control-btn" id="cinema-btn" onclick="toggleCinema()" title="Chế độ rạp chiếu (M)">
-                        <i class="fas fa-film"></i>
-                    </button>
-                    <button class="control-btn" onclick="toggleFullscreen()" title="Toàn màn hình (F)">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                </div>
+            <div class="p-2 px-3 d-flex justify-content-between align-items-center bg-black border-top border-white border-opacity-5">
+                <span class="small text-white-50" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-sparkles me-2 text-warning"></i>Chúc bạn xem phim vui vẻ tại BQH MOVIE
+                </span>
+                <button class="btn btn-sm text-white-50 shadow-none border-0" style="font-size: 0.75rem;" onclick="toggleCinema()"><i class="fas fa-expand-alt me-1"></i> RẠP PHIM</button>
             </div>
             {% endif %}
         </div>
     </div>
 </section>
 
-<div class="container py-4">
-    <div class="row g-4">
+<div class="container px-md-5 mt-3">
+    <div class="row g-5">
         <div class="col-lg-8">
-            <div class="info-card-premium">
-                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center flex-wrap gap-3 mb-2">
-                            <h1 class="h2 fw-800 text-white m-0 text-uppercase">{{ movie.title }}</h1>
-                            <span class="badge bg-danger rounded-pill px-3">{{ movie.age_limit }}+</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 text-white-50 small">
-                            <span class="text-warning fw-bold"><i class="fas fa-star me-1"></i>{{ movie.imdb_rating }}</span>
-                            <span><i class="far fa-calendar-alt me-1"></i>{{ movie.release_date }}</span>
-                            <span class="text-white">{{ movie.genres }}</span>
-                        </div>
-                    </div>
+            <div class="movie-header">
+                <h1 class="movie-title">{{ movie.title }}</h1>
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <span class="age-badge">{{ movie.age_limit }}+</span>
+                    <span class="text-white-50 small">{{ movie.release_date }}</span>
+                    <span class="text-white-50 small">|</span>
+                    <span class="text-warning small fw-bold">{{ movie.country }}</span>
+                </div>
+
+                <div class="mb-4">
                     {% if user.is_authenticated %}
-                    <a href="{% url 'toggle_watchlist' movie.id %}" class="btn-bookmark-premium {% if is_bookmarked %}active{% endif %}">
+                    <button id="watchlist-btn" class="btn-watchlist-ajax {% if is_bookmarked %}active{% endif %}" data-url="{% url 'toggle_watchlist' movie.id %}">
                         <i class="fas {% if is_bookmarked %}fa-check{% else %}fa-plus{% endif %}"></i>
-                        <span>{% if is_bookmarked %}ĐÃ LƯU{% else %}LƯU PHIM{% endif %}</span>
-                    </a>
+                        <span id="watchlist-text">{% if is_bookmarked %}Đã lưu{% else %}Lưu phim{% endif %}</span>
+                    </button>
                     {% endif %}
                 </div>
 
-                <hr class="opacity-10 my-4">
-                <h6 class="text-danger fw-bold text-uppercase mb-3">Nội dung chính</h6>
-                <p class="text-white-50 lh-lg" style="text-align: justify;">{{ movie.description }}</p>
+                <div class="description-box">
+                    <p style="white-space: pre-line;">{{ movie.description|striptags }}</p>
+                </div>
 
                 {% if episodes %}
-                <hr class="opacity-10 my-4">
-                <h6 class="text-danger fw-bold text-uppercase mb-3">Danh sách tập phim</h6>
-                <div class="episode-list">
+                <span class="ep-label">Danh sách tập</span>
+                <div class="ep-grid">
                     {% for ep in episodes %}
-                    <div class="ep-btn {% if ep.link_ophim == default_video_url %}active{% endif %}" onclick="changeEpisode('{{ ep.link_ophim }}', this)">
+                    <a href="?ep={{ forloop.counter }}" class="ep-btn {% if ep.link_ophim == default_video_url %}active{% endif %}">
                         {{ forloop.counter }}
-                    </div>
+                    </a>
                     {% endfor %}
                 </div>
                 {% endif %}
             </div>
 
-            {% include 'main/reviews.html' %}
+            <div class="mt-5">
+                <h2 style="font-family: 'Montserrat'; font-size: 1.4rem; margin-bottom: 30px;">Bình luận</h2>
+                
+                {% if user.is_authenticated %}
+                <div style="background: var(--surface); padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 40px;">
+                    <form id="comment-form-ajax" action="{% url 'add_review' movie.id %}" method="POST">
+                        {% csrf_token %}
+                        <textarea name="comment" class="form-control" style="background: transparent; border: none; color: #fff; padding: 0; box-shadow: none;" placeholder="Chia sẻ cảm nghĩ của bạn..." rows="2" required></textarea>
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-warning fw-bold px-4 btn-sm rounded-pill">Gửi</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div id="comment-list">
+                    {% for r in reviews %}
+                    <div class="comment-item" id="review-{{ r.id }}">
+                        {% if r.user.profile.avatar %}
+                            <img src="{{ r.user.profile.avatar.url }}" class="user-img">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ r.user.username }}&background=111&color=ffcc33&bold=true&length=1" class="user-img">
+                        {% endif %}
+                        
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between">
+                                <span class="user-name">{{ r.user.username }}</span>
+                                <span class="text-white-50" style="font-size: 0.75rem;">{{ r.created_at|timesince }} trước</span>
+                            </div>
+                            <div class="comment-text">{{ r.comment }}</div>
+                            <div class="d-flex gap-3">
+                                <button class="btn-like-ajax" data-url="{% url 'like_review' r.id %}">
+                                    <i class="{% if user in r.likes.all %}fas text-danger{% else %}far{% endif %} fa-heart"></i> <span class="count">{{ r.likes.count }}</span>
+                                </button>
+                                {% if user == r.user or user.is_staff %}
+                                <button class="btn-delete-cmt" data-url="{% url 'delete_review' r.id %}" data-id="{{ r.id }}">XÓA</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-4">
-            <h6 class="fw-bold text-white mb-3 text-uppercase border-start border-danger border-3 ps-2">Phim Đề Xuất</h6>
-            <div class="d-flex flex-column gap-2">
-                {% for rec in recommendations %}
-                <a href="{% url 'movie_detail' rec.slug %}" class="rec-item-premium">
-                    <img src="{{ rec.poster_url }}" class="rec-poster" onerror="this.src='/static/img/no-poster.jpg'">
-                    <div class="overflow-hidden">
-                        <div class="text-white small fw-bold text-truncate">{{ rec.title }}</div>
-                        <div class="text-warning x-small mt-1"><i class="fas fa-star me-1"></i>{{ rec.imdb_rating }}</div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary-gold); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 25px; display: block;">Gợi ý cho bạn</span>
+            {% for rec in recommendations %}
+            <a href="{% url 'movie_detail' rec.slug %}" class="rec-item">
+                <img src="{{ rec.poster_url }}" class="rec-img">
+                <div>
+                    <div class="rec-title">{{ rec.title }}</div>
+                    <div class="text-white-50 small mt-1">{{ rec.release_date }}</div>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </div>
 </div>
 
 <script>
-    function changeEpisode(url, btn) {
-        const iframe = document.getElementById('main-iframe-player');
-        if (iframe && url) {
-            // Giữ nguyên link gốc, không replace để tránh lỗi tập 3
-            iframe.src = url;
-            
-            // Cập nhật trạng thái nút
-            document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Cuộn lên đầu để xem
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+    function showToast(msg) {
+        const box = document.getElementById('toast-box');
+        const t = document.createElement('div');
+        t.className = `custom-toast show`;
+        t.innerHTML = `<span>${msg}</span>`;
+        box.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
     }
 
-    function toggleFullscreen() {
-        const container = document.getElementById('cinema-container');
-        if (!document.fullscreenElement) {
-            if (container.requestFullscreen) container.requestFullscreen();
-            else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
-            else if (container.msRequestFullscreen) container.msRequestFullscreen();
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    }
+    $('#watchlist-btn').on('click', function() {
+        var btn = $(this);
+        $.ajax({
+            url: btn.data('url'),
+            type: 'GET',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(data) {
+                var icon = btn.find('i');
+                var text = $('#watchlist-text');
+                if(data.status === 'added') {
+                    btn.addClass('active'); icon.attr('class', 'fas fa-check'); text.text('Đã lưu');
+                    showToast('Đã thêm vào danh sách');
+                } else {
+                    btn.removeClass('active'); icon.attr('class', 'fas fa-plus'); text.text('Lưu phim');
+                    showToast('Đã gỡ khỏi danh sách');
+                }
+            }
+        });
+    });
 
-    function toggleCinema() {
-        const player = document.getElementById('player-area');
-        const btn = document.getElementById('cinema-btn');
-        const isCinema = player.classList.toggle('cinema-mode');
-        
-        if (isCinema) {
-            document.body.classList.add('cinema-mode-active');
-            document.body.style.overflow = 'hidden'; 
-            btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>'; 
-        } else {
-            document.body.classList.remove('cinema-mode-active');
-            document.body.style.overflow = 'auto'; 
-            btn.innerHTML = '<i class="fas fa-film"></i>'; 
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    $(document).on('click', '.btn-delete-cmt', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var reviewId = btn.data('id');
+        $('#review-' + reviewId).css('opacity', '0.3');
+        $.ajax({
+            url: btn.data('url'),
+            type: 'POST',
+            data: { 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(data) {
+                if(data.status === 'success') {
+                    $('#review-' + reviewId).fadeOut(300, function() { $(this).remove(); });
+                    showToast('Bình luận đã được xóa');
+                }
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-like-ajax', function() {
+        var btn = $(this);
+        $.ajax({
+            url: btn.data('url'),
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(data) {
+                btn.find('i').attr('class', data.liked ? 'fas text-danger fa-heart' : 'far fa-heart');
+                btn.find('.count').text(data.count);
+                showToast(data.liked ? 'Đã thích' : 'Bỏ thích');
+            }
+        });
+    });
+
+    $('#comment-form-ajax').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(data) {
+                if(data.status === 'success') {
+                    showToast('Đăng bình luận thành công!');
+                    setTimeout(function() { location.reload(); }, 1000);
+                }
+            }
+        });
+    });
+
+    function toggleCinema() { 
+        $('body').toggleClass('cinema-mode-active'); 
+        $('#player-area').toggleClass('cinema-mode'); 
     }
 </script>
 {% endblock %}

@@ -2,274 +2,331 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;900&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
 <style>
-    /* --- HỆ THỐNG BIẾN & CORE STYLE --- */
+    /* --- VARIABLES --- */
     :root {
-        --primary-red: #e50914;
-        --accent-red: #ff3c3c;
+        --primary-gold: #ffcc33;
+        --gold-glow: rgba(255, 204, 51, 0.4);
         --dark-bg: #050505;
-        --card-bg: #111111;
-        --glass-white: rgba(255, 255, 255, 0.05);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --shadow-red: rgba(229, 9, 20, 0.4);
-        --transition-main: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+        --surface: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --text-main: 'Inter', sans-serif;
+        --text-display: 'Outfit', sans-serif;
+        --text-quote: 'Playfair Display', serif;
     }
 
-    body { background-color: var(--dark-bg); color: #ececec; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    /* --- GLOBAL --- */
+    body { background-color: var(--dark-bg); font-family: var(--text-main); color: #fff; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    
+    /* --- LOADER --- */
+    #page-loader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: none; justify-content: center; align-items: center; }
+    .spinner-cinema { width: 45px; height: 45px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* --- HIỆU ỨNG TEXT --- */
-    .glow-text {
-        font-weight: 800;
-        text-transform: uppercase;
-        background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.5) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 1px;
+    /* --- SPOTLIGHT HERO --- */
+    .spotlight-wrapper { padding: 120px 5% 40px; }
+    .spotlight-title { font-size: clamp(2.2rem, 8vw, 4.5rem); font-weight: 900; background: linear-gradient(180deg, #fff, rgba(255,255,255,0.2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 30px; font-family: var(--text-display); letter-spacing: -2px; }
+    
+    .mySwiper { padding-bottom: 50px !important; }
+    .swiper-slide { 
+        width: 85vw; max-width: 550px; height: 40vh; max-height: 320px;
+        border-radius: 28px; overflow: hidden; border: 1px solid var(--glass-border); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); filter: brightness(0.5) scale(0.9); 
+    }
+    .swiper-slide-active { filter: brightness(1) scale(1); border-color: var(--primary-gold); box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px var(--gold-glow); }
+    .spotlight-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; opacity: 0; }
+    .spotlight-img.loaded { opacity: 1; }
+    .spotlight-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 20%, transparent); opacity: 0; transform: translateY(20px); transition: 0.5s 0.2s; }
+    .swiper-slide-active .spotlight-info { opacity: 1; transform: translateY(0); }
+
+    /* --- FILTER --- */
+    .filter-sticky { position: sticky; top: 70px; z-index: 900; margin-bottom: 35px; background: rgba(5,5,5,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 15px 0; }
+    .filter-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 0 5%; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-btn { padding: 8px 24px; border-radius: 100px; background: var(--surface); color: #888; font-weight: 600; text-decoration: none; border: 1px solid var(--glass-border); white-space: nowrap; transition: 0.3s; font-size: 0.8rem; letter-spacing: 0.5px; }
+    .filter-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
+
+    /* --- MOVIE CARD --- */
+    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px 15px; padding: 0 5%; }
+    @media (min-width: 992px) { .movie-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); padding: 0; gap: 40px 25px; } }
+
+    .m-card { display: block; text-decoration: none; color: inherit; position: relative; }
+    .m-poster-box { 
+        position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 2/3; 
+        background: #111; border: 1px solid var(--glass-border); 
+        transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .m-poster-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: 0.8s; }
+    .m-poster-box img.loaded { opacity: 1; }
+    
+    .m-card:hover .m-poster-box { transform: translateY(-12px) scale(1.02); border-color: rgba(255,255,255,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .m-card:hover .m-poster-box img { transform: scale(1.1); filter: brightness(0.7); }
+
+    .m-rating {
+        position: absolute; top: 12px; left: 12px; z-index: 5;
+        background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
+        padding: 4px 10px; border-radius: 10px; font-size: 0.7rem;
+        font-weight: 800; color: var(--primary-gold);
+        border: 1px solid rgba(255, 204, 51, 0.2);
+        display: flex; align-items: center; gap: 5px;
     }
 
-    /* --- NÂNG CẤP HERO CAROUSEL --- */
-    #heroCarousel { border-radius: 28px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .carousel-item { height: 550px; overflow: hidden; }
-    .carousel-item img { width: 100%; height: 100%; object-fit: cover; animation: kenburns 20s infinite alternate; }
-    @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.1); } }
-
-    .hero-vignette {
-        position: absolute; inset: 0;
-        background: radial-gradient(circle at 20% 50%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.9) 100%),
-                    linear-gradient(to top, var(--dark-bg) 5%, transparent 50%);
+    .play-circle { 
+        position: absolute; inset: 0; margin: auto; width: 55px; height: 55px; 
+        border-radius: 50%; background: var(--primary-gold); color: #000; 
+        display: flex; align-items: center; justify-content: center; 
+        opacity: 0; transform: scale(0.5) translateY(20px); transition: 0.4s ease; z-index: 4; 
+        box-shadow: 0 10px 20px var(--gold-glow);
     }
-
-    /* --- MOVIE CARD HIỆU ỨNG MỚI --- */
-    .movie-card {
-        position: relative; background: var(--card-bg); border-radius: 16px;
-        border: 1px solid var(--glass-border); transition: var(--transition-main);
+    .m-card:hover .play-circle { opacity: 1; transform: scale(1) translateY(0); }
+    
+    .btn-wishlist { 
+        position: absolute; top: 12px; right: 12px; z-index: 10; width: 34px; height: 34px; 
+        border-radius: 12px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); 
+        border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+        display: flex; align-items: center; justify-content: center; transition: 0.3s; 
     }
-    .movie-card:hover { 
-        transform: translateY(-12px) scale(1.02); 
-        border-color: var(--primary-red); 
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px var(--shadow-red);
+    .btn-wishlist:hover { background: #fff; color: #000; }
+    .btn-wishlist.active { background: #ff4444; border-color: #ff4444; color: #fff; }
+    
+    .m-info { padding: 15px 5px 0; }
+    .m-title { 
+        font-weight: 700; font-size: 1rem; line-height: 1.4; color: #fff;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+        overflow: hidden; height: 2.8em; transition: 0.3s;
     }
-    .card-img-wrapper { position: relative; aspect-ratio: 2/3; overflow: hidden; border-radius: 14px; }
-    .movie-card:hover .card-img-wrapper img { filter: brightness(0.6) blur(2px); transform: scale(1.08); }
+    .m-card:hover .m-title { color: var(--primary-gold); }
+    
+    .m-meta { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #666; font-weight: 600; margin-top: 6px; }
+    .m-meta span.quality { color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 0 4px; border-radius: 4px; font-size: 0.6rem; }
 
-    .card-hover-detail {
-        position: absolute; inset: 0; display: flex; flex-direction: column; 
-        justify-content: center; align-items: center; opacity: 0; 
-        transform: translateY(15px); transition: var(--transition-main);
+    /* --- QUOTE BOX --- */
+    .quote-box { 
+        margin-top: 30px; padding: 25px; border-left: 2px solid var(--primary-gold); 
+        background: linear-gradient(90deg, rgba(255,204,51,0.05), transparent);
+        border-radius: 0 20px 20px 0;
     }
-    .movie-card:hover .card-hover-detail { opacity: 1; transform: translateY(0); }
+    .quote-text { font-family: var(--text-quote); font-style: italic; font-size: 1.1rem; color: #ccc; line-height: 1.6; margin-bottom: 12px; }
+    .quote-author { font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--primary-gold); text-transform: uppercase; }
 
-    .btn-play-sm {
-        width: 45px; height: 45px; background: var(--primary-red);
-        border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        color: white; box-shadow: 0 0 15px var(--primary-red);
+    /* --- SIDEBAR --- */
+    .sidebar-wrapper { position: sticky; top: 100px; }
+    .donate-widget-cute { 
+        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); 
+        border: 1px solid var(--glass-border); border-radius: 28px; padding: 35px 25px; text-align: center; 
     }
-
-    /* --- NÚT DONATE --- */
-    .floating-donate {
-        position: fixed; bottom: 35px; right: 35px; z-index: 1000;
-        width: 65px; height: 65px; border-radius: 50%;
-        background: linear-gradient(135deg, #ffd700, #ffa500);
-        color: #000; border: none; font-size: 1.5rem;
-        box-shadow: 0 8px 25px rgba(255, 165, 0, 0.4); cursor: pointer; transition: 0.3s;
+    .btn-cute { 
+        background: #fff; color: #000; font-weight: 800; border: none; padding: 14px; 
+        width: 100%; border-radius: 50px; margin-top: 25px; font-size: 0.85rem; 
+        letter-spacing: 1px; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
-    .floating-donate:hover { transform: scale(1.1) rotate(10deg); }
-    @keyframes wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
-    .btn-wiggle { animation: wiggle 2.5s infinite ease-in-out; }
+    .btn-cute:hover { transform: translateY(-5px); background: var(--primary-gold); }
 
-    /* --- SIDEBAR RANKING (Dùng cho Phim Hot) --- */
-    .ranking-container { background: rgba(255,255,255,0.02); padding: 20px; border-radius: 24px; border: 1px solid var(--glass-border); }
-    .rank-item {
-        display: flex; align-items: center; gap: 12px; padding: 10px;
-        border-radius: 12px; transition: 0.3s; text-decoration: none;
-    }
-    .rank-item:hover { background: rgba(255,255,255,0.05); transform: translateX(8px); }
-    .rank-idx { font-size: 1.4rem; font-weight: 900; color: var(--primary-red); font-style: italic; width: 30px; opacity: 0.8; }
+    .social-card { display: flex; align-items: center; gap: 15px; padding: 18px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 20px; text-decoration: none !important; margin-bottom: 12px; transition: 0.3s; }
+    .social-card:hover { background: rgba(255,255,255,0.06); transform: translateX(8px); border-color: rgba(255,255,255,0.2); }
 
-    .qr-frame { background: #fff; padding: 12px; border-radius: 18px; display: inline-block; }
-    .qr-frame img { width: 230px; height: 230px; object-fit: contain; }
+    /* --- TOAST --- */
+    #toast-box { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10001; }
+    .custom-toast { background: #fff; color: #000; padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
 </style>
 
-<button class="floating-donate btn-wiggle" data-bs-toggle="modal" data-bs-target="#donateModal">
-    <i class="fas fa-mug-hot"></i>
-</button>
+<div id="page-loader"><div class="spinner-cinema"></div></div>
+<div id="toast-box"></div>
 
-<div class="container-fluid px-lg-5 mt-4">
-    {# 1. PHẦN ĐẦU TRANG: HERO SLIDER & VIP CARD #}
-    {% if movies_page.number == 1 and not request.GET.q %}
-    <div class="row g-4 mb-5">
-        <div class="col-lg-9">
-            <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
-                <div class="carousel-inner">
-                    {% for movie in featured_movies|slice:":3" %}
-                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
-                        <div class="hero-vignette"></div>
-                        <div class="carousel-caption d-none d-md-block text-start h-100 d-flex align-items-center" style="left: 7%; bottom: 0; max-width: 550px; z-index: 10;">
-                            <div>
-                                <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill shadow">PHIM ĐỀ CỬ</span>
-                                <h1 class="display-3 fw-bold text-white mb-3" style="text-shadow: 2px 2px 15px rgba(0,0,0,0.8);">{{ movie.title|upper }}</h1>
-                                <p class="fs-6 text-light opacity-75 mb-4">{{ movie.description|truncatechars:120 }}</p>
-                                <div class="d-flex gap-3">
-                                    <a href="{% url 'movie_detail' movie.slug %}" class="btn btn-danger btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
-                                        <i class="fas fa-play me-2"></i> XEM NGAY
-                                    </a>
-                                </div>
-                            </div>
+<div class="container-fluid p-0">
+    {% if movies_page.number == 1 %}
+    <section class="spotlight-wrapper">
+        <h2 class="spotlight-title">XEM GÌ<br>HÔM NAY?</h2>
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                {% for movie in hot_movies|slice:":10" %}
+                <div class="swiper-slide" onclick="showLoaderAndGo('{% url 'movie_detail' movie.slug %}')">
+                    <img data-src="{{ movie.poster_url }}" class="spotlight-img spotlight-lazy" alt="{{ movie.title }}">
+                    <div class="spotlight-info">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning text-dark fw-bold">HOT</span>
+                            <span class="text-white-50 small"><i class="fas fa-star text-warning me-1"></i>{{ movie.imdb_rating }}</span>
                         </div>
+                        <h2 class="fw-bold text-white mb-1" style="font-size: 2rem; letter-spacing: -1px;">{{ movie.title }}</h2>
+                        <div class="text-white-50 small">{{ movie.release_date }}</div>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             </div>
         </div>
-        <div class="col-lg-3">
-            <div class="h-100 p-4 rounded-4 d-flex flex-column justify-content-center text-center border border-white border-opacity-10" 
-                 style="background: linear-gradient(145deg, #1a1a1a, #000);">
-                <i class="fas fa-crown fa-4x text-warning mb-4"></i>
-                <h3 class="fw-bold mb-3">BQH MOVIE+</h3>
-                <p class="text-white-50 small mb-4">Trải nghiệm chất lượng 4K Ultra HD, không quảng cáo và ưu tiên phim mới.</p>
-                <button class="btn btn-warning py-3 rounded-pill fw-bold w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#donateModal">
-                    <i class="fas fa-gem me-2"></i>NÂNG CẤP NGAY
-                </button>
-            </div>
-        </div>
-    </div>
+    </section>
     {% endif %}
 
-    {# 2. PHẦN NỘI DUNG CHÍNH: PHIM MỚI NHẤT #}
-    <div class="row g-4">
-        <div class="col-lg-9">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <h2 class="glow-text m-0">
-                    {% if request.GET.q %}KẾT QUẢ CHO: "{{ request.GET.q }}"{% else %}PHIM MỚI CẬP NHẬT{% endif %}
-                </h2>
-                <div class="d-none d-md-block bg-danger opacity-50" style="height: 2px; flex-grow: 1; margin-left: 20px; border-radius: 2px;"></div>
+    <div class="row m-0 px-md-5 pb-5">
+        <div class="col-lg-9 p-0 pr-lg-5">
+            <div class="filter-sticky">
+                <div class="filter-scroll">
+                    <a href="?genre=all" class="filter-btn {% if not current_genre or current_genre == 'all' %}active{% endif %}">Tất cả</a>
+                    <a href="?genre=hanh-dong" class="filter-btn {% if current_genre == 'hanh-dong' %}active{% endif %}">Hành động</a>
+                    <a href="?genre=tinh-cam" class="filter-btn {% if current_genre == 'tinh-cam' %}active{% endif %}">Tình cảm</a>
+                    <a href="?genre=hoat-hinh" class="filter-btn {% if current_genre == 'hoat-hinh' %}active{% endif %}">Hoạt hình</a>
+                    <a href="?genre=kinh-di" class="filter-btn {% if current_genre == 'kinh-di' %}active{% endif %}">Kinh dị</a>
+                </div>
             </div>
 
-            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-4">
+            <div class="movie-grid">
                 {% for movie in movies_page %}
-                <div class="col">
-                    <div class="movie-card h-100">
-                        <a href="{% url 'movie_detail' movie.slug %}" class="text-decoration-none">
-                            <div class="card-img-wrapper">
-                                <img src="{{ movie.poster_url }}" class="w-100 h-100 object-fit-cover" alt="{{ movie.title }}" loading="lazy">
-                                
-                                <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
-                                    <span class="badge bg-primary shadow-sm" style="font-size: 9px;">NEW</span>
-                                    {% if movie.imdb_rating >= 8 %}
-                                    <span class="badge bg-danger shadow-sm" style="font-size: 9px;">HOT</span>
-                                    {% endif %}
-                                </div>
-
-                                <div class="card-hover-detail">
-                                    <div class="btn-play-sm mb-2 shadow-lg"><i class="fas fa-play"></i></div>
-                                    <span class="text-white fw-bold small">IMDb: {{ movie.imdb_rating }}</span>
-                                </div>
+                <div class="m-card-wrap">
+                    <a href="javascript:void(0)" onclick="showLoaderAndGo('{% url 'movie_detail' movie.slug %}')" class="m-card">
+                        <div class="m-poster-box">
+                            <div class="m-rating">
+                                <i class="fas fa-star"></i> {{ movie.imdb_rating|default:"8.0" }}
                             </div>
-                            <div class="p-3">
-                                <h6 class="text-white text-truncate m-0 fw-bold small text-uppercase" title="{{ movie.title }}">{{ movie.title }}</h6>
-                                <div class="d-flex justify-content-between mt-2 opacity-50" style="font-size: 10px;">
-                                    <span>{{ movie.release_date }}</span>
-                                    <span class="text-danger">PREMIUM</span>
-                                </div>
+                            <button class="btn-wishlist {% if movie in user.profile.watchlist.all %}active{% endif %}" 
+                                    onclick="event.stopPropagation(); toggleWishlist(this, {{ movie.id }})">
+                                <i class="{% if movie in user.profile.watchlist.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                            </button>
+                            <div class="play-circle"><i class="fas fa-play"></i></div>
+                            <img data-src="{{ movie.poster_url }}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="lazy-img">
+                        </div>
+                        <div class="m-info">
+                            <h3 class="m-title">{{ movie.title }}</h3>
+                            <div class="m-meta">
+                                <span>{{ movie.release_date|slice:":4" }}</span>
+                                <span class="quality">HD</span>
                             </div>
-                        </a>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-12 text-center py-5">
-                    <h5 class="text-white-50">Không tìm thấy nội dung yêu cầu...</h5>
+                        </div>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
 
-            {# PHÂN TRANG #}
             {% if movies_page.has_other_pages %}
-            <div class="d-flex justify-content-center mt-5 mb-5">
-                <nav class="d-flex align-items-center gap-3">
-                    {% if movies_page.has_previous %}
-                    <a href="?page={{ movies_page.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-dark rounded-circle border-secondary border-opacity-25 shadow"><i class="fas fa-chevron-left mt-1"></i></a>
+            <div class="d-flex justify-content-center py-5 mt-4 gap-2">
+                {% for num in movies_page.paginator.page_range %}
+                    {% if movies_page.number == num %}
+                        <span class="btn btn-light fw-bold rounded-circle shadow" style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;">{{ num }}</span>
+                    {% elif num > movies_page.number|add:'-3' and num < movies_page.number|add:'3' %}
+                        <a href="?page={{ num }}{% if current_genre %}&genre={{ current_genre }}{% endif %}" class="btn text-white-50 rounded-circle" style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;">{{ num }}</a>
                     {% endif %}
-                    <span class="px-4 py-2 bg-dark rounded-pill border border-secondary border-opacity-25 small fw-bold">
-                        {{ movies_page.number }} / {{ movies_page.paginator.num_pages }}
-                    </span>
-                    {% if movies_page.has_next %}
-                    <a href="?page={{ movies_page.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-dark rounded-circle border-secondary border-opacity-25 shadow"><i class="fas fa-chevron-right mt-1"></i></a>
-                    {% endif %}
-                </nav>
+                {% endfor %}
             </div>
             {% endif %}
         </div>
 
-        {# 3. THANH BÊN: PHIM HOT NHẤT (BẢNG XẾP HẠNG) #}
-        <div class="col-lg-3">
-            <div class="ranking-container">
-                <h5 class="glow-text mb-4" style="font-size: 1rem;">PHIM HOT NHẤT</h5>
-                <div class="d-flex flex-column gap-2">
-                    {% for movie in hot_movies %}
-                    <a href="{% url 'movie_detail' movie.slug %}" class="rank-item">
-                        <span class="rank-idx">{{ forloop.counter }}</span>
-                        <img src="{{ movie.poster_url }}" width="45" height="60" class="rounded object-fit-cover shadow-sm">
-                        <div class="overflow-hidden">
-                            <h6 class="text-white small fw-bold mb-0 text-truncate">{{ movie.title }}</h6>
-                            <div class="text-warning" style="font-size: 10px;">
-                                <i class="fas fa-star me-1"></i>{{ movie.imdb_rating }} IMDb
-                            </div>
+        <div class="col-lg-3 sidebar-col mt-5 mt-lg-0">
+            <div class="sidebar-wrapper">
+                <div class="donate-widget-cute mb-5">
+                    <div style="font-size: 2.5rem;">☕</div>
+                    <h5 class="fw-bold text-white mt-3" style="font-family: var(--text-display);">Mời BQH ly Cafe</h5>
+                    <p class="text-white-50 small px-3">Sự ủng hộ của bạn giúp tớ duy trì máy chủ mượt mà mỗi ngày.</p>
+                    <button class="btn-cute" data-bs-toggle="modal" data-bs-target="#donateModal">ỦNG HỘ TỚ</button>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="fw-bold text-white-50 small mb-4 letter-spacing-2">SOCIALS</h6>
+                    <a href="https://www.facebook.com/huy.banh.96199/" target="_blank" class="social-card">
+                        <div class="social-icon" style="color: #1877F2; font-size: 1.5rem;"><i class="fab fa-facebook"></i></div>
+                        <div>
+                            <div class="fw-bold text-white small">Facebook</div>
+                            <div class="text-white-50" style="font-size: 10px;">@huy.banh.96199</div>
                         </div>
                     </a>
-                    {% endfor %}
+                    <a href="https://www.instagram.com/banh_quanghuy/" target="_blank" class="social-card">
+                        <div class="social-icon" style="color: #E1306C; font-size: 1.5rem;"><i class="fab fa-instagram"></i></div>
+                        <div>
+                            <div class="fw-bold text-white small">Instagram</div>
+                            <div class="text-white-50" style="font-size: 10px;">@banh_quanghuy</div>
+                        </div>
+                    </a>
                 </div>
-                
-                <hr class="my-4 border-secondary border-opacity-20">
-                
-                <div class="p-3 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-20">
-                    <h6 class="text-danger fw-bold small mb-2"><i class="fas fa-bell me-2"></i>LƯU Ý</h6>
-                    <p class="text-white-50 mb-0" style="font-size: 11px;">Nếu link phim bị lỗi, vui lòng nhấn nút "Báo lỗi" hoặc Donate để Admin fix nhanh nhất!</p>
+
+                <div class="quote-box mb-5">
+                    <div class="quote-text">"Cuộc đời là một bi kịch khi nhìn gần, nhưng lại là một vở hài kịch khi nhìn từ xa. Điện ảnh giúp ta nhìn thấy cả hai."</div>
+                    <div class="quote-author">Andrei Tarkovsky</div>
+                </div>
+
+                <div class="text-center mt-5 text-white-50 small">
+                    <p>© 2026 BQH MOVIE</p>
+                    <p style="font-size: 10px; opacity: 0.5;">Cinema Experience At Home</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{# MODAL DONATE HOÀN CHỈNH #}
-<div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark border border-secondary shadow-lg" style="border-radius: 28px;">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center p-4 pt-0">
-                <h4 class="text-warning fw-bold mb-4">MỜI ADMIN LY CAFE</h4>
-                <div class="qr-frame mb-4 shadow">
-                    <img src="{% static 'images/vcb_qr.jpg' %}" alt="QR Donate" onerror="this.src='https://img.vietqr.io/image/vcb-1025765518-compact2.jpg?amount=50000&addInfo=Ung%20ho%20BQH%20Movie&accountName=BANH%20QUANG%20HUY'">
-                </div>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-                <div class="text-start p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-white-50 small">Ngân hàng</span>
-                        <span class="text-white small fw-bold">VIETCOMBANK (VCB)</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-white-50 small">Số tài khoản</span>
-                        <span class="text-white small fw-bold">1025765518</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="text-white-50 small">Chủ tài khoản</span>
-                        <span class="text-white small fw-bold">BANH QUANG HUY</span>
-                    </div>
-                </div>
-                <div class="p-2 rounded-3 text-center" style="background: rgba(229, 9, 20, 0.1); border: 1px dashed rgba(229, 9, 20, 0.4);">
-                    <small class="text-danger fw-bold">Nội dung: Ung ho BQH Movie</small>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+    const userIsAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
 
-<footer class="py-5 mt-5 border-top border-secondary border-opacity-10">
-    <div class="container text-center">
-        <h3 class="fw-bold text-danger mb-3">BQH MOVIE</h3>
-        <p class="text-white-50 small mb-0">© 2026 Developed by BQH Team. Chúc bạn xem phim vui vẻ!</p>
-    </div>
-</footer>
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted || document.readyState === 'complete') {
+            document.getElementById('page-loader').style.display = 'none';
+        }
+    });
+
+    window.addEventListener('load', () => {
+        document.getElementById('page-loader').style.display = 'none';
+    });
+
+    function showLoaderAndGo(url) {
+        if (url !== window.location.href) {
+            document.getElementById('page-loader').style.display = 'flex';
+            window.location.href = url;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const swiper = new Swiper(".mySwiper", {
+            effect: "coverflow",
+            grabCursor: true, 
+            centeredSlides: true, 
+            slidesPerView: "auto",
+            loop: true, 
+            autoplay: { delay: 4000 },
+            coverflowEffect: { rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false },
+            on: {
+                init: function () { loadVisibleSpotlight(this); },
+                slideChange: function () { loadVisibleSpotlight(this); }
+            }
+        });
+
+        function loadVisibleSpotlight(s) {
+            s.slides.forEach(slide => {
+                const img = slide.querySelector('.spotlight-lazy');
+                if (img && img.dataset.src && !img.src.includes(img.dataset.src)) {
+                    img.src = img.dataset.src;
+                    img.onload = () => img.classList.add('loaded');
+                }
+            });
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src; 
+                    img.onload = () => img.classList.add('loaded');
+                    observer.unobserve(img);
+                }
+            });
+        });
+        document.querySelectorAll('.lazy-img').forEach(img => observer.observe(img));
+    });
+
+    function showToast(msg) {
+        const box = document.getElementById('toast-box');
+        const t = document.createElement('div');
+        t.className = `custom-toast`;
+        t.innerText = msg;
+        box.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    function toggleWishlist(btn, id) {
+        if (!userIsAuthenticated) { showToast('Bạn cần đăng nhập!'); return; }
+        btn.classList.toggle('active');
+        fetch(`/toggle-watchlist/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(r => r.json()).then(d => showToast(d.status === 'added' ? 'Đã lưu phim' : 'Đã bỏ lưu'));
+    }
+</script>
 {% endblock %}
