@@ -16,20 +16,21 @@
             --primary-dark: #800000;
             --primary-glow: rgba(196, 0, 0, 0.4);
             --accent: #ffcc00;
+            --accent-glow: rgba(255, 204, 0, 0.3);
             --bg-deep: #050505;
             --surface: rgba(15, 15, 15, 0.95);
             --border: rgba(255, 255, 255, 0.08);
             --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --primary-gold: #ffcc33;
         }
 
         body { 
             background-color: var(--bg-deep); color: #e0e0e0; 
-            font-family: 'Plus Jakarta Sans', sans-serif; padding-top: 100px;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            padding-top: 80px; 
             overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
 
-        /* --- THANH TẢI TRANG --- */
+        /* --- LOADING BAR --- */
         #loading-bar {
             position: fixed; top: 0; left: 0; width: 0%; height: 3px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
@@ -37,69 +38,116 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* --- NAVBAR HIỆN ĐẠI --- */
+        /* --- NAVBAR --- */
         .navbar { 
             background: var(--surface) !important; 
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid var(--border); border-radius: 20px;
-            margin: 10px 4%; padding: 8px 25px; z-index: 2000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 15px; z-index: 2000;
+            transition: all 0.3s;
+        }
+
+        @media (min-width: 992px) {
+            .navbar {
+                border: 1px solid var(--border); border-radius: 20px;
+                margin: 15px 4%; padding: 10px 25px;
+            }
+            body { padding-top: 110px; }
         }
 
         .brand-logo { 
-            font-size: 1.4rem; font-weight: 800; color: #fff !important; 
+            font-size: 1.3rem; font-weight: 800; color: #fff !important; 
             text-decoration: none !important; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
         }
         .brand-logo .logo-mark {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; width: 40px; height: 40px; display: flex; 
+            color: #fff; width: 38px; height: 38px; display: flex; 
             align-items: center; justify-content: center; border-radius: 12px;
             box-shadow: 0 5px 15px var(--primary-glow);
         }
 
         .nav-link { 
-            font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5) !important; 
-            text-transform: uppercase; letter-spacing: 1px; padding: 15px 15px !important;
+            font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.6) !important; 
+            text-transform: uppercase; letter-spacing: 1px; padding: 12px 18px !important;
             transition: var(--transition-fast); position: relative;
         }
         .nav-link:hover, .nav-link.active { color: #fff !important; }
 
-        /* --- FIX LỖI DROPDOWN MẤT KHI DI CHUỘT --- */
+        /* Nút ủng hộ màu vàng nổi bật */
+        .btn-donate-nav {
+            color: var(--accent) !important;
+            font-weight: 800 !important;
+            text-shadow: 0 0 10px var(--accent-glow);
+            transition: transform 0.3s ease;
+        }
+        .btn-donate-nav:hover {
+            transform: scale(1.05);
+            color: #fff !important;
+        }
+
+        /* --- DROPDOWN & MEGA MENU FIX --- */
         .nav-item.dropdown { position: relative; }
         
-        /* Tạo một vùng đệm ảo để chuột không bị rời khỏi menu */
-        .nav-item.dropdown::after {
-            content: ""; position: absolute; bottom: -20px; left: 0; width: 100%; height: 25px; display: block;
+        @media (min-width: 992px) {
+            .nav-item.dropdown::after { 
+                content: ""; position: absolute; top: 100%; left: 0; 
+                width: 100%; height: 25px; display: block; z-index: 10;
+            }
+
+            .dropdown-menu {
+                display: block !important;
+                opacity: 0; visibility: hidden; pointer-events: none;
+                transform: translateY(15px); transition: all 0.25s ease;
+                background: rgba(10, 10, 10, 0.98) !important;
+                backdrop-filter: blur(30px); border: 1px solid var(--border) !important;
+                border-radius: 22px; padding: 25px; margin-top: 15px !important;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+                z-index: 2001;
+            }
+
+            .nav-item.dropdown:hover .dropdown-menu { 
+                opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); 
+            }
+
+            .mega-menu-content {
+                width: auto !important;
+                min-width: 850px !important;
+                left: 50% !important;
+                transform: translateX(-50%) translateY(15px) !important;
+            }
+            .nav-item.dropdown:hover .mega-menu-content {
+                transform: translateX(-50%) translateY(0) !important;
+            }
+            .mega-menu-wrapper { display: flex; gap: 35px; }
+            .mega-column { flex: 1; }
+            .mega-title {
+                font-size: 0.75rem; font-weight: 800; color: var(--primary);
+                text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px;
+                padding-left: 12px; border-left: 3px solid var(--primary);
+            }
         }
 
-        .dropdown-menu {
-            display: block; opacity: 0; visibility: hidden; pointer-events: none;
-            transform: translateY(15px); transition: all 0.3s ease;
-            background: rgba(18, 18, 18, 0.98) !important;
-            backdrop-filter: blur(30px); border: 1px solid var(--border) !important;
-            border-radius: 18px; padding: 15px; margin-top: 5px !important;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
-        }
-
-        .nav-item.dropdown:hover .dropdown-menu {
-            opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0);
-        }
-
-        .genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 400px; }
         .dropdown-item { 
-            color: rgba(255,255,255,0.6) !important; font-size: 0.8rem; 
-            padding: 10px 12px; border-radius: 10px; transition: 0.2s;
+            color: rgba(255,255,255,0.6) !important; font-size: 0.85rem; 
+            padding: 10px 14px; border-radius: 12px; transition: 0.2s; 
+            display: flex; align-items: center; gap: 10px;
+            white-space: nowrap;
         }
-        .dropdown-item:hover { background: var(--primary) !important; color: #fff !important; transform: scale(1.05); }
+        .dropdown-item i { width: 18px; font-size: 0.9rem; opacity: 0.8; transition: 0.2s; }
+        .dropdown-item:hover { 
+            background: rgba(196, 0, 0, 0.15) !important; 
+            color: #fff !important; 
+            transform: translateX(5px);
+        }
 
         /* --- SEARCH BOX --- */
         .search-container { position: relative; width: 260px; z-index: 3001; }
         .search-wrapper {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            border-radius: 12px; padding: 7px 15px; display: flex; align-items: center; gap: 10px;
+            border-radius: 12px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;
         }
-        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.8); }
         .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 0.85rem; width: 100%; }
 
         #search-results-box {
@@ -108,48 +156,49 @@
             overflow: hidden; display: none; z-index: 100000;
             box-shadow: 0 25px 50px rgba(0,0,0,0.9);
         }
-        .search-item { 
-            display: flex !important; align-items: center; gap: 15px; padding: 12px 18px;
-            color: #fff !important; text-decoration: none !important; border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-        .search-item:hover { background: rgba(196, 0, 0, 0.2); }
-        .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 5px; }
         
         /* --- USER GATE --- */
         .user-gate { 
-            padding: 5px 15px 5px 5px; cursor: pointer; display: flex; 
+            padding: 5px; cursor: pointer; display: flex; 
             align-items: center; gap: 10px; background: rgba(255,255,255,0.05); 
             border: 1px solid var(--border); border-radius: 50px; transition: 0.3s;
         }
+        @media(min-width: 992px) { .user-gate { padding: 5px 15px 5px 5px; } }
         .user-gate:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
-        .avatar-box { 
-            width: 32px; height: 32px; border-radius: 50%; overflow: hidden; 
-            background: var(--primary); display: flex; align-items: center; justify-content: center; 
-        }
+        .avatar-box { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--primary); display: flex; align-items: center; justify-content: center; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- HEART EFFECT --- */
-        .heart-particle {
-            position: fixed; pointer-events: none; font-size: 20px; z-index: 10000;
-            animation: heartFly 1s ease-out forwards;
+        .logout-btn {
+            background: transparent; border: none; width: 100%; text-align: left;
+            display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+            color: #ff4757 !important; font-weight: 700; border-radius: 12px;
+            transition: 0.2s; white-space: nowrap;
         }
-        @keyframes heartFly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        .logout-btn:hover { background: rgba(255, 71, 87, 0.1); transform: translateX(5px); }
+
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: #0a0a0a; padding: 20px; border-radius: 20px; margin-top: 15px;
+                border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            }
+            .dropdown-menu { 
+                position: static !important; transform: none !important; visibility: visible !important; 
+                opacity: 1 !important; pointer-events: auto !important;
+                box-shadow: none !important; border: none !important; background: transparent !important; 
+                padding: 10px 0 !important; margin-top: 0 !important;
+            }
+            .mega-menu-wrapper { flex-direction: column; gap: 20px; }
+            .mega-title { margin-top: 15px; margin-bottom: 10px; font-size: 0.8rem; color: var(--primary); }
         }
-
-        .btn-donate-nav { color: var(--accent) !important; cursor: pointer; }
-        .btn-donate-nav i { animation: heartBeat 1.5s infinite; color: #ff4757; }
-        @keyframes heartBeat { 0%, 70%, 100% { transform: scale(1); } 15% { transform: scale(1.2); } 45% { transform: scale(1.2); } }
-
+        
+        /* --- UTILS --- */
+        .heart-particle { position: fixed; pointer-events: none; font-size: 20px; z-index: 10000; animation: heartFly 1s ease-out forwards; }
+        @keyframes heartFly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        
         .modal-content { background: #111; border-radius: 28px; border: 1px solid var(--border); }
         .qr-frame { background: #fff; padding: 15px; border-radius: 20px; display: inline-block; }
-
-        .btn-login {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; font-weight: 800; padding: 8px 22px; border-radius: 12px; 
-            font-size: 0.75rem; text-decoration: none; transition: 0.3s;
-        }
+        .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -161,55 +210,92 @@
                 <div class="logo-mark">B</div><span>QH MOVIE</span>
             </a>
 
-            <ul class="navbar-nav mx-auto d-flex flex-row align-items-center">
-                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link" href="#">Danh mục <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i></a>
-                    <div class="dropdown-menu">
-                        <div class="genre-grid">
-                            {% for g in genre_list %}<a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>{% endfor %}
-                        </div>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link btn-donate-nav" data-bs-toggle="modal" data-bs-target="#donateModal" onclick="createHeartBurst(event)">
-                        <i class="fas fa-heart me-1"></i> <span>Ủng hộ</span>
-                    </a>
-                </li>
-            </ul>
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <i class="fas fa-bars fs-3"></i>
+            </button>
 
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <div class="search-container">
-                    <form action="{% url 'home' %}" method="GET" class="search-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="live-search" name="q" placeholder="Tìm kiếm..." autocomplete="off">
-                    </form>
-                    <div id="search-results-box"></div>
-                </div>
-
-                {% if user.is_authenticated %}
-                    <div class="nav-item dropdown">
-                        <div class="user-gate">
-                            <div class="avatar-box">
-                                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav mx-auto d-flex align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#">Danh mục <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i></a>
+                        <div class="dropdown-menu mega-menu-content">
+                            <div class="mega-menu-wrapper">
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Phổ biến</h6>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hanh-dong"><i class="fas fa-gun"></i> Hành động</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=phieu-luu"><i class="fas fa-compass"></i> Phiêu lưu</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=vien-tuong"><i class="fas fa-rocket"></i> Viễn tưởng</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hai-huoc"><i class="fas fa-laugh"></i> Hài hước</a>
+                                </div>
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Cảm xúc</h6>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tinh-cam"><i class="fas fa-heart"></i> Tình cảm</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tam-ly"><i class="fas fa-brain"></i> Tâm lý</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=gia-dinh"><i class="fas fa-home"></i> Gia đình</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hoc-duong"><i class="fas fa-graduation-cap"></i> Học đường</a>
+                                </div>
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Kịch tính</h6>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=kinh-di"><i class="fas fa-ghost"></i> Kinh dị</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=bi-an"><i class="fas fa-mask"></i> Bí ẩn</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=giat-gan"><i class="fas fa-bolt"></i> Giật gân</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=co-trang"><i class="fas fa-fan"></i> Cổ trang</a>
+                                </div>
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Đặc sắc</h6>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hoat-hinh"><i class="fas fa-dragon"></i> Hoạt hình</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tai-lieu"><i class="fas fa-book"></i> Tài liệu</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=am-nhac"><i class="fas fa-music"></i> Âm nhạc</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre=the-thao"><i class="fas fa-running"></i> Thể thao</a>
+                                </div>
                             </div>
-                            <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.75rem;">{{ user.username }}</span>
                         </div>
-                        <div class="dropdown-menu dropdown-menu-end" style="min-width: 200px;">
-                            <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Tài khoản</a>
-                            <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart me-2"></i> Yêu thích</a>
-                            <li><hr class="dropdown-divider border-white border-opacity-10"></li>
-                            <form action="{% url 'logout' %}" method="post" class="m-0 px-3">
-                                {% csrf_token %}
-                                <button type="submit" class="text-danger fw-bold border-0 bg-transparent w-100 text-start p-2">
-                                    <i class="fas fa-power-off me-2"></i> Đăng xuất
-                                </button>
-                            </form>
-                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link btn-donate-nav" data-bs-toggle="modal" data-bs-target="#donateModal" onclick="createHeartBurst(event)">
+                            <i class="fas fa-heart me-1"></i> <span>DONATE</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 mt-3 mt-lg-0">
+                    <div class="search-container">
+                        <form action="{% url 'home' %}" method="GET" class="search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="live-search" name="q" placeholder="Tìm phim..." autocomplete="off" value="{{ query|default:'' }}">
+                        </form>
+                        <div id="search-results-box"></div>
                     </div>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn-login shadow-lg">LOGIN</a>
-                {% endif %}
+
+                    {% if user.is_authenticated %}
+                        <div class="nav-item dropdown">
+                            <div class="user-gate">
+                                <div class="avatar-box">
+                                    {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
+                                </div>
+                                <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.75rem;">{{ user.username }}</span>
+                            </div>
+                            <div class="dropdown-menu dropdown-menu-end" style="min-width: 200px;">
+                                <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle"></i> Tài khoản</a>
+                                <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <li><hr class="dropdown-divider border-white border-opacity-10"></li>
+                                <div class="px-2">
+                                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="logout-btn">
+                                            <i class="fas fa-power-off"></i> Đăng xuất
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn-login shadow-lg text-center">LOGIN</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
@@ -236,9 +322,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fix Hover cho Mobile và vùng đệm
         function createHeartBurst(e) {
-            const colors = ['#ff4757', '#ffcc00', '#ff6b81', '#ffffff'];
+            const colors = ['#ffcc00', '#ff4757', '#ffffff', '#ff6b81'];
             for (let i = 0; i < 15; i++) {
                 const heart = document.createElement('i');
                 heart.className = 'fas fa-heart heart-particle';
@@ -264,8 +349,10 @@
 
         window.addEventListener('load', () => {
             const bar = document.getElementById('loading-bar');
-            bar.style.width = '100%';
-            setTimeout(() => { bar.style.opacity = '0'; }, 500);
+            if(bar) {
+                bar.style.width = '100%';
+                setTimeout(() => { bar.style.opacity = '0'; }, 500);
+            }
         });
     </script>
 </body>

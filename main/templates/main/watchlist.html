@@ -7,224 +7,201 @@
 <style>
     :root {
         --primary-red: #e50914;
-        --dark-bg: #060606;
-        --card-bg: #111111;
-        --glass: rgba(255, 255, 255, 0.05);
-        --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        --card-bg: #141414;
+        --border-glass: rgba(255, 255, 255, 0.1);
+        --shadow-elevated: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    body { background-color: var(--dark-bg); color: white; overflow-x: hidden; }
-
-    .glow-text {
-        font-weight: 900;
-        background: linear-gradient(to right, #fff 0%, #e50914 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+    /* --- LAYOUT GRID THÔNG MINH (Responsive tuyệt đối) --- */
+    .watchlist-container {
+        padding: 20px 5%;
+        min-height: 80vh;
     }
 
-    /* Card phim yêu thích */
-    .watchlist-card {
+    .smart-grid {
+        display: grid;
+        /* Tự động tính toán số cột: Tối thiểu 150px (Mobile 2 cột), Tối đa 1fr */
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 20px;
+    }
+    
+    @media(max-width: 576px) {
+        .smart-grid {
+            grid-template-columns: repeat(2, 1fr); /* Ép cứng 2 cột trên mobile nhỏ */
+            gap: 12px;
+        }
+        .watchlist-container { padding: 20px 10px; }
+    }
+
+    /* --- MOVIE CARD --- */
+    .wl-card {
         background: var(--card-bg);
-        border-radius: 20px;
-        padding: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        transition: var(--transition);
+        border-radius: 12px;
+        overflow: hidden;
         position: relative;
+        transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid transparent;
         height: 100%;
         display: flex;
         flex-direction: column;
     }
 
-    /* Nút xóa tối ưu cho Touch */
-    .remove-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(229, 9, 20, 0.9); /* Đổi sang màu đỏ chủ đạo để dễ thấy trên Mobile */
-        color: white;
-        width: 38px; /* Tăng kích thước để dễ chạm ngón tay */
-        height: 38px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(8px);
-        transition: 0.3s;
-        z-index: 20;
-        border: 2px solid rgba(0,0,0,0.2);
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    .wl-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-elevated);
+        border-color: rgba(255,255,255,0.2);
     }
 
-    .remove-btn:active { transform: scale(0.9); background: #b20710; }
-
-    .img-container {
-        border-radius: 14px;
-        overflow: hidden;
+    /* Poster Tỷ lệ chuẩn 2:3 */
+    .poster-area {
         aspect-ratio: 2/3;
         position: relative;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    }
-
-    .img-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.6s ease;
-    }
-
-    .poster-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 40%;
-        background: linear-gradient(transparent, rgba(0,0,0,0.95));
-        display: flex;
-        align-items: flex-end;
-        padding: 12px;
-    }
-
-    .movie-info-text {
-        padding: 12px 5px 5px;
-        flex-grow: 1;
-    }
-
-    .movie-title-watchlist {
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin-bottom: 4px;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2; /* Tăng lên 2 dòng cho Mobile nếu tên dài */
-        -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
-    .movie-meta-watchlist {
-        color: #888;
-        font-size: 0.75rem;
-        font-weight: 500;
+    .poster-area img {
+        width: 100%; height: 100%; object-fit: cover;
+        transition: 0.5s;
     }
 
-    /* Hiệu ứng biến mất */
-    .fade-out {
-        opacity: 0;
-        transform: scale(0.7) translateY(20px);
-        transition: 0.5s ease-out;
+    .wl-card:hover .poster-area img { transform: scale(1.1); filter: brightness(0.6); }
+
+    /* Nút Xóa (Nổi bật trên Mobile) */
+    .btn-remove-float {
+        position: absolute; top: 8px; right: 8px;
+        width: 32px; height: 32px;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; border: 1px solid rgba(255,255,255,0.2);
+        z-index: 10; cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-remove-float:hover { background: var(--primary-red); border-color: var(--primary-red); transform: scale(1.1); }
+    .btn-remove-float:active { transform: scale(0.9); }
+
+    /* Overlay thông tin */
+    .info-overlay {
+        padding: 12px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-    /* --- RESPONSIVE ADJUSTMENTS --- */
-    @media (max-width: 768px) {
-        .container-fluid { padding-left: 15px; padding-right: 15px; }
-        .glow-text { font-size: 1.5rem; letter-spacing: 1px; }
-        .watchlist-card { border-radius: 16px; padding: 8px; }
-        .img-container { border-radius: 10px; }
-        .remove-btn { top: 12px; right: 12px; width: 34px; height: 34px; font-size: 0.8rem; }
-        .movie-title-watchlist { font-size: 0.85rem; }
+    .wl-title {
+        font-size: 0.95rem; font-weight: 700; color: #fff;
+        line-height: 1.3; margin-bottom: 5px;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
+    
+    .wl-meta { font-size: 0.75rem; color: #aaa; display: flex; align-items: center; gap: 8px; }
+    .rating-tag { color: #ffd700; font-weight: 700; display: flex; align-items: center; gap: 3px; }
 
-    @media (hover: hover) {
-        .watchlist-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary-red);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        }
-        .watchlist-card:hover img { transform: scale(1.1); }
+    /* Empty State */
+    .empty-state-box {
+        text-align: center; padding: 60px 20px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 20px; border: 1px dashed rgba(255,255,255,0.1);
+        margin-top: 20px;
+    }
+    .btn-discover {
+        background: var(--primary-red); color: #fff;
+        padding: 12px 30px; border-radius: 50px; text-decoration: none;
+        font-weight: 700; display: inline-block; margin-top: 20px;
+        transition: 0.3s;
+    }
+    .btn-discover:hover { background: #b00710; transform: translateY(-3px); color: #fff; }
+
+    /* Animation Fade Out khi xóa */
+    .fading-out {
+        animation: fadeOut 0.4s forwards ease-in;
+    }
+    @keyframes fadeOut {
+        to { opacity: 0; transform: scale(0.8); }
     }
 </style>
 
-<div class="container-fluid px-lg-5 mt-4 mt-md-5">
-    <div class="d-flex align-items-center justify-content-between mb-4 mb-md-5 px-1">
+<div class="watchlist-container">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h3 class="glow-text mb-1">BỘ SƯU TẬP</h3>
-            <p class="text-white-50 small mb-0 d-none d-sm-block">Những siêu phẩm bạn đã "chấm" để xem lại</p>
+            <h2 class="fw-bold text-white mb-0" style="font-family: 'Outfit', sans-serif;">KHO PHIM CỦA BẠN</h2>
+            <p class="text-white-50 small mb-0">{{ user.username }}'s Collection</p>
         </div>
-        <div class="text-end">
-            <span class="badge bg-danger px-3 py-2 px-md-4 rounded-pill shadow-sm fw-bold" id="movie-count" style="font-size: 0.7rem; letter-spacing: 1px;">
-                {{ items|length }} PHIM
-            </span>
-        </div>
+        <span class="badge bg-white text-dark fw-bold rounded-pill px-3 py-2" id="count-badge">
+            {{ items|length }} PHIM
+        </span>
     </div>
 
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-3 g-md-4" id="watchlist-grid">
-        {% for item in items %}
-        <div class="col movie-item" id="movie-{{ item.movie.id }}">
-            <div class="watchlist-card">
-                <div class="remove-btn" onclick="ajaxRemoveFromWatchlist({{ item.movie.id }})" title="Bỏ lưu">
+    {% if items %}
+        <div class="smart-grid" id="watchlist-grid">
+            {% for item in items %}
+            <div class="wl-card" id="card-{{ item.movie.id }}">
+                <div class="btn-remove-float" onclick="removeItem({{ item.movie.id }})">
                     <i class="fas fa-times"></i>
                 </div>
+                
+                <a href="{% url 'movie_detail' item.movie.slug %}" class="text-decoration-none h-100 d-flex flex-column">
+                    <div class="poster-area">
+                        <img src="{{ item.movie.poster_url }}" loading="lazy">
+                    </div>
+                    <div class="info-overlay">
+                        <div class="wl-title">{{ item.movie.title }}</div>
+                        <div class="wl-meta">
+                            <span>{{ item.movie.release_date|slice:":4" }}</span>
+                            <span class="rating-tag"><i class="fas fa-star" style="font-size: 10px;"></i> {{ item.movie.imdb_rating }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-box">
+            <i class="far fa-folder-open mb-3 text-white-50" style="font-size: 4rem;"></i>
+            <h4 class="fw-bold text-white">Chưa có phim nào!</h4>
+            <p class="text-white-50 small">Lưu lại những bộ phim hay để xem sau nhé.</p>
+            <a href="{% url 'home' %}" class="btn-discover">KHÁM PHÁ NGAY</a>
+        </div>
+    {% endif %}
 
-                <a href="{% url 'movie_detail' item.movie.slug %}" class="text-decoration-none">
-                    <div class="img-container">
-                        <img src="{{ item.movie.poster_url }}" alt="{{ item.movie.title }}" loading="lazy">
-                        <div class="poster-overlay">
-                             <span class="text-warning fw-bold" style="font-size: 0.75rem;">
-                                <i class="fas fa-star me-1"></i>{{ item.movie.imdb_rating }}
-                             </span>
-                        </div>
-                    </div>
-                    
-                    <div class="movie-info-text">
-                        <h6 class="movie-title-watchlist">{{ item.movie.title }}</h6>
-                        <div class="movie-meta-watchlist">
-                            <span>{{ item.movie.release_date|date:"Y" }}</span>
-                            <span class="mx-1 opacity-50">•</span>
-                            <span class="text-truncate d-inline-block" style="max-width: 70px; vertical-align: bottom;">{{ item.movie.genres }}</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12" id="empty-message">
-            <div class="empty-state text-center py-5">
-                <i class="fas fa-heart-broken mb-4" style="font-size: 4rem; color: #1a1a1a;"></i>
-                <h4 class="text-white fw-bold">Danh sách đang trống</h4>
-                <p class="text-white-50 mb-5 small">Đừng để những bộ phim hay vụt mất, hãy thêm chúng vào đây nhé!</p>
-                <a href="{% url 'home' %}" class="btn btn-danger px-5 py-3 rounded-pill fw-bold btn-sm">
-                    <i class="fas fa-search me-2"></i> KHÁM PHÁ NGAY
-                </a>
-            </div>
-        </div>
-        {% endfor %}
+    <div id="js-empty-state" class="empty-state-box d-none">
+        <i class="far fa-folder-open mb-3 text-white-50" style="font-size: 4rem;"></i>
+        <h4 class="fw-bold text-white">Đã sạch bách!</h4>
+        <p class="text-white-50 small">Bạn đã xem hết list rồi sao?</p>
+        <a href="{% url 'home' %}" class="btn-discover">THÊM PHIM MỚI</a>
     </div>
 </div>
 
 <script>
-    function ajaxRemoveFromWatchlist(movieId) {
-        const url = `/watchlist/toggle/${movieId}/`;
-        
-        // Hiệu ứng phản hồi xúc giác giả lập (Scale nhẹ nút)
-        event.currentTarget.style.transform = 'scale(0.8)';
+    function removeItem(id) {
+        const card = document.getElementById(`card-${id}`);
+        card.classList.add('fading-out');
 
-        fetch(url, {
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        fetch(`/watchlist/toggle/${id}/`, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'removed') {
-                const element = document.getElementById(`movie-${movieId}`);
-                element.classList.add('fade-out'); 
-                
+        .then(r => r.json())
+        .then(d => {
+            if(d.status === 'removed') {
                 setTimeout(() => {
-                    element.remove();
-                    // Cập nhật số lượng
-                    const countBadge = document.getElementById('movie-count');
-                    const currentCount = document.querySelectorAll('.movie-item').length;
-                    countBadge.innerText = `${currentCount} PHIM`;
-                    
-                    if (currentCount === 0) {
-                        location.reload(); 
-                    }
-                }, 500);
+                    card.remove();
+                    updateCount();
+                }, 400);
             }
-        })
-        .catch(error => console.error('Error:', error));
+        });
+    }
+
+    function updateCount() {
+        const cards = document.querySelectorAll('.wl-card');
+        const count = cards.length;
+        document.getElementById('count-badge').innerText = count + " PHIM";
+        
+        if(count === 0) {
+            document.getElementById('watchlist-grid').style.display = 'none';
+            document.getElementById('js-empty-state').classList.remove('d-none');
+        }
     }
 </script>
 {% endblock %}

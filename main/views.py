@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import Movie, Watchlist, Review, Achievement, UserAchievement, Episode, Profile
 
-# --- 1. DỮ LIỆU NAVBAR TẬP TRUNG ---
+# --- 1. DỮ LIỆU NAVBAR TẬP TRUNG (Dùng chung cho các View) ---
 NAV_CONTEXT = {
     'genre_list': [
         {'name': 'Hành động', 'slug': 'hanh-dong'},
@@ -38,6 +38,7 @@ NAV_CONTEXT = {
 
 # --- 2. HÀM BỔ TRỢ (ACHIEVEMENTS) ---
 def check_and_assign_achievement(request, user, achievement_id):
+    """Kiểm tra và trao huy hiệu cho người dùng"""
     achievement = Achievement.objects.filter(id=achievement_id).first()
     if achievement:
         already_has = UserAchievement.objects.filter(user=user, achievement=achievement).exists()
@@ -45,30 +46,31 @@ def check_and_assign_achievement(request, user, achievement_id):
             UserAchievement.objects.create(user=user, achievement=achievement)
             messages.success(request, f"🏆 Bạn nhận được huy hiệu: {achievement.name}")
 
-# --- 3. HIỂN THỊ PHIM ---
-
+# --- 3. TRANG CHỦ & DANH SÁCH PHIM ---
 def home(request):
-    query = request.GET.get('q') # <--- LẤY TỪ KHÓA TỪ URL
+    query = request.GET.get('q') # Lấy từ khóa tìm kiếm
     genre_slug = request.GET.get('genre')
     country_slug = request.GET.get('country')
     year_selected = request.GET.get('year')
     page_number = request.GET.get('page')
+    
 
-    # Defer description để tăng tốc độ load query ban đầu
-    movies_list = Movie.objects.all().order_by('-id').defer('description')
+    # Tối ưu: Dùng defer('description') để không load mô tả dài khi chưa cần thiết -> Web nhanh hơn
+    movies_list = Movie.objects.all().order_by('-id').defer('cast', 'director')
 
-    # Map từ slug sang tên Tiếng Việt để tìm kiếm trong chuỗi văn bản của OPhim
+    # Map từ slug sang tên Tiếng Việt để tìm kiếm chính xác hơn
     genre_map = {item['slug']: item['name'] for item in NAV_CONTEXT['genre_list']}
     country_map = {item['slug']: item['name'] for item in NAV_CONTEXT['country_list']}
 
-    # --- ĐOẠN NÀY LÀ LOGIC TÌM KIẾM KHI NHẤN ENTER ---
+    # --- LOGIC TÌM KIẾM ---
     if query:
         movies_list = movies_list.filter(
             Q(title__icontains=query) | Q(origin_name__icontains=query)
         )
     
-    # LỌC THEO THỂ LOẠI: Quét cả Slug và Tên Tiếng Việt để mục nào cũng hiện
+    # --- LOGIC LỌC (FILTER) ---
     if genre_slug and genre_slug != 'all':
+        # Tìm theo tên tiếng Việt hoặc slug (vì dữ liệu OPhim lưu dạng chuỗi hỗn hợp)
         keyword = genre_map.get(genre_slug)
         if keyword:
             movies_list = movies_list.filter(
@@ -77,7 +79,6 @@ def home(request):
         else:
             movies_list = movies_list.filter(genres__icontains=genre_slug.replace('-', ' '))
         
-    # LỌC THEO QUỐC GIA
     if country_slug:
         keyword = country_map.get(country_slug)
         if keyword:
@@ -87,15 +88,14 @@ def home(request):
         else:
             movies_list = movies_list.filter(country__icontains=country_slug.replace('-', ' '))
 
-    # LỌC THEO NĂM
     if year_selected and year_selected != 'all':
         movies_list = movies_list.filter(release_date__icontains=str(year_selected))
 
-    # Phân trang (18 phim mỗi trang)
-    paginator = Paginator(movies_list, 20)
+    # Phân trang: 24 phim/trang (chia hết cho 2, 3, 4, 6 cột đều đẹp)
+    paginator = Paginator(movies_list, 24)
     movies_page = paginator.get_page(page_number)
     
-    # Top Phim hot dựa trên IMDB
+    # Top Phim Hot (Lấy 10 phim rating cao nhất)
     hot_movies = Movie.objects.all().order_by('-imdb_rating')[:10]
 
     context = {
@@ -105,29 +105,41 @@ def home(request):
         'current_genre': genre_slug,
         'current_country': country_slug,
         'current_year': year_selected,
-        'query': query, # Trả ngược query ra để template biết đang search gì
+        'query': query, 
     }
-    return render(request, 'main/home.html', context)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'main/movie_grid.html', context)
+    
+    # Nếu là truy cập bình thường, trả về full trang
+    return render(request, 'main/home.html', context) # File template là index.html (như code trước ông gửi)
 
+# --- 4. CHI TIẾT PHIM ---
 def movie_detail(request, slug=None):
-    # Hỗ trợ tìm theo ID hoặc Slug
+    # CHẶN XEM PHIM NẾU CHƯA ĐĂNG NHẬP
+    if not request.user.is_authenticated:
+        messages.warning(request, "Vui lòng đăng nhập để xem chi tiết và nội dung phim!")
+        return redirect('login')
+    # Hỗ trợ tìm phim theo ID hoặc Slug
     if slug and str(slug).isdigit():
         movie = get_object_or_404(Movie, id=slug)
     else:
         movie = get_object_or_404(Movie, slug=slug)
         
-    reviews = Review.objects.filter(movie=movie).select_related('user', 'user__profile').prefetch_related('user__achievements__achievement').order_by('-created_at')
-    
+    # Lấy reviews (Tối ưu query bằng select_related)
+    reviews = Review.objects.filter(movie=movie, parent=None).select_related('user', 'user__profile').prefetch_related('replies', 'replies__user', 'replies__user__profile').order_by('-created_at')    
+    # Kiểm tra đã lưu phim chưa
     is_bookmarked = request.user.is_authenticated and Watchlist.objects.filter(user=request.user, movie=movie).exists()
+    
+    # Lấy danh sách tập phim
     episodes = movie.episodes.all().order_by('id')
     default_video_url = episodes.first().link_ophim if episodes.exists() else ""
     
-    # Kiểm tra giới hạn tuổi dựa trên last_name (lưu ngày sinh)
+    # --- KIỂM TRA ĐỘ TUỔI ---
     can_watch, age_message = True, ""
     if movie.age_limit > 0:
         if not request.user.is_authenticated:
             can_watch, age_message = False, "Vui lòng đăng nhập để xem phim này."
-        elif request.user.last_name:
+        elif request.user.last_name: # Lưu ngày sinh ở last_name
             try:
                 birth_date = date.fromisoformat(request.user.last_name)
                 today = date.today()
@@ -139,9 +151,9 @@ def movie_detail(request, slug=None):
         else:
             can_watch, age_message = False, "Vui lòng cập nhật ngày sinh trong Profile."
 
-    # Gợi ý phim (Recommendations)
+    # Gợi ý phim cùng thể loại
     first_genre = movie.genres.split(',')[0].strip() if movie.genres else ""
-    recommendations = Movie.objects.filter(genres__icontains=first_genre).exclude(id=movie.id).only('title', 'slug', 'poster_url', 'imdb_rating', 'release_date')[:6]
+    recommendations = Movie.objects.filter(genres__icontains=first_genre).exclude(id=movie.id).defer('description')[:6]
     
     context = {
         **NAV_CONTEXT,
@@ -156,7 +168,7 @@ def movie_detail(request, slug=None):
     }
     return render(request, 'main/detail.html', context)
 
-# --- 4. TÌM KIẾM AJAX (QUICK SEARCH) ---
+# --- 5. TÌM KIẾM AJAX (LIVE SEARCH) ---
 def ajax_search(request):
     query = request.GET.get('q', '').strip()
     if len(query) >= 2:
@@ -165,8 +177,7 @@ def ajax_search(request):
         return JsonResponse({'status': 'success', 'data': results})
     return JsonResponse({'status': 'error', 'data': []})
 
-# --- 5. HỆ THỐNG TÀI KHOẢN ---
-
+# --- 6. HỆ THỐNG TÀI KHOẢN ---
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -183,11 +194,12 @@ def register_view(request):
             return render(request, 'main/register.html', NAV_CONTEXT)
             
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.last_name = birth_date
+        user.last_name = birth_date # Tạm lưu ngày sinh vào last_name
         user.save()
-        Profile.objects.get_or_create(user=user)
+        Profile.objects.get_or_create(user=user) # Tạo luôn Profile
+        
         login(request, user)
-        messages.success(request, f"Chào mừng {username}!")
+        messages.success(request, f"Chào mừng {username} gia nhập BQH MOVIE!")
         return redirect('home')
     return render(request, 'main/register.html', NAV_CONTEXT)
 
@@ -205,7 +217,7 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-# --- 6. HỒ SƠ & TƯƠNG TÁC ---
+# --- 7. HỒ SƠ & TƯƠNG TÁC NGƯỜI DÙNG ---
 
 @login_required
 def profile_view(request):
@@ -233,29 +245,57 @@ def update_avatar(request):
         profile, _ = Profile.objects.get_or_create(user=request.user)
         profile.avatar = request.FILES['avatar']
         profile.save()
-        messages.success(request, "Ảnh đại diện đã cập nhật!")
+        messages.success(request, "Ảnh đại diện đã được cập nhật!")
     return redirect('profile')
+
+# main/views.py
+
+# main/views.py
 
 @login_required
 def add_review(request, movie_id):
     if request.method == 'POST':
         movie = get_object_or_404(Movie, pk=movie_id)
         comment_text = request.POST.get('comment', '').strip()
+        parent_id = request.POST.get('parent_id')
+        
         if comment_text:
-            review = Review.objects.create(user=request.user, movie=movie, comment=comment_text, rating=5)
+            parent_review = None
+            if parent_id:
+                try:
+                    parent_review = Review.objects.get(id=parent_id)
+                except Review.DoesNotExist:
+                    parent_review = None
+
+            review = Review.objects.create(
+                user=request.user, 
+                movie=movie, 
+                comment=comment_text, 
+                rating=5, 
+                parent=parent_review
+            )
+            
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                avatar_url = "https://ui-avatars.com/api/?name=" + request.user.username
+                # --- LOGIC LẤY AVATAR CHUẨN ---
+                # Mặc định là avatar chữ
+                avatar_url = f"https://ui-avatars.com/api/?name={request.user.username}&background=random&color=fff"
+                
+                # Nếu có profile và có ảnh thật thì lấy ảnh thật
                 if hasattr(request.user, 'profile') and request.user.profile.avatar:
                     avatar_url = request.user.profile.avatar.url
+                
                 medals = [{'name': ua.achievement.name, 'icon': ua.achievement.icon_class, 'color': ua.achievement.color} for ua in request.user.achievements.all()]
+                
                 return JsonResponse({
                     'status': 'success',
                     'username': request.user.username,
                     'comment': review.comment,
-                    'user_avatar': avatar_url,
+                    'user_avatar': avatar_url, # Trả về avatar chuẩn
                     'review_id': review.id,
-                    'achievements': medals
+                    'achievements': medals,
+                    'parent_id': parent_id
                 })
+                
     return redirect('movie_detail', slug=movie.slug)
 
 @login_required
@@ -269,8 +309,9 @@ def delete_review(request, review_id):
 @login_required
 def toggle_watchlist(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-    # Lấy Profile của user thông qua related_name 'profile' (giả định trong Model Profile đặt như vậy)
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+    
+    # Đảm bảo profile tồn tại để template không lỗi khi check user.profile.watchlist
+    Profile.objects.get_or_create(user=request.user)
     
     item, created = Watchlist.objects.get_or_create(user=request.user, movie=movie)
     if not created:
@@ -285,6 +326,7 @@ def toggle_watchlist(request, movie_id):
 
 @login_required
 def watchlist_view(request):
+    # Lấy danh sách phim đã lưu
     items = Watchlist.objects.filter(user=request.user).select_related('movie')
     return render(request, 'main/watchlist.html', {'items': items, **NAV_CONTEXT})
 

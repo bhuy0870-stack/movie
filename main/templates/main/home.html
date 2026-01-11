@@ -3,7 +3,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;900&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <style>
@@ -16,200 +16,205 @@
         --glass-border: rgba(255, 255, 255, 0.08);
         --text-main: 'Inter', sans-serif;
         --text-display: 'Outfit', sans-serif;
-        --text-quote: 'Playfair Display', serif;
     }
 
-    /* --- GLOBAL --- */
-    body { background-color: var(--dark-bg); font-family: var(--text-main); color: #fff; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-    
-    /* --- LOADER --- */
+    /* CHUỘT MẶC ĐỊNH */
+    body { cursor: auto !important; }
+    a, button, .m-card, .swiper-slide { cursor: pointer !important; }
+
+    /* --- PAGE LOADER --- */
     #page-loader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: none; justify-content: center; align-items: center; }
     .spinner-cinema { width: 45px; height: 45px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
+    /* --- AMBIENT BACKGROUND --- */
+    #ambient-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; background-color: var(--dark-bg);
+        background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+        background-size: cover; background-position: center;
+        transition: background-image 0.8s ease-in-out, opacity 0.8s ease;
+        opacity: 0.3; pointer-events: none; filter: blur(80px) saturate(1.5);
+    }
+
     /* --- SPOTLIGHT HERO --- */
-    .spotlight-wrapper { padding: 120px 5% 40px; }
-    .spotlight-title { font-size: clamp(2.2rem, 8vw, 4.5rem); font-weight: 900; background: linear-gradient(180deg, #fff, rgba(255,255,255,0.2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 30px; font-family: var(--text-display); letter-spacing: -2px; }
+    .spotlight-wrapper { padding: 40px 5% 20px; }
+    @media(min-width: 992px) { .spotlight-wrapper { padding: 80px 5% 40px; } }
+
+    .spotlight-title { 
+        font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; 
+        background: linear-gradient(180deg, #fff, rgba(255,255,255,0.2)); 
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        line-height: 1; margin-bottom: 30px; 
+        font-family: var(--text-display); letter-spacing: -2px; 
+    }
     
     .mySwiper { padding-bottom: 50px !important; }
-    .swiper-slide { 
-        width: 85vw; max-width: 550px; height: 40vh; max-height: 320px;
-        border-radius: 28px; overflow: hidden; border: 1px solid var(--glass-border); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); filter: brightness(0.5) scale(0.9); 
-    }
+    .swiper-slide { width: 80vw; max-width: 500px; height: 35vh; max-height: 300px; border-radius: 20px; overflow: hidden; border: 1px solid var(--glass-border); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); filter: brightness(0.5) scale(0.9); }
     .swiper-slide-active { filter: brightness(1) scale(1); border-color: var(--primary-gold); box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px var(--gold-glow); }
     .spotlight-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; opacity: 0; }
     .spotlight-img.loaded { opacity: 1; }
-    .spotlight-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 30px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 20%, transparent); opacity: 0; transform: translateY(20px); transition: 0.5s 0.2s; }
+    .spotlight-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 20%, transparent); opacity: 0; transform: translateY(20px); transition: 0.5s 0.2s; }
     .swiper-slide-active .spotlight-info { opacity: 1; transform: translateY(0); }
 
-    /* --- FILTER --- */
-    .filter-sticky { position: sticky; top: 70px; z-index: 900; margin-bottom: 35px; background: rgba(5,5,5,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 15px 0; }
-    .filter-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 0 5%; }
+    /* --- RANKING BOX --- */
+    .ranking-box {
+        background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(0,0,0,0.4));
+        border: 1px solid var(--glass-border); border-radius: 24px;
+        padding: 25px; height: 100%; max-height: 450px; 
+        overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .ranking-box::-webkit-scrollbar { display: none; }
+
+    .rank-header { font-family: var(--text-display); font-weight: 800; font-size: 1.2rem; color: #fff; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .rank-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 12px; transition: 0.3s; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.02); }
+    .rank-item:hover { background: rgba(255,255,255,0.05); transform: translateX(5px); }
+    .rank-num { font-size: 1.5rem; font-weight: 900; color: rgba(255,255,255,0.1); width: 30px; text-align: center; font-family: var(--text-display); }
+    .rank-item:nth-child(2) .rank-num { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    .rank-item:nth-child(3) .rank-num { color: #C0C0C0; }
+    .rank-item:nth-child(4) .rank-num { color: #CD7F32; }
+    .rank-img { width: 50px; height: 70px; border-radius: 8px; object-fit: cover; }
+    .rank-info h6 { color: #fff; font-weight: 700; font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .rank-info span { font-size: 0.75rem; color: #888; }
+
+    /* --- FILTER QUỐC GIA (THAY THẾ THỂ LOẠI) --- */
+    .filter-sticky { position: sticky; top: 70px; z-index: 900; margin-bottom: 25px; background: rgba(5,5,5,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 15px 0; }
+    .filter-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 0 5%; align-items: center; }
     .filter-scroll::-webkit-scrollbar { display: none; }
-    .filter-btn { padding: 8px 24px; border-radius: 100px; background: var(--surface); color: #888; font-weight: 600; text-decoration: none; border: 1px solid var(--glass-border); white-space: nowrap; transition: 0.3s; font-size: 0.8rem; letter-spacing: 0.5px; }
+    .filter-label { font-size: 0.7rem; font-weight: 800; color: var(--primary-gold); text-transform: uppercase; margin-right: 10px; letter-spacing: 1px; white-space: nowrap; }
+    .filter-btn { padding: 8px 20px; border-radius: 100px; background: var(--surface); color: #888; font-weight: 600; text-decoration: none; border: 1px solid var(--glass-border); white-space: nowrap; transition: 0.3s; font-size: 0.75rem; letter-spacing: 0.5px; }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
 
     /* --- MOVIE CARD --- */
-    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px 15px; padding: 0 5%; }
-    @media (min-width: 992px) { .movie-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); padding: 0; gap: 40px 25px; } }
+    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 12px; padding: 0 5%; }
+    @media (min-width: 576px) { .movie-grid { grid-template-columns: repeat(3, 1fr); gap: 25px 15px; } }
+    @media (min-width: 992px) { .movie-grid { grid-template-columns: repeat(4, 1fr); padding: 0; gap: 40px 25px; } }
+    @media (min-width: 1200px) { .movie-grid { grid-template-columns: repeat(5, 1fr); } }
 
-    .m-card { display: block; text-decoration: none; color: inherit; position: relative; }
+    .m-card { display: block; text-decoration: none; color: inherit; position: relative; z-index: 2; }
     .m-poster-box { 
-        position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 2/3; 
+        position: relative; border-radius: 15px; overflow: hidden; aspect-ratio: 2/3; 
         background: #111; border: 1px solid var(--glass-border); 
         transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .m-poster-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: 0.8s; }
-    .m-poster-box img.loaded { opacity: 1; }
-    
-    .m-card:hover .m-poster-box { transform: translateY(-12px) scale(1.02); border-color: rgba(255,255,255,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-    .m-card:hover .m-poster-box img { transform: scale(1.1); filter: brightness(0.7); }
+    .m-poster-box img { width: 100%; height: 100%; object-fit: cover; opacity: 1; transition: 0.8s; }
+    .m-card:hover .m-poster-box { transform: translateY(-8px) scale(1.02); border-color: rgba(255,255,255,0.3); box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+    .m-card:hover .m-poster-box img { filter: brightness(0.4) blur(1px); transform: scale(1.1); }
 
-    .m-rating {
-        position: absolute; top: 12px; left: 12px; z-index: 5;
-        background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px);
-        padding: 4px 10px; border-radius: 10px; font-size: 0.7rem;
-        font-weight: 800; color: var(--primary-gold);
-        border: 1px solid rgba(255, 204, 51, 0.2);
-        display: flex; align-items: center; gap: 5px;
-    }
-
-    .play-circle { 
-        position: absolute; inset: 0; margin: auto; width: 55px; height: 55px; 
-        border-radius: 50%; background: var(--primary-gold); color: #000; 
-        display: flex; align-items: center; justify-content: center; 
-        opacity: 0; transform: scale(0.5) translateY(20px); transition: 0.4s ease; z-index: 4; 
-        box-shadow: 0 10px 20px var(--gold-glow);
-    }
+    .m-rating { position: absolute; top: 8px; left: 8px; z-index: 5; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); padding: 3px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; color: var(--primary-gold); border: 1px solid rgba(255, 204, 51, 0.2); display: flex; align-items: center; gap: 4px; }
+    .play-circle { position: absolute; inset: 0; margin: auto; width: 45px; height: 45px; border-radius: 50%; background: var(--primary-gold); color: #000; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5) translateY(20px); transition: 0.4s ease; z-index: 4; box-shadow: 0 10px 20px var(--gold-glow); }
     .m-card:hover .play-circle { opacity: 1; transform: scale(1) translateY(0); }
-    
-    .btn-wishlist { 
-        position: absolute; top: 12px; right: 12px; z-index: 10; width: 34px; height: 34px; 
-        border-radius: 12px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); 
-        border: 1px solid rgba(255,255,255,0.1); color: #fff; 
-        display: flex; align-items: center; justify-content: center; transition: 0.3s; 
-    }
+    .btn-wishlist { position: absolute; top: 8px; right: 8px; z-index: 10; width: 30px; height: 30px; border-radius: 10px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); color: #fff; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 0.8rem; }
     .btn-wishlist:hover { background: #fff; color: #000; }
     .btn-wishlist.active { background: #ff4444; border-color: #ff4444; color: #fff; }
-    
-    .m-info { padding: 15px 5px 0; }
-    .m-title { 
-        font-weight: 700; font-size: 1rem; line-height: 1.4; color: #fff;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
-        overflow: hidden; height: 2.8em; transition: 0.3s;
+
+    .m-overview {
+        position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px;
+        background: linear-gradient(to top, rgba(0,0,0,0.95) 10%, rgba(0,0,0,0.7) 80%, transparent);
+        color: #ddd; font-size: 0.75rem; line-height: 1.5;
+        transform: translateY(100%); opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 6; text-align: justify;
+        display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
     }
+    .m-card:hover .m-overview { transform: translateY(0); opacity: 1; }
+    .m-info { padding: 12px 2px 0; }
+    .m-title { font-weight: 700; font-size: 0.9rem; line-height: 1.3; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.6em; transition: 0.3s; }
     .m-card:hover .m-title { color: var(--primary-gold); }
-    
-    .m-meta { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #666; font-weight: 600; margin-top: 6px; }
+    .m-meta { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: #666; font-weight: 600; margin-top: 5px; }
     .m-meta span.quality { color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 0 4px; border-radius: 4px; font-size: 0.6rem; }
 
-    /* --- QUOTE BOX --- */
-    .quote-box { 
-        margin-top: 30px; padding: 25px; border-left: 2px solid var(--primary-gold); 
-        background: linear-gradient(90deg, rgba(255,204,51,0.05), transparent);
-        border-radius: 0 20px 20px 0;
-    }
-    .quote-text { font-family: var(--text-quote); font-style: italic; font-size: 1.1rem; color: #ccc; line-height: 1.6; margin-bottom: 12px; }
-    .quote-author { font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--primary-gold); text-transform: uppercase; }
-
     /* --- SIDEBAR --- */
-    .sidebar-wrapper { position: sticky; top: 100px; }
-    .donate-widget-cute { 
-        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); 
-        border: 1px solid var(--glass-border); border-radius: 28px; padding: 35px 25px; text-align: center; 
-    }
-    .btn-cute { 
-        background: #fff; color: #000; font-weight: 800; border: none; padding: 14px; 
-        width: 100%; border-radius: 50px; margin-top: 25px; font-size: 0.85rem; 
-        letter-spacing: 1px; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
+    .sidebar-wrapper { position: sticky; top: 100px; padding: 0 15px; }
+    .donate-widget-cute { background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid var(--glass-border); border-radius: 28px; padding: 35px 25px; text-align: center; }
+    .btn-cute { background: #fff; color: #000; font-weight: 800; border: none; padding: 14px; width: 100%; border-radius: 50px; margin-top: 25px; font-size: 0.85rem; letter-spacing: 1px; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
     .btn-cute:hover { transform: translateY(-5px); background: var(--primary-gold); }
-
     .social-card { display: flex; align-items: center; gap: 15px; padding: 18px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 20px; text-decoration: none !important; margin-bottom: 12px; transition: 0.3s; }
     .social-card:hover { background: rgba(255,255,255,0.06); transform: translateX(8px); border-color: rgba(255,255,255,0.2); }
+    
+    .quote-box { margin-top: 30px; padding: 25px; border-left: 3px solid var(--primary-gold); background: linear-gradient(90deg, rgba(255,204,51,0.05), transparent); border-radius: 0 20px 20px 0; }
+    .quote-text { font-family: var(--text-main); font-weight: 500; font-style: italic; font-size: 1rem; color: #bbb; line-height: 1.6; margin-bottom: 12px; }
+    .quote-author { font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; color: var(--primary-gold); text-transform: uppercase; font-family: var(--text-display); }
 
     /* --- TOAST --- */
-    #toast-box { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10001; }
-    .custom-toast { background: #fff; color: #000; padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    #toast-box { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10001; width: max-content; }
+    .custom-toast { background: #fff; color: #000; padding: 12px 24px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; }
+    .grid-loading { opacity: 0.5; pointer-events: none; transition: 0.3s; }
 </style>
 
+<div id="ambient-bg"></div>
 <div id="page-loader"><div class="spinner-cinema"></div></div>
 <div id="toast-box"></div>
 
 <div class="container-fluid p-0">
-    {% if movies_page.number == 1 %}
+    
+    {% if movies_page.number == 1 and not query %}
     <section class="spotlight-wrapper">
-        <h2 class="spotlight-title">XEM GÌ<br>HÔM NAY?</h2>
-        <div class="swiper mySwiper">
-            <div class="swiper-wrapper">
-                {% for movie in hot_movies|slice:":10" %}
-                <div class="swiper-slide" onclick="showLoaderAndGo('{% url 'movie_detail' movie.slug %}')">
-                    <img data-src="{{ movie.poster_url }}" class="spotlight-img spotlight-lazy" alt="{{ movie.title }}">
-                    <div class="spotlight-info">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-warning text-dark fw-bold">HOT</span>
-                            <span class="text-white-50 small"><i class="fas fa-star text-warning me-1"></i>{{ movie.imdb_rating }}</span>
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="spotlight-title">XEM GÌ<br>HÔM NAY?</h2>
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper">
+                        {% for movie in hot_movies|slice:":10" %}
+                        <div class="swiper-slide" onclick="showLoaderAndGo('{% url 'movie_detail' movie.slug %}')">
+                            <img data-src="{{ movie.poster_url }}" class="spotlight-img spotlight-lazy" alt="{{ movie.title }}">
+                            <div class="spotlight-info">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-warning text-dark fw-bold">HOT</span>
+                                    <span class="text-white-50 small"><i class="fas fa-star text-warning me-1"></i>{{ movie.imdb_rating }}</span>
+                                </div>
+                                <h2 class="fw-bold text-white mb-1" style="font-size: 1.5rem; letter-spacing: -1px;">{{ movie.title }}</h2>
+                                <div class="text-white-50 small">{{ movie.release_date }}</div>
+                            </div>
                         </div>
-                        <h2 class="fw-bold text-white mb-1" style="font-size: 2rem; letter-spacing: -1px;">{{ movie.title }}</h2>
-                        <div class="text-white-50 small">{{ movie.release_date }}</div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            <div class="col-lg-4 d-none d-lg-block ps-lg-5">
+                <div class="ranking-box">
+                    <div class="rank-header"><i class="fas fa-trophy text-warning"></i> TOP THỊNH HÀNH</div>
+                    {% for movie in hot_movies|slice:":5" %}
+                    <a href="{% url 'movie_detail' movie.slug %}" class="rank-item">
+                        <div class="rank-num">{{ forloop.counter }}</div>
+                        <img src="{{ movie.poster_url }}" class="rank-img">
+                        <div class="rank-info">
+                            <h6>{{ movie.title }}</h6>
+                            <span><i class="fas fa-star text-warning me-1" style="font-size: 10px;"></i>{{ movie.imdb_rating }} • {{ movie.quality }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </section>
     {% endif %}
 
+    {% if query %}
+    <div class="px-3 px-md-5 pt-5 pb-3 text-center text-md-start">
+        <h4 class="text-white fw-bold"><i class="fas fa-search me-2 text-warning"></i>Kết quả cho: "<span class="text-warning">{{ query }}</span>"</h4>
+    </div>
+    {% endif %}
+
     <div class="row m-0 px-md-5 pb-5">
         <div class="col-lg-9 p-0 pr-lg-5">
+            {% if not query %}
             <div class="filter-sticky">
-                <div class="filter-scroll">
-                    <a href="?genre=all" class="filter-btn {% if not current_genre or current_genre == 'all' %}active{% endif %}">Tất cả</a>
-                    <a href="?genre=hanh-dong" class="filter-btn {% if current_genre == 'hanh-dong' %}active{% endif %}">Hành động</a>
-                    <a href="?genre=tinh-cam" class="filter-btn {% if current_genre == 'tinh-cam' %}active{% endif %}">Tình cảm</a>
-                    <a href="?genre=hoat-hinh" class="filter-btn {% if current_genre == 'hoat-hinh' %}active{% endif %}">Hoạt hình</a>
-                    <a href="?genre=kinh-di" class="filter-btn {% if current_genre == 'kinh-di' %}active{% endif %}">Kinh dị</a>
+                <div class="filter-scroll" id="filter-container">
+                    <span class="filter-label">Khu vực:</span>
+                    <a href="?country=all" class="filter-btn {% if not current_country or current_country == 'all' %}active{% endif %}">Tất cả</a>
+                    <a href="?country=viet-nam" class="filter-btn {% if current_country == 'viet-nam' %}active{% endif %}">Việt Nam</a>
+                    <a href="?country=au-my" class="filter-btn {% if current_country == 'au-my' %}active{% endif %}">Âu Mỹ</a>
+                    <a href="?country=han-quoc" class="filter-btn {% if current_country == 'han-quoc' %}active{% endif %}">Hàn Quốc</a>
+                    <a href="?country=trung-quoc" class="filter-btn {% if current_country == 'trung-quoc' %}active{% endif %}">Trung Quốc</a>
+                    <a href="?country=nhat-ban" class="filter-btn {% if current_country == 'nhat-ban' %}active{% endif %}">Nhật Bản</a>
+                    <a href="?country=thai-lan" class="filter-btn {% if current_country == 'thai-lan' %}active{% endif %}">Thái Lan</a>
                 </div>
-            </div>
-
-            <div class="movie-grid">
-                {% for movie in movies_page %}
-                <div class="m-card-wrap">
-                    <a href="javascript:void(0)" onclick="showLoaderAndGo('{% url 'movie_detail' movie.slug %}')" class="m-card">
-                        <div class="m-poster-box">
-                            <div class="m-rating">
-                                <i class="fas fa-star"></i> {{ movie.imdb_rating|default:"8.0" }}
-                            </div>
-                            <button class="btn-wishlist {% if movie in user.profile.watchlist.all %}active{% endif %}" 
-                                    onclick="event.stopPropagation(); toggleWishlist(this, {{ movie.id }})">
-                                <i class="{% if movie in user.profile.watchlist.all %}fas{% else %}far{% endif %} fa-heart"></i>
-                            </button>
-                            <div class="play-circle"><i class="fas fa-play"></i></div>
-                            <img data-src="{{ movie.poster_url }}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="lazy-img">
-                        </div>
-                        <div class="m-info">
-                            <h3 class="m-title">{{ movie.title }}</h3>
-                            <div class="m-meta">
-                                <span>{{ movie.release_date|slice:":4" }}</span>
-                                <span class="quality">HD</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-
-            {% if movies_page.has_other_pages %}
-            <div class="d-flex justify-content-center py-5 mt-4 gap-2">
-                {% for num in movies_page.paginator.page_range %}
-                    {% if movies_page.number == num %}
-                        <span class="btn btn-light fw-bold rounded-circle shadow" style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;">{{ num }}</span>
-                    {% elif num > movies_page.number|add:'-3' and num < movies_page.number|add:'3' %}
-                        <a href="?page={{ num }}{% if current_genre %}&genre={{ current_genre }}{% endif %}" class="btn text-white-50 rounded-circle" style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
             </div>
             {% endif %}
+
+            <div id="movie-content-area">
+                {% include 'main/movie_grid.html' %}
+            </div>
         </div>
 
         <div class="col-lg-3 sidebar-col mt-5 mt-lg-0">
@@ -220,33 +225,23 @@
                     <p class="text-white-50 small px-3">Sự ủng hộ của bạn giúp tớ duy trì máy chủ mượt mà mỗi ngày.</p>
                     <button class="btn-cute" data-bs-toggle="modal" data-bs-target="#donateModal">ỦNG HỘ TỚ</button>
                 </div>
-
                 <div class="mb-4">
                     <h6 class="fw-bold text-white-50 small mb-4 letter-spacing-2">SOCIALS</h6>
                     <a href="https://www.facebook.com/huy.banh.96199/" target="_blank" class="social-card">
                         <div class="social-icon" style="color: #1877F2; font-size: 1.5rem;"><i class="fab fa-facebook"></i></div>
-                        <div>
-                            <div class="fw-bold text-white small">Facebook</div>
-                            <div class="text-white-50" style="font-size: 10px;">@huy.banh.96199</div>
-                        </div>
+                        <div><div class="fw-bold text-white small">Facebook</div><div class="text-white-50" style="font-size: 10px;">@huy.banh.96199</div></div>
                     </a>
                     <a href="https://www.instagram.com/banh_quanghuy/" target="_blank" class="social-card">
                         <div class="social-icon" style="color: #E1306C; font-size: 1.5rem;"><i class="fab fa-instagram"></i></div>
-                        <div>
-                            <div class="fw-bold text-white small">Instagram</div>
-                            <div class="text-white-50" style="font-size: 10px;">@banh_quanghuy</div>
-                        </div>
+                        <div><div class="fw-bold text-white small">Instagram</div><div class="text-white-50" style="font-size: 10px;">@banh_quanghuy</div></div>
                     </a>
                 </div>
-
                 <div class="quote-box mb-5">
                     <div class="quote-text">"Cuộc đời là một bi kịch khi nhìn gần, nhưng lại là một vở hài kịch khi nhìn từ xa. Điện ảnh giúp ta nhìn thấy cả hai."</div>
                     <div class="quote-author">Andrei Tarkovsky</div>
                 </div>
-
                 <div class="text-center mt-5 text-white-50 small">
-                    <p>© 2026 BQH MOVIE</p>
-                    <p style="font-size: 10px; opacity: 0.5;">Cinema Experience At Home</p>
+                    <p>© 2026 BQH MOVIE</p><p style="font-size: 10px; opacity: 0.5;">Cinema Experience At Home</p>
                 </div>
             </div>
         </div>
@@ -257,71 +252,66 @@
 
 <script>
     const userIsAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
-
-    window.addEventListener('pageshow', (event) => {
-        if (event.persisted || document.readyState === 'complete') {
-            document.getElementById('page-loader').style.display = 'none';
-        }
-    });
-
-    window.addEventListener('load', () => {
-        document.getElementById('page-loader').style.display = 'none';
-    });
-
-    function showLoaderAndGo(url) {
-        if (url !== window.location.href) {
-            document.getElementById('page-loader').style.display = 'flex';
-            window.location.href = url;
-        }
-    }
+    
+    // --- LOADERS & INIT ---
+    window.addEventListener('pageshow', (e) => { if(e.persisted || document.readyState === 'complete') document.getElementById('page-loader').style.display = 'none'; });
+    window.addEventListener('load', () => { document.getElementById('page-loader').style.display = 'none'; });
+    function showLoaderAndGo(url) { if(url !== window.location.href) { document.getElementById('page-loader').style.display = 'flex'; window.location.href = url; } }
 
     document.addEventListener("DOMContentLoaded", () => {
+        // --- 1. SWIPER ---
         const swiper = new Swiper(".mySwiper", {
-            effect: "coverflow",
-            grabCursor: true, 
-            centeredSlides: true, 
-            slidesPerView: "auto",
-            loop: true, 
-            autoplay: { delay: 4000 },
+            effect: "coverflow", grabCursor: true, centeredSlides: true, slidesPerView: "auto", loop: true, autoplay: { delay: 4000 },
             coverflowEffect: { rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false },
-            on: {
-                init: function () { loadVisibleSpotlight(this); },
-                slideChange: function () { loadVisibleSpotlight(this); }
-            }
+            on: { init: function () { loadVisibleSpotlight(this); }, slideChange: function () { loadVisibleSpotlight(this); } }
         });
-
         function loadVisibleSpotlight(s) {
             s.slides.forEach(slide => {
                 const img = slide.querySelector('.spotlight-lazy');
                 if (img && img.dataset.src && !img.src.includes(img.dataset.src)) {
-                    img.src = img.dataset.src;
-                    img.onload = () => img.classList.add('loaded');
+                    img.src = img.dataset.src; img.onload = () => img.classList.add('loaded');
                 }
             });
         }
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src; 
-                    img.onload = () => img.classList.add('loaded');
-                    observer.unobserve(img);
-                }
-            });
+        // --- 2. AJAX FILTER ---
+        const contentArea = document.getElementById('movie-content-area');
+        const filterContainer = document.getElementById('filter-container');
+        function handleAjaxClick(e) {
+            const target = e.target.closest('a');
+            if (!target) return;
+            if (target.classList.contains('filter-btn') || target.classList.contains('ajax-link')) {
+                e.preventDefault(); const url = target.href;
+                if (target.classList.contains('filter-btn')) { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); target.classList.add('active'); }
+                contentArea.classList.add('grid-loading');
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text()).then(html => {
+                    contentArea.innerHTML = html; contentArea.classList.remove('grid-loading');
+                    window.history.pushState({path: url}, '', url);
+                }).catch(err => { console.error(err); contentArea.classList.remove('grid-loading'); });
+            }
+        }
+        if(filterContainer) filterContainer.addEventListener('click', handleAjaxClick);
+        contentArea.addEventListener('click', handleAjaxClick);
+        window.addEventListener('popstate', () => window.location.reload());
+
+        // --- 3. AMBIENT BACKGROUND ---
+        const ambientBg = document.getElementById('ambient-bg');
+        const changeAmbient = (imgUrl) => { if(!imgUrl) return; ambientBg.style.backgroundImage = `url('${imgUrl}')`; ambientBg.style.opacity = '0.4'; };
+        
+        contentArea.addEventListener('mouseover', (e) => {
+            const card = e.target.closest('.m-card');
+            if (card) {
+                const img = card.querySelector('img');
+                if(img) changeAmbient(img.src || img.dataset.src);
+            }
         });
-        document.querySelectorAll('.lazy-img').forEach(img => observer.observe(img));
+        contentArea.addEventListener('mouseout', (e) => {
+             if (e.target.closest('.m-card')) { ambientBg.style.backgroundImage = 'none'; ambientBg.style.backgroundColor = '#050505'; }
+        });
     });
 
-    function showToast(msg) {
-        const box = document.getElementById('toast-box');
-        const t = document.createElement('div');
-        t.className = `custom-toast`;
-        t.innerText = msg;
-        box.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    }
-
+    function showToast(msg) { const b = document.getElementById('toast-box'); const t = document.createElement('div'); t.className = `custom-toast`; t.innerText = msg; b.appendChild(t); setTimeout(() => t.remove(), 3000); }
     function toggleWishlist(btn, id) {
         if (!userIsAuthenticated) { showToast('Bạn cần đăng nhập!'); return; }
         btn.classList.toggle('active');

@@ -1,318 +1,454 @@
 {% extends 'main/base.html' %}
-{% block title %}{{ movie.title }} - BQH MOVIE{% endblock %}
+{% load static %}
+
+{% block title %}{{ movie.title }} - Xem ngay tại BQH MOVIE{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <style>
-    :root { 
-        --accent: #ffcc33; 
-        --bg: #050505; 
-        --surface: rgba(255, 255, 255, 0.03);
-        --border: rgba(255, 255, 255, 0.08);
-        --primary-gold: #ffcc33;
+    /* --- VARIABLES & UTILS --- */
+    :root {
+        --primary: #e50914;
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --card-bg: #111; /* Màu nền cho comment */
     }
 
-    body { 
-        background-color: var(--bg); 
-        color: #efefef; 
-        font-family: 'Inter', sans-serif !important;
-        -webkit-font-smoothing: antialiased;
+    /* --- HERO SECTION --- */
+    .movie-hero { position: relative; min-height: 85vh; padding-top: 20px; overflow: hidden; }
+    .hero-backdrop {
+        position: absolute; inset: 0; z-index: 0;
+        background-image: url('{{ movie.poster_url }}');
+        background-size: cover; background-position: center;
+        filter: blur(40px) brightness(0.3); transform: scale(1.1);
     }
-
-    /* --- TIÊU ĐỀ PHIM --- */
-    .movie-title { 
-        font-family: 'Montserrat', sans-serif !important; 
-        font-size: clamp(1.8rem, 4vw, 2.4rem); 
-        font-weight: 800; 
-        letter-spacing: -0.02em; 
-        color: #fff;
-        margin-bottom: 10px;
+    .hero-content { position: relative; z-index: 10; padding: 40px 0; }
+    .poster-card {
+        border-radius: 16px; overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        border: 1px solid var(--glass-border); aspect-ratio: 2/3;
     }
-
-    .description-box p {
-        font-family: 'Inter', sans-serif !important;
-        color: #bbb;
-        line-height: 1.8;
-    }
-
-    /* --- PLAYER AREA --- */
-    .player-section { padding: 30px 0; }
-    .cinema-wrapper { 
-        max-width: 1100px; margin: 0 auto; border-radius: 20px; overflow: hidden; 
-        box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 25px rgba(255, 204, 51, 0.08); 
-        border: 1px solid var(--border); background: #000; position: relative;
+    .poster-card img { width: 100%; height: 100%; object-fit: cover; }
+    
+    /* FIX FONT TIÊU ĐỀ: Dùng font hệ thống an toàn, đậm và rõ nét */
+    .movie-title-large {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-weight: 800;
+        font-size: clamp(2rem, 5vw, 3.8rem); /* Tăng kích thước chút */
+        line-height: 1.1;
+        color: #fff; text-shadow: 0 0 30px rgba(0,0,0,0.5);
+        letter-spacing: -1px;
     }
     
-    body.cinema-mode-active .navbar, body.cinema-mode-active footer { display: none !important; }
-    .player-section.cinema-mode { padding: 0; position: fixed; inset: 0; z-index: 3000; background: #000; display: flex; align-items: center; }
-    .player-section.cinema-mode .cinema-wrapper { max-width: 100% !important; border-radius: 0; border: none; }
+    .meta-badge {
+        background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
+        padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; color: #ddd;
+    }
+    .btn-play-hero {
+        background: var(--primary); color: #fff; font-weight: 800;
+        padding: 12px 35px; border-radius: 50px; border: none;
+        box-shadow: 0 0 25px rgba(229, 9, 20, 0.4); transition: 0.3s;
+    }
+    .btn-play-hero:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(229, 9, 20, 0.6); color: #fff; }
+    .btn-action-circle {
+        width: 45px; height: 45px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; border: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.05); color: #fff; transition: 0.3s; cursor: pointer;
+    }
+    .btn-action-circle:hover { background: #fff; color: #000; }
+    .btn-action-circle.active { background: var(--primary); border-color: var(--primary); color: #fff; animation: heartBeat 0.4s; }
+
+    /* --- PLAYER & EPISODES --- */
+    .player-wrapper {
+        background: #000; border-radius: 16px; overflow: hidden;
+        border: 1px solid #333; aspect-ratio: 16/9; width: 100%; margin-bottom: 20px;
+    }
+    iframe { width: 100%; height: 100%; border: none; }
     
-    .close-cinema-btn { 
-        position: fixed; top: 25px; right: 25px; z-index: 4000; display: none;
-        background: rgba(255,255,255,0.1); color: white; width: 45px; height: 45px; 
-        border-radius: 50%; border: 1px solid var(--border); cursor: pointer; backdrop-filter: blur(10px);
+    .episode-list {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        max-height: 300px; overflow-y: auto; padding: 5px;
     }
-    body.cinema-mode-active .close-cinema-btn { display: flex; align-items: center; justify-content: center; }
+    .ep-btn {
+        min-width: 60px; padding: 8px 15px; background: #1a1a1a; color: #ccc;
+        border: 1px solid #333; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+        transition: 0.2s; text-align: center; cursor: pointer;
+    }
+    .ep-btn:hover { background: #333; color: #fff; }
+    .ep-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-    /* --- WATCHLIST BUTTON --- */
-    .btn-watchlist-ajax { 
-        background: #fff; color: #000; padding: 10px 25px; border-radius: 12px;
-        font-weight: 700; border: none; transition: 0.3s; font-size: 0.85rem;
-        display: inline-flex; align-items: center; gap: 10px;
+    /* --- REVIEWS (ĐÃ SỬA GIAO DIỆN) --- */
+    .review-section { background: #0a0a0a; border-radius: 20px; padding: 25px; border: 1px solid #222; }
+    .comment-input {
+        background: #111; border: 1px solid #333; color: #fff;
+        border-radius: 12px; padding: 15px; width: 100%; resize: none; font-size: 0.9rem;
+        transition: 0.3s;
     }
-    .btn-watchlist-ajax.active { background: var(--surface); color: #fff; border: 1px solid var(--border); }
-
-    /* --- EPISODES (LOAD LẠI TRANG) --- */
-    .ep-label { font-size: 0.75rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; }
-    .ep-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 50px; }
-    .ep-btn { 
-        background: var(--surface); border: 1px solid var(--border); color: #777; 
-        min-width: 50px; height: 50px; border-radius: 10px; display: flex; 
-        align-items: center; justify-content: center; font-weight: 700; transition: 0.25s;
-        text-decoration: none; font-size: 0.95rem;
-    }
-    .ep-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
-    .ep-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
-
-    /* --- BÌNH LUẬN --- */
-    .comment-item { 
-        padding: 20px; background: var(--surface); border-radius: 18px; 
-        border: 1px solid var(--border); display: flex; gap: 18px; margin-bottom: 20px; 
-    }
-    .user-img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border); }
-    .user-name { font-weight: 700; color: #fff; font-size: 0.95rem; }
-    .comment-text { color: #ccc; font-size: 0.95rem; margin: 8px 0; line-height: 1.6; }
+    .comment-input:focus { outline: none; border-color: #555; background: #1a1a1a; }
     
-    .btn-delete-cmt, .btn-like-ajax { 
-        background: transparent !important; border: none !important; 
-        padding: 0 !important; cursor: pointer !important; font-size: 0.8rem !important; 
-        color: #555 !important; transition: 0.2s; position: relative; z-index: 10;
+    /* Style mới cho từng Comment (Dạng thẻ Card) */
+    .review-item {
+        background: var(--card-bg); /* Nền tối nhẹ */
+        border: 1px solid #2a2a2a; /* Viền nhẹ */
+        border-radius: 12px; /* Bo góc */
+        padding: 20px; /* Khoảng cách bên trong rộng rãi */
+        margin-bottom: 20px; /* Cách nhau ra */
+        transition: 0.3s;
     }
-    .btn-delete-cmt:hover { color: #ff4d4d !important; }
-    .btn-like-ajax:hover { color: #fff !important; }
+    .review-item:hover { border-color: #444; }
 
-    /* Sidebar */
-    .rec-item { display: flex; gap: 15px; margin-bottom: 20px; text-decoration: none; transition: 0.3s; }
-    .rec-img { width: 80px; height: 110px; border-radius: 10px; object-fit: cover; }
-    .rec-title { font-family: 'Montserrat', sans-serif !important; color: #fff; font-weight: 600; font-size: 0.9rem; }
+    .reply-list { 
+        margin-top: 15px; 
+        padding-top: 15px;
+        border-top: 1px solid #2a2a2a; /* Đường kẻ ngăn cách reply */
+        padding-left: 20px; /* Thụt đầu dòng ít hơn để tiết kiệm chỗ */
+    }
+    
+    .reply-form { margin-top: 15px; display: none; }
+    .reply-form.show { display: block; animation: fadeIn 0.3s; }
 
-    /* Toast */
-    #toast-box { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; }
-    .custom-toast { background: #fff; color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    /* --- TOAST --- */
+    #toast-box {
+        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+        z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast-msg {
+        background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); color: #fff;
+        padding: 10px 20px; border-radius: 50px; border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 0.85rem; font-weight: 600;
+        display: flex; align-items: center; gap: 10px; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast-msg.success i { color: #00c851; }
+    .toast-msg.danger i { color: #ff4444; }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 768px) { .movie-hero { padding-top: 0; } .reply-list { padding-left: 10px; } .poster-card { width: 140px; margin: 0 auto 20px; } .movie-title-large { text-align: center; } .hero-meta, .hero-actions { justify-content: center; } }
 </style>
 
 <div id="toast-box"></div>
-<button class="close-cinema-btn" onclick="toggleCinema()"><i class="fas fa-times"></i></button>
 
-<section class="player-section" id="player-area">
-    <div class="container px-0 px-md-5">
-        <div class="cinema-wrapper" id="cinema-container">
-            <div id="player-loader" style="position: absolute; inset: 0; background: #000; z-index: 100; display: none; align-items: center; justify-content: center;">
-                <div class="spinner-border text-warning" role="status"></div>
+<div class="movie-hero">
+    <div class="hero-backdrop"></div>
+    <div style="position: absolute; inset: 0; background: linear-gradient(to top, #000, transparent);"></div>
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-md-4 col-lg-3 text-center mb-4 mb-md-0">
+                <div class="poster-card"><img src="{{ movie.poster_url }}" alt="{{ movie.title }}"></div>
             </div>
-            <div class="ratio ratio-16x9">
-                {% if can_watch %}
-                    <iframe id="main-video-player" src="{{ default_video_url }}" allowfullscreen style="border:none;"></iframe>
-                {% else %}
-                    <div class="d-flex flex-column align-items-center justify-content-center bg-black h-100 p-5 text-center">
-                        <p class="text-white-50 mb-3">{{ age_message }}</p>
-                        <a href="{% url 'home' %}" class="btn btn-outline-light rounded-pill px-4 btn-sm">Quay về trang chủ</a>
-                    </div>
-                {% endif %}
+            <div class="col-md-8 col-lg-9 text-white">
+                <h1 class="movie-title-large mb-2">{{ movie.title }}</h1>
+                <div class="text-white-50 mb-3">{{ movie.origin_name }}</div>
+                <div class="d-flex flex-wrap gap-2 mb-4 hero-meta">
+                    <span class="meta-badge bg-warning text-dark fw-bold"><i class="fas fa-star me-1"></i>{{ movie.imdb_rating }}</span>
+                    <span class="meta-badge">{{ movie.release_date|slice:":4" }}</span>
+                    <span class="meta-badge">{{ movie.country }}</span>
+                    <span class="meta-badge">{{ movie.quality|default:"HD" }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-3 hero-actions">
+                    {% if can_watch %}
+                        <button onclick="scrollToPlayer()" class="btn-play-hero"><i class="fas fa-play me-2"></i> XEM PHIM</button>
+                    {% else %}
+                        <div class="alert alert-dark border-danger text-danger mb-0 py-2 px-3 rounded-pill small"><i class="fas fa-lock me-2"></i>{{ age_message }}</div>
+                    {% endif %}
+                    <button class="btn-action-circle {% if is_bookmarked %}active{% endif %}" onclick="toggleWatchlist(this, {{ movie.id }})"><i class="fas fa-bookmark"></i></button>
+                    <button class="btn-action-circle" onclick="shareMovie()"><i class="fas fa-share"></i></button>
+                </div>
             </div>
-            {% if can_watch %}
-            <div class="p-2 px-3 d-flex justify-content-between align-items-center bg-black border-top border-white border-opacity-5">
-                <span class="small text-white-50" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-                    <i class="fas fa-sparkles me-2 text-warning"></i>Chúc bạn xem phim vui vẻ tại BQH MOVIE
-                </span>
-                <button class="btn btn-sm text-white-50 shadow-none border-0" style="font-size: 0.75rem;" onclick="toggleCinema()"><i class="fas fa-expand-alt me-1"></i> RẠP PHIM</button>
-            </div>
-            {% endif %}
         </div>
     </div>
-</section>
+</div>
 
-<div class="container px-md-5 mt-3">
-    <div class="row g-5">
+<div class="container py-4">
+    <div class="row">
         <div class="col-lg-8">
-            <div class="movie-header">
-                <h1 class="movie-title">{{ movie.title }}</h1>
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <span class="age-badge">{{ movie.age_limit }}+</span>
-                    <span class="text-white-50 small">{{ movie.release_date }}</span>
-                    <span class="text-white-50 small">|</span>
-                    <span class="text-warning small fw-bold">{{ movie.country }}</span>
-                </div>
-
-                <div class="mb-4">
-                    {% if user.is_authenticated %}
-                    <button id="watchlist-btn" class="btn-watchlist-ajax {% if is_bookmarked %}active{% endif %}" data-url="{% url 'toggle_watchlist' movie.id %}">
-                        <i class="fas {% if is_bookmarked %}fa-check{% else %}fa-plus{% endif %}"></i>
-                        <span id="watchlist-text">{% if is_bookmarked %}Đã lưu{% else %}Lưu phim{% endif %}</span>
-                    </button>
+            {% if can_watch %}
+                <div id="player-anchor" class="player-wrapper">
+                    {% if episodes %}
+                        <iframe id="video-frame" src="{{ default_video_url }}" allowfullscreen></iframe>
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100 text-white-50"><span>Phim đang cập nhật...</span></div>
                     {% endif %}
                 </div>
-
-                <div class="description-box">
-                    <p style="white-space: pre-line;">{{ movie.description|striptags }}</p>
-                </div>
-
-                {% if episodes %}
-                <span class="ep-label">Danh sách tập</span>
-                <div class="ep-grid">
-                    {% for ep in episodes %}
-                    <a href="?ep={{ forloop.counter }}" class="ep-btn {% if ep.link_ophim == default_video_url %}active{% endif %}">
-                        {{ forloop.counter }}
-                    </a>
-                    {% endfor %}
+                
+                {% if episodes|length > 1 %}
+                <div class="mb-4">
+                    <h6 class="text-white fw-bold mb-3"><i class="fas fa-layer-group me-2 text-warning"></i>CHỌN TẬP</h6>
+                    <div class="episode-list">
+                        {% for ep in episodes %}
+                            <button class="ep-btn {% if forloop.first %}active{% endif %}" onclick="changeEpisode(this, '{{ ep.link_ophim }}')">
+                                {{ ep.episode_name }}
+                            </button>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
-            </div>
+            {% endif %}
 
-            <div class="mt-5">
-                <h2 style="font-family: 'Montserrat'; font-size: 1.4rem; margin-bottom: 30px;">Bình luận</h2>
+            <div class="mb-5 text-white-50" style="background: #111; padding: 25px; border-radius: 12px; border: 1px solid #222;">
+                <h6 class="text-white fw-bold mb-3">NỘI DUNG PHIM</h6>
+                <p class="small mb-0" style="line-height: 1.8; font-size: 0.95rem;">{{ movie.description|safe }}</p>
+                </div>
+
+            <div class="review-section">
+                <h5 class="text-white fw-bold mb-4 border-bottom border-secondary pb-3 border-opacity-25">BÌNH LUẬN ({{ reviews.count }})</h5>
                 
                 {% if user.is_authenticated %}
-                <div style="background: var(--surface); padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 40px;">
-                    <form id="comment-form-ajax" action="{% url 'add_review' movie.id %}" method="POST">
-                        {% csrf_token %}
-                        <textarea name="comment" class="form-control" style="background: transparent; border: none; color: #fff; padding: 0; box-shadow: none;" placeholder="Chia sẻ cảm nghĩ của bạn..." rows="2" required></textarea>
-                        <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-warning fw-bold px-4 btn-sm rounded-pill">Gửi</button>
-                        </div>
-                    </form>
-                </div>
-                {% endif %}
-
-                <div id="comment-list">
-                    {% for r in reviews %}
-                    <div class="comment-item" id="review-{{ r.id }}">
-                        {% if r.user.profile.avatar %}
-                            <img src="{{ r.user.profile.avatar.url }}" class="user-img">
-                        {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ r.user.username }}&background=111&color=ffcc33&bold=true&length=1" class="user-img">
-                        {% endif %}
-                        
-                        <div class="w-100">
-                            <div class="d-flex justify-content-between">
-                                <span class="user-name">{{ r.user.username }}</span>
-                                <span class="text-white-50" style="font-size: 0.75rem;">{{ r.created_at|timesince }} trước</span>
-                            </div>
-                            <div class="comment-text">{{ r.comment }}</div>
-                            <div class="d-flex gap-3">
-                                <button class="btn-like-ajax" data-url="{% url 'like_review' r.id %}">
-                                    <i class="{% if user in r.likes.all %}fas text-danger{% else %}far{% endif %} fa-heart"></i> <span class="count">{{ r.likes.count }}</span>
-                                </button>
-                                {% if user == r.user or user.is_staff %}
-                                <button class="btn-delete-cmt" data-url="{% url 'delete_review' r.id %}" data-id="{{ r.id }}">XÓA</button>
-                                {% endif %}
-                            </div>
+                <form onsubmit="submitReview(event, null)" class="mb-5 d-flex gap-3">
+                    {% csrf_token %}
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" class="rounded-circle" width="50" height="50" style="object-fit: cover; border: 2px solid #333;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 50px; height: 50px;">{{ user.username|first }}</div>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <textarea name="comment" class="comment-input" rows="2" placeholder="Chia sẻ cảm nghĩ của bạn về phim..."></textarea>
+                        <div class="text-end mt-2">
+                            <button type="submit" class="btn btn-danger btn-sm rounded-pill fw-bold px-4 py-2">Gửi bình luận</button>
                         </div>
                     </div>
+                </form>
+                {% else %}
+                <div class="alert alert-dark text-center small py-3 mb-4"><a href="{% url 'login' %}" class="fw-bold text-white text-decoration-none">Đăng nhập</a> để tham gia thảo luận.</div>
+                {% endif %}
+
+                <div id="review-list">
+                    {% for review in reviews %}
+                    <div class="review-item" id="review-{{ review.id }}">
+                        <div class="d-flex gap-3">
+                            <div class="flex-shrink-0">
+                                {% if review.user.profile.avatar %}
+                                    <img src="{{ review.user.profile.avatar.url }}" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 45px; height: 45px;">{{ review.user.username|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-white fw-bold mb-0">
+                                            {{ review.user.username }}
+                                            {% for ua in review.user.achievements.all %}
+                                                <i class="{{ ua.achievement.icon_class }} small ms-1" style="color: {{ ua.achievement.color }}"></i>
+                                            {% endfor %}
+                                        </h6>
+                                        <span class="small" style="font-size: 11px; color: #888;">{{ review.created_at|timesince }} trước</span>
+                                    </div>
+                                    {% if request.user == review.user %}
+                                        <button onclick="deleteReview({{ review.id }})" class="btn btn-sm text-danger p-0 opacity-50 hover-opacity-100" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+                                    {% endif %}
+                                </div>
+                                
+                                <p class="text-white mt-2 mb-2" style="font-size: 0.95rem; line-height: 1.5;">{{ review.comment }}</p>
+                                
+                                <div class="d-flex gap-3 mt-3">
+                                    <button class="btn btn-sm p-0 text-secondary d-flex align-items-center gap-1 small hover-text-white" onclick="likeReview({{ review.id }}, this)">
+                                        <i class="{% if request.user in review.likes.all %}fas text-danger{% else %}far{% endif %} fa-heart"></i>
+                                        <span>{{ review.total_likes }}</span>
+                                    </button>
+                                    <button class="btn btn-sm p-0 text-secondary small fw-bold hover-text-white" onclick="toggleReplyForm({{ review.id }})">Trả lời</button>
+                                </div>
+                                
+                                <form id="reply-form-{{ review.id }}" class="reply-form" onsubmit="submitReview(event, {{ review.id }})">
+                                    {% csrf_token %}
+                                    <div class="d-flex gap-2">
+                                        <textarea name="comment" class="comment-input py-2" rows="1" placeholder="Trả lời {{ review.user.username }}..."></textarea>
+                                        <button type="submit" class="btn btn-secondary btn-sm rounded-circle" style="width: 35px; height: 35px;"><i class="fas fa-paper-plane"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="reply-list" id="replies-{{ review.id }}">
+                            {% for reply in review.replies.all %}
+                            <div class="d-flex gap-3 mt-3" id="review-{{ reply.id }}">
+                                <div class="flex-shrink-0">
+                                    {% if reply.user.profile.avatar %}
+                                        <img src="{{ reply.user.profile.avatar.url }}" class="rounded-circle" width="30" height="30" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 30px; height: 30px;">{{ reply.user.username|first }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="text-white fw-bold mb-0 small">{{ reply.user.username }}</h6>
+                                        {% if request.user == reply.user %}
+                                            <button onclick="deleteReview({{ reply.id }})" class="btn btn-sm text-danger p-0 ms-2"><i class="fas fa-times"></i></button>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-white-50 mt-1 mb-0 small">{{ reply.comment }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                        <div id="empty-msg" class="text-center text-white-50 py-5">Chưa có bình luận nào. Hãy là người đầu tiên!</div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary-gold); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 25px; display: block;">Gợi ý cho bạn</span>
-            {% for rec in recommendations %}
-            <a href="{% url 'movie_detail' rec.slug %}" class="rec-item">
-                <img src="{{ rec.poster_url }}" class="rec-img">
-                <div>
-                    <div class="rec-title">{{ rec.title }}</div>
-                    <div class="text-white-50 small mt-1">{{ rec.release_date }}</div>
-                </div>
-            </a>
-            {% endfor %}
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <h6 class="text-white fw-bold mb-3 ps-2 border-start border-4 border-danger">CÓ THỂ BẠN THÍCH</h6>
+            <div class="d-flex flex-column gap-3">
+                {% for item in recommendations %}
+                <a href="{% url 'movie_detail' item.slug %}" class="d-flex gap-3 text-decoration-none p-2 rounded hover-bg-dark">
+                    <img src="{{ item.poster_url }}" width="70" height="100" class="rounded object-fit-cover">
+                    <div>
+                        <div class="text-white fw-bold small text-truncate-2">{{ item.title }}</div>
+                        <div class="text-warning small" style="font-size: 11px;">★ {{ item.imdb_rating }}</div>
+                        <div class="text-white-50 small mt-1">{{ item.genres|truncatechars:20 }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function showToast(msg) {
+    function showToast(message, type = 'success') {
         const box = document.getElementById('toast-box');
-        const t = document.createElement('div');
-        t.className = `custom-toast show`;
-        t.innerHTML = `<span>${msg}</span>`;
-        box.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
+        const toast = document.createElement('div');
+        toast.className = `toast-msg ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        box.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+    
+    function changeEpisode(btn, link) {
+        document.getElementById('video-frame').src = link;
+        document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    function scrollToPlayer() { const p = document.getElementById('player-anchor'); if(p) p.scrollIntoView({behavior: 'smooth', block: 'center'}); }
+    
+    function toggleWatchlist(btn, id) {
+        if (!{{ user.is_authenticated|yesno:"true,false" }}) { window.location.href = "{% url 'login' %}"; return; }
+        btn.classList.toggle('active');
+        fetch(`/toggle-watchlist/${id}/`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.json()).then(d => { showToast(d.status === 'added' ? 'Đã thêm vào kho phim' : 'Đã xóa khỏi kho phim', d.status === 'added' ? 'success' : 'danger'); });
     }
 
-    $('#watchlist-btn').on('click', function() {
-        var btn = $(this);
-        $.ajax({
-            url: btn.data('url'),
-            type: 'GET',
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            success: function(data) {
-                var icon = btn.find('i');
-                var text = $('#watchlist-text');
-                if(data.status === 'added') {
-                    btn.addClass('active'); icon.attr('class', 'fas fa-check'); text.text('Đã lưu');
-                    showToast('Đã thêm vào danh sách');
+    function toggleReplyForm(id) {
+        const form = document.getElementById(`reply-form-${id}`);
+        form.classList.toggle('show');
+        if(form.classList.contains('show')) form.querySelector('textarea').focus();
+    }
+
+    function submitReview(e, parentId) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        if(parentId) formData.append('parent_id', parentId);
+
+        fetch(`{% url 'add_review' movie.id %}`, {
+            method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(r => {
+            if (!r.ok) { throw new Error('HTTP status ' + r.status); }
+            return r.json();
+        })
+        .then(d => {
+            if(d.status === 'success') {
+                showToast('Đã gửi bình luận thành công!', 'success');
+                const emptyMsg = document.getElementById('empty-msg');
+                if(emptyMsg) emptyMsg.remove();
+                
+                const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+
+                const userHtml = `
+                    <div class="flex-shrink-0">
+                        <img src="${d.user_avatar}" class="rounded-circle" width="${parentId ? 30 : 45}" height="${parentId ? 30 : 45}" style="object-fit: cover;">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-white fw-bold mb-0 ${parentId ? 'small' : ''}">
+                                    ${d.username}
+                                    ${d.achievements ? d.achievements.map(a => `<i class="${a.icon} small ms-1" style="color: ${a.color}"></i>`).join('') : ''}
+                                </h6>
+                                ${!parentId ? '<span class="small" style="font-size: 11px; color: #888;">Vừa xong</span>' : ''}
+                            </div>
+                            <button onclick="deleteReview(${d.review_id})" class="btn btn-sm text-danger p-0 ms-2"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <p class="${parentId ? 'text-white-50 mt-1 mb-0 small' : 'text-white mt-2 mb-2'}" style="${!parentId ? 'font-size: 0.95rem; line-height: 1.5;' : ''}">${d.comment}</p>
+                `;
+
+                if (parentId) {
+                    const finalHtml = `
+                    <div class="d-flex gap-3 mt-3 fade-in-up" id="review-${d.review_id}">
+                        ${userHtml}
+                        </div>
+                    </div>`;
+                    const replyList = document.getElementById(`replies-${parentId}`);
+                    replyList.insertAdjacentHTML('beforeend', finalHtml);
+                    toggleReplyForm(parentId);
                 } else {
-                    btn.removeClass('active'); icon.attr('class', 'fas fa-plus'); text.text('Lưu phim');
-                    showToast('Đã gỡ khỏi danh sách');
+                    // HTML cho Comment Gốc (Có Style Card)
+                    const finalHtml = `
+                    <div class="review-item fade-in-up" id="review-${d.review_id}">
+                        <div class="d-flex gap-3">
+                            ${userHtml}
+                            <div class="d-flex gap-3 mt-3">
+                                <button class="btn btn-sm p-0 text-secondary d-flex align-items-center gap-1 small hover-text-white" onclick="likeReview(${d.review_id}, this)">
+                                    <i class="far fa-heart"></i><span>0</span>
+                                </button>
+                                <button class="btn btn-sm p-0 text-secondary small fw-bold hover-text-white" onclick="toggleReplyForm(${d.review_id})">Trả lời</button>
+                            </div>
+                            <form id="reply-form-${d.review_id}" class="reply-form" onsubmit="submitReview(event, ${d.review_id})">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                <div class="d-flex gap-2">
+                                    <textarea name="comment" class="comment-input py-2" rows="1" placeholder="Trả lời ${d.username}..."></textarea>
+                                    <button type="submit" class="btn btn-secondary btn-sm rounded-circle" style="width: 35px; height: 35px;"><i class="fas fa-paper-plane"></i></button>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="reply-list" id="replies-${d.review_id}"></div>
+                    </div>`;
+                    
+                    document.getElementById('review-list').insertAdjacentHTML('afterbegin', finalHtml);
                 }
+                form.reset();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi khi gửi bình luận!");
+        });
+    }
+
+    function deleteReview(id) {
+        fetch(`/review/delete/${id}/`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.json()).then(d => {
+            if(d.status === 'success') {
+                document.getElementById(`review-${id}`).remove();
+                showToast('Đã xóa bình luận', 'success');
             }
         });
-    });
+    }
 
-    $(document).on('click', '.btn-delete-cmt', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var reviewId = btn.data('id');
-        $('#review-' + reviewId).css('opacity', '0.3');
-        $.ajax({
-            url: btn.data('url'),
-            type: 'POST',
-            data: { 'csrfmiddlewaretoken': '{{ csrf_token }}' },
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            success: function(data) {
-                if(data.status === 'success') {
-                    $('#review-' + reviewId).fadeOut(300, function() { $(this).remove(); });
-                    showToast('Bình luận đã được xóa');
-                }
+    function likeReview(id, btn) {
+        fetch(`/like-review/${id}/`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(r => r.json()).then(d => {
+            btn.querySelector('span').innerText = d.count;
+            const icon = btn.querySelector('i');
+            if(d.liked) { 
+                icon.classList.replace('far', 'fas'); 
+                icon.classList.add('text-danger'); 
+                showToast('Đã thả tim bình luận', 'success');
+            } else { 
+                icon.classList.replace('fas', 'far'); 
+                icon.classList.remove('text-danger'); 
+                showToast('Đã bỏ tim bình luận', 'success');
             }
         });
-    });
-
-    $(document).on('click', '.btn-like-ajax', function() {
-        var btn = $(this);
-        $.ajax({
-            url: btn.data('url'),
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            success: function(data) {
-                btn.find('i').attr('class', data.liked ? 'fas text-danger fa-heart' : 'far fa-heart');
-                btn.find('.count').text(data.count);
-                showToast(data.liked ? 'Đã thích' : 'Bỏ thích');
-            }
-        });
-    });
-
-    $('#comment-form-ajax').on('submit', function(e) {
-        e.preventDefault();
-        var form = $(this);
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            headers: {'X-Requested-With': 'XMLHttpRequest'},
-            success: function(data) {
-                if(data.status === 'success') {
-                    showToast('Đăng bình luận thành công!');
-                    setTimeout(function() { location.reload(); }, 1000);
-                }
-            }
-        });
-    });
-
-    function toggleCinema() { 
-        $('body').toggleClass('cinema-mode-active'); 
-        $('#player-area').toggleClass('cinema-mode'); 
+    }
+    
+    function shareMovie() {
+        navigator.clipboard.writeText(window.location.href);
+        showToast('Đã copy link phim!', 'success');
     }
 </script>
 {% endblock %}
