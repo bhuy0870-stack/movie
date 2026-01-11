@@ -17,11 +17,10 @@
             --primary-glow: rgba(196, 0, 0, 0.4);
             --accent: #ffcc00;
             --bg-deep: #050505;
-            --surface: rgba(15, 15, 15, 0.85);
+            --surface: rgba(15, 15, 15, 0.95);
             --border: rgba(255, 255, 255, 0.08);
             --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --primary-gold: #ffcc33;
-            --text-display: 'Outfit', sans-serif;
         }
 
         body { 
@@ -46,7 +45,6 @@
             border: 1px solid var(--border); border-radius: 20px;
             margin: 10px 4%; padding: 8px 25px; z-index: 2000;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: var(--transition-fast);
         }
 
         .brand-logo { 
@@ -62,19 +60,46 @@
 
         .nav-link { 
             font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5) !important; 
-            text-transform: uppercase; letter-spacing: 1px; padding: 10px 15px !important;
-            transition: var(--transition-fast);
+            text-transform: uppercase; letter-spacing: 1px; padding: 15px 15px !important;
+            transition: var(--transition-fast); position: relative;
         }
-        .nav-link:hover, .nav-link.active { color: #fff !important; transform: translateY(-1px); }
+        .nav-link:hover, .nav-link.active { color: #fff !important; }
+
+        /* --- FIX LỖI DROPDOWN MẤT KHI DI CHUỘT --- */
+        .nav-item.dropdown { position: relative; }
+        
+        /* Tạo một vùng đệm ảo để chuột không bị rời khỏi menu */
+        .nav-item.dropdown::after {
+            content: ""; position: absolute; bottom: -20px; left: 0; width: 100%; height: 25px; display: block;
+        }
+
+        .dropdown-menu {
+            display: block; opacity: 0; visibility: hidden; pointer-events: none;
+            transform: translateY(15px); transition: all 0.3s ease;
+            background: rgba(18, 18, 18, 0.98) !important;
+            backdrop-filter: blur(30px); border: 1px solid var(--border) !important;
+            border-radius: 18px; padding: 15px; margin-top: 5px !important;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
+
+        .nav-item.dropdown:hover .dropdown-menu {
+            opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0);
+        }
+
+        .genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 400px; }
+        .dropdown-item { 
+            color: rgba(255,255,255,0.6) !important; font-size: 0.8rem; 
+            padding: 10px 12px; border-radius: 10px; transition: 0.2s;
+        }
+        .dropdown-item:hover { background: var(--primary) !important; color: #fff !important; transform: scale(1.05); }
 
         /* --- SEARCH BOX --- */
-        .search-container { position: relative; width: 260px; z-index: 3001; transition: width 0.3s ease; }
+        .search-container { position: relative; width: 260px; z-index: 3001; }
         .search-wrapper {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
             border-radius: 12px; padding: 7px 15px; display: flex; align-items: center; gap: 10px;
-            transition: var(--transition-fast);
         }
-        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.5); box-shadow: 0 0 20px rgba(196, 0, 0, 0.15); }
+        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.5); }
         .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 0.85rem; width: 100%; }
 
         #search-results-box {
@@ -85,13 +110,25 @@
         }
         .search-item { 
             display: flex !important; align-items: center; gap: 15px; padding: 12px 18px;
-            color: #fff !important; text-decoration: none !important; 
-            border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;
+            color: #fff !important; text-decoration: none !important; border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         .search-item:hover { background: rgba(196, 0, 0, 0.2); }
-        .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+        .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 5px; }
         
-        /* --- HIỆU ỨNG TIM BAY (UI HEART EFFECT) --- */
+        /* --- USER GATE --- */
+        .user-gate { 
+            padding: 5px 15px 5px 5px; cursor: pointer; display: flex; 
+            align-items: center; gap: 10px; background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); border-radius: 50px; transition: 0.3s;
+        }
+        .user-gate:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        .avatar-box { 
+            width: 32px; height: 32px; border-radius: 50%; overflow: hidden; 
+            background: var(--primary); display: flex; align-items: center; justify-content: center; 
+        }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- HEART EFFECT --- */
         .heart-particle {
             position: fixed; pointer-events: none; font-size: 20px; z-index: 10000;
             animation: heartFly 1s ease-out forwards;
@@ -101,28 +138,10 @@
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
 
-        /* --- DROPDOWN --- */
-        .dropdown-menu {
-            display: none; opacity: 0; transform: translateY(10px);
-            transition: 0.3s ease; background: rgba(18, 18, 18, 0.98) !important;
-            backdrop-filter: blur(30px); border: 1px solid var(--border) !important;
-            border-radius: 15px; padding: 15px; margin-top: 10px !important;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-        }
-        .nav-item.dropdown:hover .dropdown-menu { display: block !important; opacity: 1; transform: translateY(0); }
-        .genre-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 380px; }
-        .dropdown-item { color: rgba(255,255,255,0.6) !important; font-size: 0.8rem; padding: 8px 12px; border-radius: 8px; }
-        .dropdown-item:hover { background: var(--primary) !important; color: #fff !important; }
-
-        /* --- DONATE BUTTON ANIMATION --- */
         .btn-donate-nav { color: var(--accent) !important; cursor: pointer; }
         .btn-donate-nav i { animation: heartBeat 1.5s infinite; color: #ff4757; }
         @keyframes heartBeat { 0%, 70%, 100% { transform: scale(1); } 15% { transform: scale(1.2); } 45% { transform: scale(1.2); } }
 
-        /* --- USER & MODAL --- */
-        .user-gate { padding: 2px 12px 2px 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 50px; }
-        .avatar-box { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: #222; display: flex; align-items: center; justify-content: center; }
-        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
         .modal-content { background: #111; border-radius: 28px; border: 1px solid var(--border); }
         .qr-frame { background: #fff; padding: 15px; border-radius: 20px; display: inline-block; }
 
@@ -145,7 +164,7 @@
             <ul class="navbar-nav mx-auto d-flex flex-row align-items-center">
                 <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link" href="#">Danh mục</a>
+                    <a class="nav-link" href="#">Danh mục <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i></a>
                     <div class="dropdown-menu">
                         <div class="genre-grid">
                             {% for g in genre_list %}<a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>{% endfor %}
@@ -163,26 +182,26 @@
                 <div class="search-container">
                     <form action="{% url 'home' %}" method="GET" class="search-wrapper">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="live-search" name="q" placeholder="Tìm kiếm..." autocomplete="off" value="{{ query|default:'' }}">
+                        <input type="text" id="live-search" name="q" placeholder="Tìm kiếm..." autocomplete="off">
                     </form>
                     <div id="search-results-box"></div>
                 </div>
 
                 {% if user.is_authenticated %}
                     <div class="nav-item dropdown">
-                        <div class="user-gate" data-bs-toggle="dropdown">
+                        <div class="user-gate">
                             <div class="avatar-box">
-                                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<div class="fw-bold text-white small" style="font-size: 10px;">{{ user.username|first|upper }}</div>{% endif %}
+                                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
                             </div>
-                            <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.7rem;">{{ user.username }}</span>
+                            <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.75rem;">{{ user.username }}</span>
                         </div>
-                        <div class="dropdown-menu menu-user-premium shadow-lg dropdown-menu-end" style="min-width: 220px;">
+                        <div class="dropdown-menu dropdown-menu-end" style="min-width: 200px;">
                             <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle me-2"></i> Tài khoản</a>
                             <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart me-2"></i> Yêu thích</a>
                             <li><hr class="dropdown-divider border-white border-opacity-10"></li>
-                            <form action="{% url 'logout' %}" method="post" class="m-0 px-3 py-1">
+                            <form action="{% url 'logout' %}" method="post" class="m-0 px-3">
                                 {% csrf_token %}
-                                <button type="submit" class="text-danger fw-bold border-0 bg-transparent w-100 text-start p-0">
+                                <button type="submit" class="text-danger fw-bold border-0 bg-transparent w-100 text-start p-2">
                                     <i class="fas fa-power-off me-2"></i> Đăng xuất
                                 </button>
                             </form>
@@ -207,7 +226,7 @@
                         <img src="{% static 'images/vcb_qr.jpg' %}" width="200" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=STK:1025765518'">
                     </div>
                     <h5 class="fw-bold text-white mb-1">Vietcombank</h5>
-                    <h3 class="fw-bold text-warning mb-3" id="bankNumber">1025765518</h3>
+                    <h3 class="fw-bold text-warning mb-3">1025765518</h3>
                     <p class="text-white-50 small mb-4">BANH QUANG HUY</p>
                     <button class="btn btn-light w-100 rounded-pill fw-bold py-3" onclick="copyBank(this)">SAO CHÉP SỐ TÀI KHOẢN</button>
                 </div>
@@ -216,9 +235,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        // Hiệu ứng tim bay khi bấm Donate
+        // Fix Hover cho Mobile và vùng đệm
         function createHeartBurst(e) {
             const colors = ['#ff4757', '#ffcc00', '#ff6b81', '#ffffff'];
             for (let i = 0; i < 15; i++) {
@@ -234,55 +252,20 @@
             }
         }
 
-        // Sao chép số tài khoản mượt mà
         function copyBank(btn) {
-            const num = "1025765518";
-            navigator.clipboard.writeText(num);
-            const originalText = btn.innerText;
+            navigator.clipboard.writeText("1025765518");
             btn.innerText = "ĐÃ SAO CHÉP!";
             btn.classList.replace('btn-light', 'btn-success');
             setTimeout(() => {
-                btn.innerText = originalText;
+                btn.innerText = "SAO CHÉP SỐ TÀI KHOẢN";
                 btn.classList.replace('btn-success', 'btn-light');
             }, 2000);
         }
 
-        // Progress Bar khi load trang
         window.addEventListener('load', () => {
             const bar = document.getElementById('loading-bar');
-            if(bar) {
-                bar.style.width = '100%';
-                setTimeout(() => { bar.style.opacity = '0'; }, 500);
-            }
-        });
-
-        // Ajax Search Logic
-        const searchInput = document.getElementById('live-search');
-        const resultsBox = document.getElementById('search-results-box');
-
-        if(searchInput) {
-            searchInput.addEventListener('input', function() {
-                const q = this.value.trim();
-                if (q.length < 2) { resultsBox.style.display = 'none'; return; }
-                fetch(`/ajax-search/?q=${q}`).then(r => r.json()).then(res => {
-                    if (res.status === 'success' && res.data.length > 0) {
-                        let html = '';
-                        res.data.forEach(m => {
-                            html += `<a href="/movie/${m.slug}/" class="search-item">
-                                        <img src="${m.poster}">
-                                        <div class="search-item-info">
-                                            <span class="title text-white">${m.title}</span>
-                                        </div>
-                                    </a>`;
-                        });
-                        resultsBox.innerHTML = html;
-                        resultsBox.style.display = 'block';
-                    } else { resultsBox.style.display = 'none'; }
-                });
-            });
-        }
-        document.addEventListener('click', (e) => {
-            if (searchInput && !searchInput.contains(e.target) && resultsBox && !resultsBox.contains(e.target)) resultsBox.style.display = 'none';
+            bar.style.width = '100%';
+            setTimeout(() => { bar.style.opacity = '0'; }, 500);
         });
     </script>
 </body>
