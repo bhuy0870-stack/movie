@@ -67,11 +67,17 @@ DATABASE_URL = "postgresql://neondb_owner:npg_Vj8TvLxoR6lc@ep-dawn-wildflower-a1
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=DATABASE_URL,
+        default=os.environ.get('DATABASE_URL'), # Lấy trực tiếp từ env của GitHub
         conn_max_age=600,
         conn_health_checks=True,
     )
 }
+
+if not DATABASES['default'].get('ENGINE'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # --- NGÔN NGỮ VÀ MÚI GIỜ ---
 LANGUAGE_CODE = 'vi'

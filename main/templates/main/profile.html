@@ -127,7 +127,7 @@
     .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
     .stat-divider { width: 1px; background: rgba(255,255,255,0.08); }
 
-    .badges-section { padding: 0 30px 30px; }
+    .badges-section { padding: 0 30px 20px; }
     .section-title { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
 
     .badge-grid {
@@ -150,6 +150,26 @@
         background: rgba(255,255,255,0.1);
         transform: translateY(-5px);
         border-color: rgba(255,255,255,0.2);
+    }
+
+    /* --- NEW: HISTORY SECTION STYLE --- */
+    .history-section { padding: 0 30px 30px; }
+    .history-card-mini {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+    .history-card-mini:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
     }
 
     .action-group { padding: 0 30px 40px; display: flex; flex-direction: column; gap: 12px; }
@@ -230,8 +250,8 @@
 
             <div class="badges-section">
                 <div class="section-title">
-                    <span>Bộ sưu tập</span>
-                    <i class="fas fa-chevron-right small text-white-50"></i>
+                    <span>Bộ sưu tập huy hiệu</span>
+                    <i class="fas fa-award small text-white-50"></i>
                 </div>
                 <div class="badge-grid">
                     {% for ua in achievements %}
@@ -242,6 +262,29 @@
                         <div class="text-center w-100 text-white-50 py-3 small" style="grid-column: span 4;">
                             Chưa có huy hiệu nào. Hãy xem phim và bình luận nhé!
                         </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="section-title">
+                    <span>Phim vừa xem</span>
+                    <a href="{% url 'history' %}" class="text-decoration-none" style="font-size: 0.65rem; color: var(--primary-red); font-weight: 700;">XEM TẤT CẢ</a>
+                </div>
+                <div class="history-list">
+                    {% for item in recent_history %}
+                    <a href="{% url 'movie_detail' item.movie.slug %}" class="history-card-mini">
+                        <img src="{{ item.movie.poster_url }}" width="40" height="55" class="rounded-3" style="object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="text-white small fw-bold text-truncate">{{ item.movie.title }}</div>
+                            <div class="text-white-50" style="font-size: 0.65rem;">{{ item.watched_at|timesince }} trước</div>
+                        </div>
+                        <i class="fas fa-play-circle text-white-50"></i>
+                    </a>
+                    {% empty %}
+                    <div class="text-center w-100 text-white-50 py-3 small bg-dark bg-opacity-25 rounded-4 border border-dashed border-secondary">
+                        Bạn chưa xem phim nào gần đây.
+                    </div>
                     {% endfor %}
                 </div>
             </div>

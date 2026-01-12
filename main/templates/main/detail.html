@@ -401,5 +401,21 @@
         navigator.clipboard.writeText(window.location.href);
         showToast('Đã copy link phim!', 'success');
     }
+
+    /* --- LOGIC LỊCH SỬ XEM PHIM (MỚI THÊM) --- */
+    window.addEventListener('DOMContentLoaded', (event) => {
+        {% if user.is_authenticated %}
+        setTimeout(() => {
+            fetch("{% url 'update_history' movie.id %}", {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') console.log("Lịch sử xem đã được cập nhật thành công.");
+            })
+            .catch(error => console.error('Lỗi khi cập nhật lịch sử:', error));
+        }, 5000); // Gửi yêu cầu sau 5 giây để tránh ghi nhận các lượt click nhầm
+        {% endif %}
+    });
 </script>
 {% endblock %}

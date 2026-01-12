@@ -7,10 +7,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Movie, Watchlist, Review, Achievement, UserAchievement, Episode, Profile
+from .models import Movie, Watchlist, Review, Achievement, UserAchievement, Episode, Profile, WatchHistory
 
 # --- 1. DỮ LIỆU NAVBAR TẬP TRUNG (Dùng chung cho các View) ---
 NAV_CONTEXT = {
@@ -51,12 +52,12 @@ def home(request):
     query = request.GET.get('q') # Lấy từ khóa tìm kiếm
     genre_slug = request.GET.get('genre')
     country_slug = request.GET.get('country')
-    year_selected = request.GET.get('year')
+    year_selected = request.GET.get('year') 
     page_number = request.GET.get('page')
     
 
     # Tối ưu: Dùng defer('description') để không load mô tả dài khi chưa cần thiết -> Web nhanh hơn
-    movies_list = Movie.objects.all().order_by('-id').defer('cast', 'director')
+    movies_list = Movie.objects.all().order_by('-release_date', '-id').defer('cast', 'director')
 
     # Map từ slug sang tên Tiếng Việt để tìm kiếm chính xác hơn
     genre_map = {item['slug']: item['name'] for item in NAV_CONTEXT['genre_list']}
@@ -231,11 +232,15 @@ def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     achievements = UserAchievement.objects.filter(user=request.user).select_related('achievement')
     
+    # LẤY 3 PHIM XEM GẦN NHẤT ĐỂ HIỆN Ở PROFILE
+    recent_history = WatchHistory.objects.filter(user=request.user).select_related('movie')[:3]
+
     return render(request, 'main/profile.html', {
         'user': request.user, 
         'user_age': user_age, 
         'profile': profile, 
-        'achievements': achievements, 
+        'achievements': achievements,
+        'recent_history': recent_history, # Thêm dòng này 
         **NAV_CONTEXT
     })
 
@@ -247,8 +252,6 @@ def update_avatar(request):
         profile.save()
         messages.success(request, "Ảnh đại diện đã được cập nhật!")
     return redirect('profile')
-
-# main/views.py
 
 # main/views.py
 
@@ -340,3 +343,29 @@ def like_review(request, review_id):
         r.likes.add(request.user)
         liked = True
     return JsonResponse({'liked': liked, 'count': r.likes.count()})
+
+# 1. Hàm lưu lịch sử (Chạy ngầm khi user xem phim)
+@login_required
+def update_history(request, movie_id):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        movie = get_object_or_404(Movie, id=movie_id)
+        # Nếu đã xem rồi thì cập nhật thời gian mới nhất, chưa thì tạo mới
+        WatchHistory.objects.update_or_create(
+            user=request.user, 
+            movie=movie
+        )
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+# 2. Hàm hiển thị trang danh sách lịch sử
+@login_required
+def history_view(request):
+    history_list = WatchHistory.objects.filter(user=request.user).select_related('movie')
+    return render(request, 'main/history.html', {'history_list': history_list})
+
+# 3. Hàm xóa một phim khỏi lịch sử
+@login_required
+def delete_history(request, history_id):
+    item = get_object_or_404(WatchHistory, id=history_id, user=request.user)
+    item.delete()
+    return JsonResponse({'status': 'success'})

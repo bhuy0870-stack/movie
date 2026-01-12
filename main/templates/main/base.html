@@ -38,7 +38,7 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* --- NAVBAR --- */
+        /* --- NAVBAR FIX --- */
         .navbar { 
             background: var(--surface) !important; 
             backdrop-filter: blur(20px) saturate(180%);
@@ -46,49 +46,72 @@
             border-bottom: 1px solid var(--border);
             padding: 10px 15px; z-index: 3000; 
             transition: all 0.3s;
+            min-height: 70px;
         }
 
         @media (min-width: 992px) {
             .navbar {
                 border: 1px solid var(--border); border-radius: 20px;
-                margin: 15px 4%; padding: 10px 25px;
+                margin: 15px 2%; padding: 5px 20px;
+                min-height: 80px;
+            }
+            .navbar-nav {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
             }
             body { padding-top: 110px; }
         }
 
         .brand-logo { 
-            font-size: 1.3rem; font-weight: 800; color: #fff !important; 
-            text-decoration: none !important; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+            font-size: 1.1rem; font-weight: 800; color: #fff !important; 
+            text-decoration: none !important; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
         }
         .brand-logo .logo-mark {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; width: 38px; height: 38px; display: flex; 
-            align-items: center; justify-content: center; border-radius: 12px;
+            color: #fff; width: 34px; height: 34px; display: flex; 
+            align-items: center; justify-content: center; border-radius: 10px;
             box-shadow: 0 5px 15px var(--primary-glow);
         }
 
         .nav-link { 
-            font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.6) !important; 
-            text-transform: uppercase; letter-spacing: 1px; padding: 12px 18px !important;
+            font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.6) !important; 
+            text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px !important;
             transition: var(--transition-fast); position: relative;
+            white-space: nowrap; 
         }
         .nav-link:hover, .nav-link.active { color: #fff !important; }
         .btn-donate-nav { color: var(--accent) !important; font-weight: 800 !important; text-shadow: 0 0 10px var(--accent-glow); }
 
-        /* --- MEGA MENU (PC HOVER) --- */
+        /* --- DROPDOWN LỊCH SỬ --- */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: rgba(10, 10, 10, 0.98) !important;
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border) !important;
+            border-radius: 22px;
+            padding: 15px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            z-index: 5000;
+        }
+
+        #historyDropdown + .dropdown-menu {
+            max-height: 450px;
+            overflow-y: auto;
+            width: 300px;
+            left: 50%; transform: translateX(-50%);
+        }
+
         @media (min-width: 992px) {
             .nav-item.dropdown:hover > .dropdown-menu {
-                display: block !important; opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+                display: block !important; opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
             }
             .dropdown-menu {
                 display: block !important; margin-top: 0 !important; opacity: 0; visibility: hidden;
-                transform: translateY(15px); transition: all 0.25s ease;
-                background: rgba(10, 10, 10, 0.98) !important; backdrop-filter: blur(30px);
-                border: 1px solid var(--border) !important; border-radius: 22px; padding: 25px;
-                box-shadow: 0 30px 60px rgba(0,0,0,0.8); pointer-events: none;
+                transform: translateX(-50%) translateY(15px); transition: all 0.25s ease;
             }
-            .dropdown-menu::before { content: ""; position: absolute; top: -25px; left: 0; width: 100%; height: 30px; }
-            .mega-menu-content { width: auto !important; min-width: 850px !important; left: 50% !important; transform: translateX(-50%) translateY(15px) !important; }
+            .mega-menu-content { width: auto !important; min-width: 750px !important; left: 50% !important; }
             .mega-menu-wrapper { display: flex; gap: 35px; }
             .mega-column { flex: 1; }
             .mega-title { font-size: 0.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px; padding-left: 12px; border-left: 3px solid var(--primary); }
@@ -97,38 +120,30 @@
         .dropdown-item { color: rgba(255,255,255,0.6) !important; font-size: 0.85rem; padding: 10px 14px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
         .dropdown-item:hover { background: rgba(196, 0, 0, 0.15) !important; color: #fff !important; transform: translateX(5px); }
 
-        /* --- SEARCH BOX SMART --- */
-        .search-container { position: relative; width: 260px; z-index: 3001; }
+        /* --- SEARCH BOX --- */
+        .search-container { position: relative; width: 180px; z-index: 3001; flex-shrink: 1; transition: width 0.3s; }
+        @media (min-width: 1200px) { .search-container { width: 260px; } }
+        
         .search-wrapper {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
             border-radius: 12px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;
         }
-        .search-wrapper:focus-within { border-color: var(--primary); background: rgba(0,0,0,0.8); }
         .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 0.85rem; width: 100%; }
 
         #search-results-box {
-            position: absolute; top: calc(100% + 15px); right: 0; width: 380px; 
+            position: absolute; top: calc(100% + 15px); right: 0; width: 350px; 
             background: #111; border: 1px solid var(--border); border-radius: 15px;
             overflow: hidden; display: none; z-index: 999999; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
         }
-        .search-item { 
-            display: flex !important; align-items: center; gap: 15px; padding: 12px 18px;
-            color: #fff !important; text-decoration: none !important; border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: 0.2s;
-        }
-        .search-item:hover { background: rgba(196, 0, 0, 0.2); }
-        .search-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
 
         /* --- USER GATE --- */
         .user-gate { 
-            padding: 5px; cursor: pointer; display: flex; 
+            padding: 5px 12px 5px 5px; cursor: pointer; display: flex; 
             align-items: center; gap: 10px; background: rgba(255,255,255,0.05); 
             border: 1px solid var(--border); border-radius: 50px; transition: 0.3s;
+            flex-shrink: 0;
         }
-        @media(min-width: 992px) { .user-gate { padding: 5px 15px 5px 5px; } }
-        .user-gate:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
-        .avatar-box { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--primary); display: flex; align-items: center; justify-content: center; }
+        .avatar-box { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
 
         .logout-btn { background: transparent; border: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #ff4757 !important; font-weight: 700; border-radius: 12px; transition: 0.2s; white-space: nowrap; }
@@ -143,28 +158,17 @@
                 background: transparent !important; border: none !important; display: none; 
             }
             .dropdown-menu.show { display: block !important; }
-            .search-container { width: 100%; margin-top: 15px; }
-            #search-results-box { width: 100%; position: relative; top: 10px; box-shadow: none; }
-            .mega-menu-wrapper { flex-direction: column; gap: 10px; }
-            .mega-title { margin-top: 15px; border-left: 2px solid var(--primary); padding-left: 10px; }
-            
-            .user-gate .user-name-text { display: inline-block !important; color: #fff !important; font-size: 0.85rem; }
-            .user-dropdown-mobile { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; width: 100%; }
-
-            /* FIX MODAL DONATE CHO MOBILE */
-            .modal-dialog { margin: 10px; }
-            .modal-content .p-5 { padding: 25px 15px !important; }
-            .qr-frame { padding: 10px; border-radius: 15px; }
-            .qr-frame img { width: 160px !important; }
-            .modal-content h3 { font-size: 1.5rem !important; }
+            .search-container { width: 100% !important; margin-top: 15px; }
+            #search-results-box { width: 100%; position: relative; top: 10px; }
         }
         
         /* --- UTILS --- */
+        .extremely-small { font-size: 10px !important; line-height: 1.2; }
         .heart-particle { position: fixed; pointer-events: none; font-size: 20px; z-index: 10000; animation: heartFly 1s ease-out forwards; }
         @keyframes heartFly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
         .modal-content { background: #111; border-radius: 28px; border: 1px solid var(--border); }
         .qr-frame { background: #fff; padding: 15px; border-radius: 20px; display: inline-block; }
-        .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; }
+        .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -181,7 +185,7 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navContent">
-                <ul class="navbar-nav mx-auto d-flex align-items-lg-center">
+                <ul class="navbar-nav mx-auto d-flex flex-row align-items-center">
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
                     
                     <li class="nav-item dropdown">
@@ -191,34 +195,46 @@
                         <div class="dropdown-menu mega-menu-content" aria-labelledby="genreDropdown">
                             <div class="mega-menu-wrapper">
                                 <div class="mega-column">
-                                    <h6 class="mega-title">Phổ biến</h6>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hanh-dong"><i class="fas fa-gun"></i> Hành động</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=phieu-luu"><i class="fas fa-compass"></i> Phiêu lưu</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=vien-tuong"><i class="fas fa-rocket"></i> Viễn tưởng</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hai-huoc"><i class="fas fa-laugh"></i> Hài hước</a>
+                                    <h6 class="mega-title">Thể loại</h6>
+                                    {% for g in genre_list|slice:":5" %}
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
+                                    {% endfor %}
                                 </div>
                                 <div class="mega-column">
-                                    <h6 class="mega-title">Cảm xúc</h6>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tinh-cam"><i class="fas fa-heart"></i> Tình cảm</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tam-ly"><i class="fas fa-brain"></i> Tâm lý</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=gia-dinh"><i class="fas fa-home"></i> Gia đình</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hoc-duong"><i class="fas fa-graduation-cap"></i> Học đường</a>
+                                    <h6 class="mega-title">&nbsp;</h6>
+                                    {% for g in genre_list|slice:"5:10" %}
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
+                                    {% endfor %}
                                 </div>
                                 <div class="mega-column">
-                                    <h6 class="mega-title">Kịch tính</h6>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=kinh-di"><i class="fas fa-ghost"></i> Kinh dị</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=bi-an"><i class="fas fa-mask"></i> Bí ẩn</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=giat-gan"><i class="fas fa-bolt"></i> Giật gân</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=co-trang"><i class="fas fa-fan"></i> Cổ trang</a>
-                                </div>
-                                <div class="mega-column">
-                                    <h6 class="mega-title">Đặc sắc</h6>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=hoat-hinh"><i class="fas fa-dragon"></i> Hoạt hình</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=tai-lieu"><i class="fas fa-book"></i> Tài liệu</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=am-nhac"><i class="fas fa-music"></i> Âm nhạc</a>
-                                    <a class="dropdown-item" href="{% url 'home' %}?genre=the-thao"><i class="fas fa-running"></i> Thể thao</a>
+                                    <h6 class="mega-title">Quốc gia</h6>
+                                    {% for c in country_list %}
+                                    <a class="dropdown-item" href="{% url 'home' %}?country={{ c.slug }}">{{ c.name }}</a>
+                                    {% endfor %}
                                 </div>
                             </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" id="historyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Lịch sử <i class="fas fa-clock-rotate-left ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i>
+                        </a>
+                        <div class="dropdown-menu shadow-lg p-2" aria-labelledby="historyDropdown">
+                            <h6 class="mega-title mx-2 mt-2">Phim vừa xem</h6>
+                            {% if recent_history_nav %}
+                                {% for item in recent_history_nav %}
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'movie_detail' item.movie.slug %}">
+                                    <img src="{{ item.movie.poster_url }}" width="35" height="45" class="rounded object-fit-cover shadow-sm flex-shrink-0">
+                                    <div class="overflow-hidden flex-grow-1">
+                                        <div class="text-white small fw-bold text-truncate" style="max-width: 180px;">{{ item.movie.title }}</div>
+                                        <div class="text-white-50 extremely-small">{{ item.watched_at|timesince }} trước</div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                                {% else %}
+                                <div class="text-center py-3 text-white-50 small">Trống</div>
+                            {% endif %}
                         </div>
                     </li>
 
@@ -229,7 +245,7 @@
                     </li>
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 mt-3 mt-lg-0">
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                     <div class="search-container">
                         <form action="{% url 'home' %}" method="GET" class="search-wrapper">
                             <i class="fas fa-search"></i>
@@ -244,11 +260,12 @@
                                 <div class="avatar-box">
                                     {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
                                 </div>
-                                <span class="user-name-text fw-bold">{{ user.username }}</span>
+                                <span class="user-name-text fw-bold text-white d-none d-xl-inline">{{ user.username }}</span>
                             </div>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle"></i> Tài khoản</a>
                                 <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <a class="dropdown-item py-2" href="{% url 'history' %}"><i class="fas fa-history"></i> Lịch sử xem</a>
                                 <li><hr class="dropdown-divider border-white border-opacity-10"></li>
                                 <div class="px-2">
                                     <form action="{% url 'logout' %}" method="post" class="m-0">
@@ -288,12 +305,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- NAVBAR FIX (FOR MOBILE) ---
         document.addEventListener('DOMContentLoaded', function() {
             const navContent = document.getElementById('navContent');
             const toggler = document.querySelector('.navbar-toggler');
-
-            // Đóng menu khi click vào Link
             document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 992) {
@@ -302,8 +316,6 @@
                     }
                 });
             });
-
-            // Đóng menu khi click ra ngoài
             document.addEventListener('click', function(event) {
                 const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
                 if (!isClickInside && navContent.classList.contains('show')) {
@@ -313,7 +325,6 @@
             });
         });
 
-        // --- 1. NAVBAR LOGIC ---
         function initNavbar() {
             const dropdowns = document.querySelectorAll('.nav-item.dropdown');
             dropdowns.forEach(dropdown => {
@@ -334,45 +345,36 @@
         initNavbar();
         window.addEventListener('resize', initNavbar);
 
-        // --- 2. AJAX LIVE SEARCH ---
         const searchInput = document.getElementById('live-search');
         const resultsBox = document.getElementById('search-results-box');
-
         if(searchInput) {
             searchInput.addEventListener('input', function() {
                 const q = this.value.trim();
                 if (q.length < 2) { resultsBox.style.display = 'none'; return; }
-                
-                fetch(`/ajax-search/?q=${q}`)
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'success' && res.data.length > 0) {
-                            let html = '';
-                            res.data.forEach(m => {
-                                html += `<a href="/movie/${m.slug}/" class="search-item" onmousedown="window.location.href='/movie/${m.slug}/'; return false;">
-                                            <img src="${m.poster}">
-                                            <div class="search-item-info">
-                                                <span class="title text-white small fw-bold d-block">${m.title}</span>
-                                                <span class="text-warning" style="font-size:10px;">★ ${m.imdb}</span>
-                                            </div>
-                                        </a>`;
-                            });
-                            resultsBox.innerHTML = html;
-                            resultsBox.style.display = 'block';
-                        } else {
-                            resultsBox.style.display = 'none';
-                        }
-                    });
+                fetch(`/ajax-search/?q=${q}`).then(r => r.json()).then(res => {
+                    if (res.status === 'success' && res.data.length > 0) {
+                        let html = '';
+                        res.data.forEach(m => {
+                            html += `<a href="/movie/${m.slug}/" class="search-item" onmousedown="window.location.href='/movie/${m.slug}/'; return false;">
+                                        <img src="${m.poster}">
+                                        <div class="search-item-info">
+                                            <span class="title text-white small fw-bold d-block">${m.title}</span>
+                                            <span class="text-warning" style="font-size:10px;">★ ${m.imdb}</span>
+                                        </div>
+                                    </a>`;
+                        });
+                        resultsBox.innerHTML = html;
+                        resultsBox.style.display = 'block';
+                    } else { resultsBox.style.display = 'none'; }
+                });
             });
         }
-
         document.addEventListener('click', (e) => {
             if (searchInput && !searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
                 resultsBox.style.display = 'none';
             }
         });
 
-        // --- 3. HEART & DONATE UTILS ---
         function createHeartBurst(e) {
             const colors = ['#ffcc00', '#ff4757', '#ffffff'];
             for (let i = 0; i < 12; i++) {

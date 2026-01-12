@@ -1,0 +1,32 @@
+name: Cập nhật phim hàng ngày
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  crawl: # Đổi tên job thành crawl
+    runs-on: ubuntu-latest
+    # Đưa env ra ngoài các step để toàn bộ job đều nhận được
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run Crawl Command
+      run: |
+        python manage.py crawl_movies --start 1 --end 2

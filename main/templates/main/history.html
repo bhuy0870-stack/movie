@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+{% block title %}Lịch sử xem phim{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="min-height: 80vh;">
+    <h3 class="text-white fw-bold mb-4">LỊCH SỬ XEM PHIM</h3>
+    
+    <div class="row">
+        {% for item in history_list %}
+        <div class="col-6 col-md-4 col-lg-2 mb-4" id="item-{{ item.id }}">
+            <div class="card bg-dark border-0 position-relative group">
+                <a href="{% url 'movie_detail' item.movie.slug %}" class="text-decoration-none">
+                    <img src="{{ item.movie.poster_url }}" class="card-img-top rounded-3" style="aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="mt-2 text-white small fw-bold text-truncate">{{ item.movie.title }}</div>
+                    <div class="text-white-50" style="font-size: 10px;">{{ item.watched_at|date:"d/m/Y" }}</div>
+                </a>
+                <button onclick="deleteHistory({{ item.id }})" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" style="width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; opacity: 0.8;">
+                    <i class="fas fa-times" style="font-size: 10px;"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-white-50 py-5 w-100">
+            <p>Bạn chưa có lịch sử xem phim.</p>
+            <a href="{% url 'home' %}" class="btn btn-danger rounded-pill px-4">Xem phim ngay</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function deleteHistory(id) {
+    if(confirm('Xóa phim này khỏi lịch sử?')) {
+        fetch(`/history/delete/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(r => r.json())
+        .then(d => {
+            if(d.status === 'success') document.getElementById(`item-${id}`).remove();
+        });
+    }
+}
+</script>
+{% endblock %}

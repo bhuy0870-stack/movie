@@ -28,4 +28,9 @@ urlpatterns = [
     path('movie/<int:movie_id>/review/add/', views.add_review, name='add_review'),
     path('review/delete/<int:review_id>/', views.delete_review, name='delete_review'),
     path('like-review/<int:review_id>/', views.like_review, name='like_review'), 
+
+    path('update-history/<int:movie_id>/', views.update_history, name='update_history'),
+    path('history/', views.history_view, name='history'),
+    path('history/delete/<int:history_id>/', views.delete_history, name='delete_history'),
+    path('history/', views.history_view, name='history'),
 ]

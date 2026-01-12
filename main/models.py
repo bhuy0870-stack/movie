@@ -118,3 +118,16 @@ def manage_user_profile(sender, instance, created, **kwargs):
     else:
         if hasattr(instance, 'profile'):
             instance.profile.save()
+
+
+class WatchHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watch_history')
+    movie = models.ForeignKey('Movie', on_delete=models.CASCADE) # Giả định model Phim của bạn tên là Movie
+    watched_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-watched_at']
+        unique_together = ('user', 'movie') # Mỗi phim chỉ xuất hiện 1 lần trong lịch sử 1 người
+
+    def __str__(self):
+        return f"{self.user.username} - {self.movie.title}"
