@@ -1,0 +1,29 @@
+name: Cập nhật phim hàng ngày
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Chạy tự động lúc 7h sáng VN
+  workflow_dispatch: # Cho phép bấm nút chạy thủ công
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Crawl
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          python manage.py crawl_movies --start 1 --end 2
