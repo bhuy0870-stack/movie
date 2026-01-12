@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
 <style>
-    /* --- VARIABLES --- */
     :root {
         --primary-gold: #ffcc33;
         --gold-glow: rgba(255, 204, 51, 0.4);
@@ -18,16 +17,13 @@
         --text-display: 'Outfit', sans-serif;
     }
 
-    /* CHUỘT MẶC ĐỊNH */
     body { cursor: auto !important; }
     a, button, .m-card, .swiper-slide { cursor: pointer !important; }
 
-    /* --- PAGE LOADER --- */
     #page-loader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: none; justify-content: center; align-items: center; }
     .spinner-cinema { width: 45px; height: 45px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* --- AMBIENT BACKGROUND --- */
     #ambient-bg {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         z-index: -1; background-color: var(--dark-bg);
@@ -37,7 +33,6 @@
         opacity: 0.3; pointer-events: none; filter: blur(80px) saturate(1.5);
     }
 
-    /* --- SPOTLIGHT HERO --- */
     .spotlight-wrapper { padding: 40px 5% 20px; }
     @media(min-width: 992px) { .spotlight-wrapper { padding: 80px 5% 40px; } }
 
@@ -57,7 +52,6 @@
     .spotlight-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 20%, transparent); opacity: 0; transform: translateY(20px); transition: 0.5s 0.2s; }
     .swiper-slide-active .spotlight-info { opacity: 1; transform: translateY(0); }
 
-    /* --- RANKING BOX --- */
     .ranking-box {
         background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(0,0,0,0.4));
         border: 1px solid var(--glass-border); border-radius: 24px;
@@ -77,7 +71,6 @@
     .rank-info h6 { color: #fff; font-weight: 700; font-size: 0.9rem; margin: 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .rank-info span { font-size: 0.75rem; color: #888; }
 
-    /* --- FILTER QUỐC GIA (THAY THẾ THỂ LOẠI) --- */
     .filter-sticky { position: sticky; top: 70px; z-index: 900; margin-bottom: 25px; background: rgba(5,5,5,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 15px 0; }
     .filter-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 0 5%; align-items: center; }
     .filter-scroll::-webkit-scrollbar { display: none; }
@@ -85,7 +78,6 @@
     .filter-btn { padding: 8px 20px; border-radius: 100px; background: var(--surface); color: #888; font-weight: 600; text-decoration: none; border: 1px solid var(--glass-border); white-space: nowrap; transition: 0.3s; font-size: 0.75rem; letter-spacing: 0.5px; }
     .filter-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
 
-    /* --- MOVIE CARD --- */
     .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 12px; padding: 0 5%; }
     @media (min-width: 576px) { .movie-grid { grid-template-columns: repeat(3, 1fr); gap: 25px 15px; } }
     @media (min-width: 992px) { .movie-grid { grid-template-columns: repeat(4, 1fr); padding: 0; gap: 40px 25px; } }
@@ -123,7 +115,6 @@
     .m-meta { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: #666; font-weight: 600; margin-top: 5px; }
     .m-meta span.quality { color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 0 4px; border-radius: 4px; font-size: 0.6rem; }
 
-    /* --- SIDEBAR --- */
     .sidebar-wrapper { position: sticky; top: 100px; padding: 0 15px; }
     .donate-widget-cute { background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid var(--glass-border); border-radius: 28px; padding: 35px 25px; text-align: center; }
     .btn-cute { background: #fff; color: #000; font-weight: 800; border: none; padding: 14px; width: 100%; border-radius: 50px; margin-top: 25px; font-size: 0.85rem; letter-spacing: 1px; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
@@ -135,7 +126,6 @@
     .quote-text { font-family: var(--text-main); font-weight: 500; font-style: italic; font-size: 1rem; color: #bbb; line-height: 1.6; margin-bottom: 12px; }
     .quote-author { font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; color: var(--primary-gold); text-transform: uppercase; font-family: var(--text-display); }
 
-    /* --- TOAST --- */
     #toast-box { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 10001; width: max-content; }
     .custom-toast { background: #fff; color: #000; padding: 12px 24px; border-radius: 50px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; }
     .grid-loading { opacity: 0.5; pointer-events: none; transition: 0.3s; }
@@ -146,7 +136,6 @@
 <div id="toast-box"></div>
 
 <div class="container-fluid p-0">
-    
     {% if movies_page.number == 1 and not query %}
     <section class="spotlight-wrapper">
         <div class="row align-items-center">
@@ -253,13 +242,11 @@
 <script>
     const userIsAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
     
-    // --- LOADERS & INIT ---
     window.addEventListener('pageshow', (e) => { if(e.persisted || document.readyState === 'complete') document.getElementById('page-loader').style.display = 'none'; });
     window.addEventListener('load', () => { document.getElementById('page-loader').style.display = 'none'; });
     function showLoaderAndGo(url) { if(url !== window.location.href) { document.getElementById('page-loader').style.display = 'flex'; window.location.href = url; } }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // --- 1. SWIPER ---
         const swiper = new Swiper(".mySwiper", {
             effect: "coverflow", grabCursor: true, centeredSlides: true, slidesPerView: "auto", loop: true, autoplay: { delay: 4000 },
             coverflowEffect: { rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false },
@@ -274,7 +261,6 @@
             });
         }
 
-        // --- 2. AJAX FILTER ---
         const contentArea = document.getElementById('movie-content-area');
         const filterContainer = document.getElementById('filter-container');
         function handleAjaxClick(e) {
@@ -295,7 +281,6 @@
         contentArea.addEventListener('click', handleAjaxClick);
         window.addEventListener('popstate', () => window.location.reload());
 
-        // --- 3. AMBIENT BACKGROUND ---
         const ambientBg = document.getElementById('ambient-bg');
         const changeAmbient = (imgUrl) => { if(!imgUrl) return; ambientBg.style.backgroundImage = `url('${imgUrl}')`; ambientBg.style.opacity = '0.4'; };
         
