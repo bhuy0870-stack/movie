@@ -17,12 +17,12 @@
         --text-secondary: #9ca3af;
     }
 
-    body { 
-        background-color: var(--bg-deep);
-        /* Thêm hình nền mờ ảo phía sau cho cinematic */
+    /* Hiệu ứng cinematic cho nền riêng của trang profile */
+    .profile-page-wrapper {
         background-image: radial-gradient(circle at 10% 20%, rgba(229, 9, 20, 0.15) 0%, transparent 40%),
                           radial-gradient(circle at 90% 80%, rgba(255, 204, 0, 0.08) 0%, transparent 40%);
-        background-attachment: fixed;
+        min-height: 100vh;
+        width: 100%;
     }
 
     /* --- LAYOUT CONTAINER --- */
@@ -44,12 +44,11 @@
         border-radius: 32px;
         overflow: hidden;
         width: 100%;
-        max-width: 500px; /* Giới hạn chiều rộng giống App Mobile */
+        max-width: 500px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         position: relative;
     }
 
-    /* Hiệu ứng ánh sáng chạy trên viền card */
     .profile-card::before {
         content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
@@ -62,7 +61,6 @@
         position: relative;
     }
 
-    /* AVATAR STYLING */
     .avatar-wrapper {
         position: relative;
         width: 130px;
@@ -100,7 +98,6 @@
     }
     .avatar-wrapper:hover .camera-btn { transform: scale(1.1); background: var(--primary-red); color: #fff; }
 
-    /* USER INFO */
     .user-name {
         font-family: 'Outfit', sans-serif;
         font-weight: 800;
@@ -122,7 +119,7 @@
         display: inline-block;
     }
 
-    /* --- STATS ROW (Dàn ngang thông tin) --- */
+    /* --- STATS ROW --- */
     .stats-row {
         display: flex;
         justify-content: space-between;
@@ -211,115 +208,65 @@
     }
 </style>
 
-<div class="profile-container">
-    <div class="profile-card">
-        
-        <div class="card-header-custom">
-            <form id="avatar-form" action="{% url 'update_avatar' %}" method="post" enctype="multipart/form-data" class="d-none">
-                {% csrf_token %}
-                <input type="file" id="avatar-input" name="avatar" accept="image/*" onchange="submitAvatar()">
-            </form>
+<div class="profile-page-wrapper">
+    <div class="profile-container">
+        <div class="profile-card">
+            
+            <div class="card-header-custom">
+                <form id="avatar-form" action="{% url 'update_avatar' %}" method="post" enctype="multipart/form-data" class="d-none">
+                    {% csrf_token %}
+                    <input type="file" id="avatar-input" name="avatar" accept="image/*" onchange="submitAvatar()">
+                </form>
 
-            <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
-                {% if profile.avatar %}
-                    <img src="{{ profile.avatar.url }}" class="avatar-img" id="avatar-display">
-                {% else %}
-                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=1a1a1a&color=fff&size=250" class="avatar-img" id="avatar-display">
-                {% endif %}
-                <div class="camera-btn"><i class="fas fa-camera"></i></div>
+                <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="avatar-img" id="avatar-display">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=1a1a1a&color=fff&size=250" class="avatar-img" id="avatar-display">
+                    {% endif %}
+                    <div class="camera-btn"><i class="fas fa-camera"></i></div>
+                </div>
+
+                <h2 class="user-name">{{ user.username }}</h2>
+                <div class="mt-2">
+                    <span class="vip-badge"><i class="fas fa-crown me-1"></i>VIP MEMBER</span>
+                </div>
+                <p class="text-white-50 small mt-3 mb-0"><i class="far fa-envelope me-2"></i>{{ user.email }}</p>
             </div>
 
-            <h2 class="user-name">{{ user.username }}</h2>
-            <div class="mt-2">
-                <span class="vip-badge"><i class="fas fa-crown me-1"></i>VIP MEMBER</span>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-value text-warning">{{ user_age }}</span>
+                    <span class="stat-label">Tuổi</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ achievements|length }}</span>
+                    <span class="stat-label">Huy hiệu</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ user.date_joined|date:"Y" }}</span>
+                    <span class="stat-label">Tham gia</span>
+                </div>
             </div>
-            <p class="text-white-50 small mt-3 mb-0"><i class="far fa-envelope me-2"></i>{{ user.email }}</p>
-        </div>
 
-        <div class="stats-row">
-            <div class="stat-item">
-                <span class="stat-value text-warning">{{ user_age }}</span>
-                <span class="stat-label">Tuổi</span>
+            <div class="badges-section">
+                <div class="section-title">
+                    <span>Bộ sưu tập</span>
+                    <i class="fas fa-chevron-right small text-white-50"></i>
+                </div>
+                <div class="badge-grid">
+                    {% for ua in achievements %}
+                        <div class="badge-icon-box" onclick="showBadgeModal('{{ ua.achievement.name }}', '{{ ua.achievement.description }}', '{{ ua.achievement.icon_class }}', '{{ ua.achievement.color }}')">
+                            <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
+                        </div>
+                    {% empty %}
+                        <div class="text-center w-100 text-white-50 py-3 small" style="grid-column: span 4;">
+                            Chưa có huy hiệu nào. Hãy xem phim và bình luận nhé!
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <span class="stat-value">{{ achievements|length }}</span>
-                <span class="stat-label">Huy hiệu</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-                <span class="stat-value">{{ user.date_joined|date:"Y" }}</span>
-                <span class="stat-label">Tham gia</span>
-            </div>
-        </div>
 
-        <div class="badges-section">
-            <div class="section-title">
-                <span>Bộ sưu tập</span>
-                <i class="fas fa-chevron-right small text-white-50"></i>
-            </div>
-            <div class="badge-grid">
-                {% for ua in achievements %}
-                    <div class="badge-icon-box" onclick="showBadgeModal('{{ ua.achievement.name }}', '{{ ua.achievement.description }}', '{{ ua.achievement.icon_class }}', '{{ ua.achievement.color }}')">
-                        <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
-                    </div>
-                {% empty %}
-                    <div class="text-center w-100 text-white-50 py-3 small col-span-4" style="grid-column: span 4;">
-                        Chưa có huy hiệu nào. Hãy xem phim và bình luận nhé!
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="action-group">
-            <form action="{% url 'logout' %}" method="post" class="w-100 m-0">
-                {% csrf_token %}
-                <button type="submit" class="btn-custom btn-red">
-                    <i class="fas fa-power-off"></i> ĐĂNG XUẤT
-                </button>
-            </form>
-            <a href="{% url 'home' %}" class="btn-custom btn-outline">
-                <i class="fas fa-arrow-left"></i> VỀ TRANG CHỦ
-            </a>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content dark-modal p-4">
-            <div id="modal-icon-container"></div>
-            <h4 class="fw-bold text-white mb-2" id="modal-title"></h4>
-            <p class="text-white-50 small mb-4" id="modal-desc"></p>
-            <button type="button" class="btn btn-warning w-100 fw-bold rounded-pill" data-bs-dismiss="modal">TUYỆT VỜI</button>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Logic Upload Avatar
-    function submitAvatar() {
-        const icon = document.querySelector('.camera-btn i');
-        const img = document.getElementById('avatar-display');
-        
-        icon.className = "fas fa-spinner fa-spin";
-        img.style.opacity = "0.5";
-        
-        // Gửi form
-        document.getElementById('avatar-form').submit();
-    }
-
-    // Logic Hiển thị Modal Badge
-    function showBadgeModal(name, desc, iconClass, color) {
-        document.getElementById('modal-title').innerText = name;
-        document.getElementById('modal-desc').innerText = desc;
-        
-        const iconContainer = document.getElementById('modal-icon-container');
-        iconContainer.innerHTML = `<i class="${iconClass} modal-icon-large" style="color: ${color}"></i>`;
-        
-        const myModal = new bootstrap.Modal(document.getElementById('badgeModal'));
-        myModal.show();
-    }
-</script>
-{% endblock %}
+            <div class="action-group">
