@@ -133,7 +133,7 @@
 
         .logout-btn { background: transparent; border: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #ff4757 !important; font-weight: 700; border-radius: 12px; transition: 0.2s; white-space: nowrap; }
 
-        /* --- MOBILE TWEAKS (FIXED TÊN TÀI KHOẢN) --- */
+        /* --- MOBILE TWEAKS --- */
         @media (max-width: 991px) {
             .navbar-collapse { background: #0a0a0a; padding: 20px; border-radius: 20px; margin-top: 15px; border: 1px solid var(--border); }
             .nav-link, .dropdown-item { padding: 14px 18px !important; }
@@ -148,7 +148,6 @@
             .mega-menu-wrapper { flex-direction: column; gap: 10px; }
             .mega-title { margin-top: 15px; border-left: 2px solid var(--primary); padding-left: 10px; }
             
-            /* Đảm bảo tên tài khoản luôn hiển thị trên Mobile */
             .user-gate .user-name-text { display: inline-block !important; color: #fff !important; font-size: 0.85rem; }
             .user-dropdown-mobile { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; width: 100%; }
         }
@@ -282,11 +281,35 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // --- NAVBAR FIX (FOR MOBILE) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const navContent = document.getElementById('navContent');
+            const toggler = document.querySelector('.navbar-toggler');
+
+            // Đóng menu khi click vào Link
+            document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = bootstrap.Collapse.getInstance(navContent) || new bootstrap.Collapse(navContent);
+                        bsCollapse.hide();
+                    }
+                });
+            });
+
+            // Đóng menu khi click ra ngoài
+            document.addEventListener('click', function(event) {
+                const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
+                if (!isClickInside && navContent.classList.contains('show')) {
+                    const bsCollapse = bootstrap.Collapse.getInstance(navContent) || new bootstrap.Collapse(navContent);
+                    bsCollapse.hide();
+                }
+            });
+        });
+
         // --- 1. NAVBAR LOGIC ---
         function initNavbar() {
             const dropdowns = document.querySelectorAll('.nav-item.dropdown');
             dropdowns.forEach(dropdown => {
-                // PC Hover
                 dropdown.addEventListener('mouseenter', () => {
                     if (window.innerWidth >= 992) {
                         const menu = dropdown.querySelector('.dropdown-menu');
@@ -319,14 +342,13 @@
                         if (res.status === 'success' && res.data.length > 0) {
                             let html = '';
                             res.data.forEach(m => {
-                                html += `
-                                    <a href="/movie/${m.slug}/" class="search-item" onmousedown="window.location.href='/movie/${m.slug}/'; return false;">
-                                        <img src="${m.poster}">
-                                        <div class="search-item-info">
-                                            <span class="title text-white small fw-bold d-block">${m.title}</span>
-                                            <span class="text-warning" style="font-size:10px;">★ ${m.imdb}</span>
-                                        </div>
-                                    </a>`;
+                                html += `<a href="/movie/${m.slug}/" class="search-item" onmousedown="window.location.href='/movie/${m.slug}/'; return false;">
+                                            <img src="${m.poster}">
+                                            <div class="search-item-info">
+                                                <span class="title text-white small fw-bold d-block">${m.title}</span>
+                                                <span class="text-warning" style="font-size:10px;">★ ${m.imdb}</span>
+                                            </div>
+                                        </a>`;
                             });
                             resultsBox.innerHTML = html;
                             resultsBox.style.display = 'block';

@@ -4,8 +4,6 @@
 {% block title %}Hồ sơ - {{ user.username }}{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-
 <style>
     :root {
         --primary-red: #ff3b30;
@@ -17,36 +15,34 @@
         --text-secondary: #9ca3af;
     }
 
-    /* Hiệu ứng cinematic cho nền riêng của trang profile */
     .profile-page-wrapper {
         background-image: radial-gradient(circle at 10% 20%, rgba(229, 9, 20, 0.15) 0%, transparent 40%),
                           radial-gradient(circle at 90% 80%, rgba(255, 204, 0, 0.08) 0%, transparent 40%);
         min-height: 100vh;
         width: 100%;
-    }
-
-    /* --- LAYOUT CONTAINER --- */
-    .profile-container {
-        padding-top: 30px;
-        padding-bottom: 50px;
-        min-height: 80vh;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    /* --- MAIN CARD --- */
+    .profile-container {
+        padding: 30px 15px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
     .profile-card {
         background: var(--card-bg);
         backdrop-filter: blur(25px);
         -webkit-backdrop-filter: blur(25px);
         border: 1px solid var(--glass-border);
         border-radius: 32px;
-        overflow: hidden;
         width: 100%;
         max-width: 500px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         position: relative;
+        overflow: hidden;
     }
 
     .profile-card::before {
@@ -54,7 +50,6 @@
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     }
 
-    /* --- HEADER SECTION --- */
     .card-header-custom {
         padding: 40px 30px 20px;
         text-align: center;
@@ -96,7 +91,6 @@
         transition: 0.3s;
         border: 3px solid #1a1a1a;
     }
-    .avatar-wrapper:hover .camera-btn { transform: scale(1.1); background: var(--primary-red); color: #fff; }
 
     .user-name {
         font-family: 'Outfit', sans-serif;
@@ -119,7 +113,6 @@
         display: inline-block;
     }
 
-    /* --- STATS ROW --- */
     .stats-row {
         display: flex;
         justify-content: space-between;
@@ -134,7 +127,6 @@
     .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
     .stat-divider { width: 1px; background: rgba(255,255,255,0.08); }
 
-    /* --- BADGES GRID --- */
     .badges-section { padding: 0 30px 30px; }
     .section-title { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
 
@@ -160,7 +152,6 @@
         border-color: rgba(255,255,255,0.2);
     }
 
-    /* --- ACTION BUTTONS --- */
     .action-group { padding: 0 30px 40px; display: flex; flex-direction: column; gap: 12px; }
     
     .btn-custom {
@@ -189,22 +180,8 @@
     }
     .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: #fff; color: #fff; }
 
-    /* --- MODAL CUSTOM --- */
-    .modal-content.dark-modal {
-        background: #111;
-        border: 1px solid var(--glass-border);
-        border-radius: 25px;
-        text-align: center;
-    }
-    .modal-icon-large { font-size: 4rem; margin-bottom: 15px; display: inline-block; filter: drop-shadow(0 0 20px rgba(255,215,0,0.3)); }
-
-    /* --- MOBILE RESPONSIVE --- */
     @media (max-width: 576px) {
-        .profile-container { padding: 0; align-items: flex-start; }
         .profile-card { border-radius: 0; min-height: 100vh; border: none; max-width: 100%; }
-        .avatar-wrapper { width: 110px; height: 110px; }
-        .user-name { font-size: 1.6rem; }
-        .badge-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
     }
 </style>
 
@@ -270,3 +247,47 @@
             </div>
 
             <div class="action-group">
+                <form action="{% url 'logout' %}" method="post" class="w-100 m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-custom btn-red">
+                        <i class="fas fa-power-off"></i> ĐĂNG XUẤT
+                    </button>
+                </form>
+                <a href="{% url 'home' %}" class="btn-custom btn-outline">
+                    <i class="fas fa-arrow-left"></i> VỀ TRANG CHỦ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content p-4" style="background: #111; border-radius: 25px; border: 1px solid var(--border); text-align: center;">
+            <div id="modal-icon-container"></div>
+            <h4 class="fw-bold text-white mb-2" id="modal-title"></h4>
+            <p class="text-white-50 small mb-4" id="modal-desc"></p>
+            <button type="button" class="btn btn-warning w-100 fw-bold rounded-pill" data-bs-dismiss="modal">TUYỆT VỜI</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function submitAvatar() {
+        const icon = document.querySelector('.camera-btn i');
+        const img = document.getElementById('avatar-display');
+        icon.className = "fas fa-spinner fa-spin";
+        img.style.opacity = "0.5";
+        document.getElementById('avatar-form').submit();
+    }
+
+    function showBadgeModal(name, desc, iconClass, color) {
+        document.getElementById('modal-title').innerText = name;
+        document.getElementById('modal-desc').innerText = desc;
+        const iconContainer = document.getElementById('modal-icon-container');
+        iconContainer.innerHTML = `<i class="${iconClass}" style="font-size: 4rem; margin-bottom: 15px; display: inline-block; color: ${color}"></i>`;
+        const myModal = new bootstrap.Modal(document.getElementById('badgeModal'));
+        myModal.show();
+    }
+</script>
+{% endblock %}
