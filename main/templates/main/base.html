@@ -44,7 +44,7 @@
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid var(--border);
-            padding: 10px 15px; z-index: 2000;
+            padding: 10px 15px; z-index: 3000; 
             transition: all 0.3s;
         }
 
@@ -133,17 +133,24 @@
 
         .logout-btn { background: transparent; border: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: #ff4757 !important; font-weight: 700; border-radius: 12px; transition: 0.2s; white-space: nowrap; }
 
-        /* --- MOBILE TWEAKS --- */
+        /* --- MOBILE TWEAKS (FIXED TÊN TÀI KHOẢN) --- */
         @media (max-width: 991px) {
             .navbar-collapse { background: #0a0a0a; padding: 20px; border-radius: 20px; margin-top: 15px; border: 1px solid var(--border); }
-            /* Tăng diện tích bấm */
             .nav-link, .dropdown-item { padding: 14px 18px !important; }
-            .dropdown-menu { position: static !important; float: none; opacity: 1 !important; visibility: visible !important; transform: none !important; background: transparent !important; border: none !important; display: none; }
+            .dropdown-menu { 
+                position: static !important; float: none; width: 100%;
+                opacity: 1 !important; visibility: visible !important; transform: none !important; 
+                background: transparent !important; border: none !important; display: none; 
+            }
             .dropdown-menu.show { display: block !important; }
             .search-container { width: 100%; margin-top: 15px; }
             #search-results-box { width: 100%; position: relative; top: 10px; box-shadow: none; }
             .mega-menu-wrapper { flex-direction: column; gap: 10px; }
             .mega-title { margin-top: 15px; border-left: 2px solid var(--primary); padding-left: 10px; }
+            
+            /* Đảm bảo tên tài khoản luôn hiển thị trên Mobile */
+            .user-gate .user-name-text { display: inline-block !important; color: #fff !important; font-size: 0.85rem; }
+            .user-dropdown-mobile { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; width: 100%; }
         }
         
         /* --- UTILS --- */
@@ -227,11 +234,11 @@
 
                     {% if user.is_authenticated %}
                         <div class="nav-item dropdown user-dropdown-mobile">
-                            <div class="user-gate" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-gate" data-bs-toggle="dropdown" aria-expanded="false" role="button">
                                 <div class="avatar-box">
                                     {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
                                 </div>
-                                <span class="text-white fw-bold d-none d-md-inline" style="font-size: 0.75rem;">{{ user.username }}</span>
+                                <span class="user-name-text fw-bold">{{ user.username }}</span>
                             </div>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle"></i> Tài khoản</a>
@@ -275,23 +282,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- 1. HOVER LOGIC PC ---
-        document.querySelectorAll('.nav-item.dropdown').forEach(function(dropdown) {
-            dropdown.addEventListener('mouseenter', function() {
-                if (window.innerWidth >= 992) {
-                    let menu = this.querySelector('.dropdown-menu');
-                    if(menu) menu.classList.add('show');
-                }
+        // --- 1. NAVBAR LOGIC ---
+        function initNavbar() {
+            const dropdowns = document.querySelectorAll('.nav-item.dropdown');
+            dropdowns.forEach(dropdown => {
+                // PC Hover
+                dropdown.addEventListener('mouseenter', () => {
+                    if (window.innerWidth >= 992) {
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        if(menu) menu.classList.add('show');
+                    }
+                });
+                dropdown.addEventListener('mouseleave', () => {
+                    if (window.innerWidth >= 992) {
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        if(menu) menu.classList.remove('show');
+                    }
+                });
             });
-            dropdown.addEventListener('mouseleave', function() {
-                if (window.innerWidth >= 992) {
-                    let menu = this.querySelector('.dropdown-menu');
-                    if(menu) menu.classList.remove('show');
-                }
-            });
-        });
+        }
+        initNavbar();
+        window.addEventListener('resize', initNavbar);
 
-        // --- 2. AJAX LIVE SEARCH (FIXED: mousedown) ---
+        // --- 2. AJAX LIVE SEARCH ---
         const searchInput = document.getElementById('live-search');
         const resultsBox = document.getElementById('search-results-box');
 
@@ -330,7 +343,7 @@
             }
         });
 
-        // --- 3. UTILS ---
+        // --- 3. HEART & DONATE UTILS ---
         function createHeartBurst(e) {
             const colors = ['#ffcc00', '#ff4757', '#ffffff'];
             for (let i = 0; i < 12; i++) {

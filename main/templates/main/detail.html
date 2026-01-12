@@ -9,7 +9,7 @@
     :root {
         --primary: #e50914;
         --glass-border: rgba(255, 255, 255, 0.1);
-        --card-bg: #111; /* Màu nền cho comment */
+        --card-bg: #111;
     }
 
     /* --- HERO SECTION --- */
@@ -28,11 +28,10 @@
     }
     .poster-card img { width: 100%; height: 100%; object-fit: cover; }
     
-    /* FIX FONT TIÊU ĐỀ: Dùng font hệ thống an toàn, đậm và rõ nét */
     .movie-title-large {
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         font-weight: 800;
-        font-size: clamp(2rem, 5vw, 3.8rem); /* Tăng kích thước chút */
+        font-size: clamp(2rem, 5vw, 3.8rem);
         line-height: 1.1;
         color: #fff; text-shadow: 0 0 30px rgba(0,0,0,0.5);
         letter-spacing: -1px;
@@ -75,7 +74,7 @@
     .ep-btn:hover { background: #333; color: #fff; }
     .ep-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-    /* --- REVIEWS (ĐÃ SỬA GIAO DIỆN) --- */
+    /* --- REVIEWS --- */
     .review-section { background: #0a0a0a; border-radius: 20px; padding: 25px; border: 1px solid #222; }
     .comment-input {
         background: #111; border: 1px solid #333; color: #fff;
@@ -84,13 +83,12 @@
     }
     .comment-input:focus { outline: none; border-color: #555; background: #1a1a1a; }
     
-    /* Style mới cho từng Comment (Dạng thẻ Card) */
     .review-item {
-        background: var(--card-bg); /* Nền tối nhẹ */
-        border: 1px solid #2a2a2a; /* Viền nhẹ */
-        border-radius: 12px; /* Bo góc */
-        padding: 20px; /* Khoảng cách bên trong rộng rãi */
-        margin-bottom: 20px; /* Cách nhau ra */
+        background: var(--card-bg);
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
         transition: 0.3s;
     }
     .review-item:hover { border-color: #444; }
@@ -98,8 +96,8 @@
     .reply-list { 
         margin-top: 15px; 
         padding-top: 15px;
-        border-top: 1px solid #2a2a2a; /* Đường kẻ ngăn cách reply */
-        padding-left: 20px; /* Thụt đầu dòng ít hơn để tiết kiệm chỗ */
+        border-top: 1px solid #2a2a2a;
+        padding-left: 20px;
     }
     
     .reply-form { margin-top: 15px; display: none; }
@@ -122,7 +120,16 @@
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @media (max-width: 768px) { .movie-hero { padding-top: 0; } .reply-list { padding-left: 10px; } .poster-card { width: 140px; margin: 0 auto 20px; } .movie-title-large { text-align: center; } .hero-meta, .hero-actions { justify-content: center; } }
+
+    @media (max-width: 768px) { 
+        .movie-hero { padding-top: 0; } 
+        .reply-list { padding-left: 10px; } 
+        .poster-card { width: 140px; margin: 0 auto 20px; } 
+        .col-md-8.col-lg-9 { text-align: center !important; } 
+        .movie-title-large { text-align: center !important; display: block; }
+        .text-white-50.mb-3 { text-align: center !important; display: block; }
+        .hero-meta, .hero-actions { justify-content: center !important; } 
+    }
 </style>
 
 <div id="toast-box"></div>
@@ -187,7 +194,7 @@
             <div class="mb-5 text-white-50" style="background: #111; padding: 25px; border-radius: 12px; border: 1px solid #222;">
                 <h6 class="text-white fw-bold mb-3">NỘI DUNG PHIM</h6>
                 <p class="small mb-0" style="line-height: 1.8; font-size: 0.95rem;">{{ movie.description|safe }}</p>
-                </div>
+            </div>
 
             <div class="review-section">
                 <h5 class="text-white fw-bold mb-4 border-bottom border-secondary pb-3 border-opacity-25">BÌNH LUẬN ({{ reviews.count }})</h5>
@@ -331,8 +338,10 @@
 
     function toggleReplyForm(id) {
         const form = document.getElementById(`reply-form-${id}`);
-        form.classList.toggle('show');
-        if(form.classList.contains('show')) form.querySelector('textarea').focus();
+        if(form) {
+            form.classList.toggle('show');
+            if(form.classList.contains('show')) form.querySelector('textarea').focus();
+        }
     }
 
     function submitReview(e, parentId) {
@@ -351,66 +360,7 @@
         .then(d => {
             if(d.status === 'success') {
                 showToast('Đã gửi bình luận thành công!', 'success');
-                const emptyMsg = document.getElementById('empty-msg');
-                if(emptyMsg) emptyMsg.remove();
-                
-                const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
-                const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
-
-                const userHtml = `
-                    <div class="flex-shrink-0">
-                        <img src="${d.user_avatar}" class="rounded-circle" width="${parentId ? 30 : 45}" height="${parentId ? 30 : 45}" style="object-fit: cover;">
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-white fw-bold mb-0 ${parentId ? 'small' : ''}">
-                                    ${d.username}
-                                    ${d.achievements ? d.achievements.map(a => `<i class="${a.icon} small ms-1" style="color: ${a.color}"></i>`).join('') : ''}
-                                </h6>
-                                ${!parentId ? '<span class="small" style="font-size: 11px; color: #888;">Vừa xong</span>' : ''}
-                            </div>
-                            <button onclick="deleteReview(${d.review_id})" class="btn btn-sm text-danger p-0 ms-2"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                        <p class="${parentId ? 'text-white-50 mt-1 mb-0 small' : 'text-white mt-2 mb-2'}" style="${!parentId ? 'font-size: 0.95rem; line-height: 1.5;' : ''}">${d.comment}</p>
-                `;
-
-                if (parentId) {
-                    const finalHtml = `
-                    <div class="d-flex gap-3 mt-3 fade-in-up" id="review-${d.review_id}">
-                        ${userHtml}
-                        </div>
-                    </div>`;
-                    const replyList = document.getElementById(`replies-${parentId}`);
-                    replyList.insertAdjacentHTML('beforeend', finalHtml);
-                    toggleReplyForm(parentId);
-                } else {
-                    // HTML cho Comment Gốc (Có Style Card)
-                    const finalHtml = `
-                    <div class="review-item fade-in-up" id="review-${d.review_id}">
-                        <div class="d-flex gap-3">
-                            ${userHtml}
-                            <div class="d-flex gap-3 mt-3">
-                                <button class="btn btn-sm p-0 text-secondary d-flex align-items-center gap-1 small hover-text-white" onclick="likeReview(${d.review_id}, this)">
-                                    <i class="far fa-heart"></i><span>0</span>
-                                </button>
-                                <button class="btn btn-sm p-0 text-secondary small fw-bold hover-text-white" onclick="toggleReplyForm(${d.review_id})">Trả lời</button>
-                            </div>
-                            <form id="reply-form-${d.review_id}" class="reply-form" onsubmit="submitReview(event, ${d.review_id})">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                                <div class="d-flex gap-2">
-                                    <textarea name="comment" class="comment-input py-2" rows="1" placeholder="Trả lời ${d.username}..."></textarea>
-                                    <button type="submit" class="btn btn-secondary btn-sm rounded-circle" style="width: 35px; height: 35px;"><i class="fas fa-paper-plane"></i></button>
-                                </div>
-                            </form>
-                            </div>
-                        </div>
-                        <div class="reply-list" id="replies-${d.review_id}"></div>
-                    </div>`;
-                    
-                    document.getElementById('review-list').insertAdjacentHTML('afterbegin', finalHtml);
-                }
-                form.reset();
+                location.reload(); 
             }
         })
         .catch(err => {
@@ -423,7 +373,8 @@
         fetch(`/review/delete/${id}/`, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
         .then(r => r.json()).then(d => {
             if(d.status === 'success') {
-                document.getElementById(`review-${id}`).remove();
+                const el = document.getElementById(`review-${id}`);
+                if(el) el.remove();
                 showToast('Đã xóa bình luận', 'success');
             }
         });
