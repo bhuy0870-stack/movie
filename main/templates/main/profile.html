@@ -152,7 +152,6 @@
         border-color: rgba(255,255,255,0.2);
     }
 
-    /* --- NEW: HISTORY SECTION STYLE --- */
     .history-section { padding: 0 30px 30px; }
     .history-card-mini {
         background: rgba(255, 255, 255, 0.03);
@@ -216,8 +215,8 @@
                 </form>
 
                 <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
-                    {% if profile.avatar %}
-                        <img src="{{ profile.avatar.url }}" class="avatar-img" id="avatar-display">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" class="avatar-img" id="avatar-display">
                     {% else %}
                         <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=1a1a1a&color=fff&size=250" class="avatar-img" id="avatar-display">
                     {% endif %}

@@ -193,7 +193,7 @@
 
             <div class="mb-5 text-white-50" style="background: #111; padding: 25px; border-radius: 12px; border: 1px solid #222;">
                 <h6 class="text-white fw-bold mb-3">NỘI DUNG PHIM</h6>
-                <p class="small mb-0" style="line-height: 1.8; font-size: 0.95rem;">{{ movie.description|safe }}</p>
+                <div class="small mb-0" style="line-height: 1.8; font-size: 0.95rem;">{{ movie.description|safe }}</div>
             </div>
 
             <div class="review-section">
@@ -202,11 +202,13 @@
                 {% if user.is_authenticated %}
                 <form onsubmit="submitReview(event, null)" class="mb-5 d-flex gap-3">
                     {% csrf_token %}
-                    {% if user.profile.avatar %}
-                        <img src="{{ user.profile.avatar.url }}" class="rounded-circle" width="50" height="50" style="object-fit: cover; border: 2px solid #333;">
-                    {% else %}
-                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width: 50px; height: 50px;">{{ user.username|first }}</div>
-                    {% endif %}
+                    <div class="flex-shrink-0">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" class="rounded-circle" width="50" height="50" style="object-fit: cover; border: 2px solid #333;">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff" class="rounded-circle" width="50" height="50" style="object-fit: cover; border: 2px solid #333;">
+                        {% endif %}
+                    </div>
                     <div class="flex-grow-1">
                         <textarea name="comment" class="comment-input" rows="2" placeholder="Chia sẻ cảm nghĩ của bạn về phim..."></textarea>
                         <div class="text-end mt-2">
@@ -226,7 +228,7 @@
                                 {% if review.user.profile.avatar %}
                                     <img src="{{ review.user.profile.avatar.url }}" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                                 {% else %}
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 45px; height: 45px;">{{ review.user.username|first }}</div>
+                                    <img src="https://ui-avatars.com/api/?name={{ review.user.username }}&background=random&color=fff" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
                                 {% endif %}
                             </div>
                             <div class="flex-grow-1">
@@ -272,7 +274,7 @@
                                     {% if reply.user.profile.avatar %}
                                         <img src="{{ reply.user.profile.avatar.url }}" class="rounded-circle" width="30" height="30" style="object-fit: cover;">
                                     {% else %}
-                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 30px; height: 30px;">{{ reply.user.username|first }}</div>
+                                        <img src="https://ui-avatars.com/api/?name={{ reply.user.username }}&background=random&color=fff" class="rounded-circle" width="30" height="30" style="object-fit: cover;">
                                     {% endif %}
                                 </div>
                                 <div class="flex-grow-1">

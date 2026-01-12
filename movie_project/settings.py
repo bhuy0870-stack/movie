@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-import dj_database_url  # THÊM DÒNG NÀY
+import dj_database_url
 
 # --- ĐƯỜNG DẪN CƠ SỞ ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,22 +8,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- BẢO MẬT ---
 SECRET_KEY = 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq'
 
-# DEBUG nên để True khi sửa máy, trên Render nên để False nhưng có thể để True lúc này để check lỗi
+# DEBUG nên để True khi sửa máy
 DEBUG = True
 
 ALLOWED_HOSTS = ['*'] 
 
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
 INSTALLED_APPS = [
+    # Cloudinary storage phải đứng TRƯỚC staticfiles
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Whitenoise hỗ trợ static khi chạy server
     'whitenoise.runserver_nostatic', 
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles', # CHỈ GIỮ 1 DÒNG NÀY
     'main.apps.MainConfig',
+    'cloudinary',
 ]
+
+# --- CẤU HÌNH CLOUDINARY ---
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'djtivbzdu',
+    'API_KEY': '772277899968473',
+    'API_SECRET': 'a37sw40DlfygGwxMk1FQ0-ph-fq0'
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -61,18 +74,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'movie_project.wsgi.application'
 
-# --- CƠ SỞ DỮ LIỆU (ĐÃ CẬP NHẬT CHO NEON) ---
-# Huy dán link Postgres copy từ Neon vào dấu ngoặc dưới đây
-DATABASE_URL = "postgresql://neondb_owner:npg_Vj8TvLxoR6lc@ep-dawn-wildflower-a1ix5r2h-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+# --- CƠ SỞ DỮ LIỆU ---
+# Logic: Ưu tiên lấy DATABASE_URL từ môi trường (Render/GitHub), nếu không có mới dùng link dán cứng
+db_url = os.environ.get('DATABASE_URL') or "postgresql://neondb_owner:npg_Vj8TvLxoR6lc@ep-dawn-wildflower-a1ix5r2h-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'), # Lấy trực tiếp từ env của GitHub
+        default=db_url,
         conn_max_age=600,
         conn_health_checks=True,
     )
 }
 
+# Nếu vẫn không cấu hình được database thì dùng SQLite dự phòng
 if not DATABASES['default'].get('ENGINE'):
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -85,12 +99,12 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
 
-# --- CẤU HÌNH STATIC FILES (RENDER) ---
+# --- CẤU HÌNH STATIC FILES ---
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Hỗ trợ nén file static
+# Whitenoise cho phép nén file
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- XÁC THỰC ---
@@ -100,8 +114,8 @@ LOGOUT_REDIRECT_URL = 'home'
 # --- CẤU HÌNH AN TOÀN ---
 CSRF_TRUSTED_ORIGINS = [
     'https://*.render.com',
+    'https://*.onrender.com', # Render thường dùng domain này
     'https://*.ngrok-free.app',
-    'https://*.ngrok-free.dev',
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

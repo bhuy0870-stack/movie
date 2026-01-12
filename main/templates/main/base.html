@@ -232,7 +232,7 @@
                                     </div>
                                 </a>
                                 {% endfor %}
-                                {% else %}
+                            {% else %}
                                 <div class="text-center py-3 text-white-50 small">Trống</div>
                             {% endif %}
                         </div>
@@ -258,7 +258,11 @@
                         <div class="nav-item dropdown user-dropdown-mobile">
                             <div class="user-gate" data-bs-toggle="dropdown" aria-expanded="false" role="button">
                                 <div class="avatar-box">
-                                    {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="Avatar">{% else %}<span class="text-white small fw-bold">{{ user.username|first|upper }}</span>{% endif %}
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" alt="Avatar">
+                                    {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff" alt="Avatar">
+                                    {% endif %}
                                 </div>
                                 <span class="user-name-text fw-bold text-white d-none d-xl-inline">{{ user.username }}</span>
                             </div>
