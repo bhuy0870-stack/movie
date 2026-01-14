@@ -15,6 +15,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*'] 
 
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
+
 INSTALLED_APPS = [
     # Cloudinary storage phải đứng TRƯỚC staticfiles
     'cloudinary_storage',
@@ -23,10 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    # Whitenoise hỗ trợ static khi chạy server
+    
+    'django.contrib.sites',        # Chỉ giữ lại 1 dòng duy nhất ở đây
     'whitenoise.runserver_nostatic', 
-    'django.contrib.staticfiles', # CHỈ GIỮ 1 DÒNG NÀY
-    'django.contrib.sites',
+    'django.contrib.staticfiles',
     'main.apps.MainConfig',
     'cloudinary',
 
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', # Provider Google
 ]
+SITE_ID = 1
 
 # --- CẤU HÌNH CLOUDINARY ---
 cloudinary.config( 
