@@ -16,7 +16,7 @@ urlpatterns = [
     path('', include('pwa.urls')),
 
     path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/manifest+json')),
-    path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript')),
+    path('sw.js', TemplateView.as_view(template_name='main/sw.js', content_type='application/javascript')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Cấu hình để hiển thị file static/media trong quá trình phát triển (DEBUG=True)
