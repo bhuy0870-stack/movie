@@ -3,6 +3,7 @@ import time
 import re
 from concurrent.futures import ThreadPoolExecutor
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from main.models import Movie
 
 class Command(BaseCommand):
@@ -89,6 +90,7 @@ class Command(BaseCommand):
                 # Cập nhật rating TMDB (để làm mốc đánh dấu đã xong)
                 rating = best_match.get('vote_average', 0)
                 movie.imdb_rating = rating if rating > 0 else 0.1
+                movie.updated_at = timezone.now()
                 movie.save()
                 
                 self.stdout.write(self.style.SUCCESS(f"✔ Đã tối ưu: {movie.title}"))

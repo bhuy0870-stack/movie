@@ -41,6 +41,9 @@ class Movie(models.Model):
     # Director và Cast của OPhim trả về đôi khi cực kỳ dài
     director = models.TextField(blank=True, null=True)
     cast = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True) # Khi phim mới được tạo
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
     
     # Genres và Country chứa cả tên và slug nên cần TextField
     genres = models.TextField(blank=True, null=True) 

@@ -57,7 +57,7 @@ def home(request):
     
 
     # Tối ưu: Dùng defer('description') để không load mô tả dài khi chưa cần thiết -> Web nhanh hơn
-    movies_list = Movie.objects.all().order_by('-release_date', '-id').defer('cast', 'director')
+    movies_list = Movie.objects.all().order_by('-updated_at', '-id').defer('cast', 'director')
 
     # Map từ slug sang tên Tiếng Việt để tìm kiếm chính xác hơn
     genre_map = {item['slug']: item['name'] for item in NAV_CONTEXT['genre_list']}
