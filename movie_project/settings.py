@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import dj_database_url
+import cloudinary
 
 # --- ĐƯỜNG DẪN CƠ SỞ ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,16 +26,23 @@ INSTALLED_APPS = [
     # Whitenoise hỗ trợ static khi chạy server
     'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles', # CHỈ GIỮ 1 DÒNG NÀY
+    'django.contrib.sites',
     'main.apps.MainConfig',
     'cloudinary',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google', # Provider Google
 ]
 
 # --- CẤU HÌNH CLOUDINARY ---
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'djtivbzdu',
-    'API_KEY': '772277899968473',
-    'API_SECRET': 'a37sw40DlfygGwxMk1FQ0-ph-fq0'
-}
+cloudinary.config( 
+  cloud_name = os.environ.get('CLOUD_NAME', 'your_fallback_name'), 
+  api_key = os.environ.get('API_KEY', 'your_fallback_key'), 
+  api_secret = os.environ.get('API_SECRET', 'your_fallback_secret'), 
+  secure = True
+)
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' 
 
@@ -50,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware', # Thêm dòng này (thường để cuối cùng)
 ]
 
 ROOT_URLCONF = 'movie_project.urls'
@@ -67,10 +76,12 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'main.context_processors.global_nav_data',
+                'django.template.context_processors.request', # Bắt buộc phải có dòng này (check xem có chưa)
             ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'movie_project.wsgi.application'
 
@@ -103,6 +114,33 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# --- CẤU HÌNH ALLAUTH ---
+SITE_ID = 1  # Rất quan trọng
+LOGIN_REDIRECT_URL = 'home' # Đăng nhập xong nhảy về trang chủ
+LOGOUT_REDIRECT_URL = 'home'
+
+# Cấu hình Google Provider
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        # Lấy Client ID và Secret từ biến môi trường (BẢO MẬT)
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        }
+    }
+}
+# Không bắt buộc nhập email lại khi đăng nhập gg
+SOCIALACCOUNT_LOGIN_ON_GET = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 # Whitenoise cho phép nén file
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
