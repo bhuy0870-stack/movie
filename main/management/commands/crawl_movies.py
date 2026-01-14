@@ -1,19 +1,21 @@
 import requests
 import time
 import gc
+import re
 from concurrent.futures import ThreadPoolExecutor
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone  # Thêm để cập nhật thời gian thực
 from main.models import Movie, Episode
 
 class Command(BaseCommand):
-    help = 'Cào toàn bộ kho phim OPhim và tối ưu hóa dữ liệu để lọc mục nào cũng hiện'
+    help = 'Cào phim OPhim chuyên nghiệp và tự động đẩy phim mới lên đầu'
 
     OPHIM_API_URL = "https://ophim1.com/danh-sach/phim-moi-cap-nhat"
 
     def add_arguments(self, parser):
         parser.add_argument('--start', type=int, default=1, help='Trang bắt đầu')
-        parser.add_argument('--end', type=int, default=10, help='Trang kết thúc')
+        parser.add_argument('--end', type=int, default=3, help='Trang kết thúc (Mặc định cào 3 trang mới nhất)')
 
     def handle(self, *args, **options):
         start_page = options['start']
@@ -26,11 +28,12 @@ class Command(BaseCommand):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
 
-        with ThreadPoolExecutor(max_workers=7) as executor:
+        # Tăng lên 10 workers để chạy nhanh hơn trên môi trường GitHub Actions
+        with ThreadPoolExecutor(max_workers=10) as executor:
             pages = range(start_page, end_page + 1)
             executor.map(self.process_page, pages)
 
-        self.stdout.write(self.style.SUCCESS(f'✅ HOÀN THÀNH!'))
+        self.stdout.write(self.style.SUCCESS(f'✅ HOÀN THÀNH CẬP NHẬT PHIM!'))
 
     def process_page(self, page):
         try:
@@ -59,10 +62,10 @@ class Command(BaseCommand):
                     if item.get('link_m3u8'):
                         valid_eps.append({'server': server_name, 'data': item})
 
-            if not valid_eps: return
+            if not valid_eps:
+                return
 
             # --- TỐI ƯU HÓA GENRES (Thể loại) ---
-            # Lưu cả "Hành Động" và "hanh-dong" để lọc kiểu gì cũng ra
             genre_list = []
             for cat in m.get('category', []):
                 genre_list.append(cat['name'])
@@ -76,21 +79,28 @@ class Command(BaseCommand):
                 country_list.append(c['slug'])
             combined_countries = ", ".join(country_list)
 
+            # --- XỬ LÝ LINK ẢNH (Phòng trường hợp link thiếu https) ---
+            def fix_url(url):
+                if url and url.startswith('//'): return f"https:{url}"
+                return url
+
             with transaction.atomic():
-                movie, _ = Movie.objects.update_or_create(
+                # update_or_create sẽ kích hoạt auto_now=True của trường updated_at
+                movie, created = Movie.objects.update_or_create(
                     slug=slug,
                     defaults={
                         'title': m['name'],
                         'origin_name': m['origin_name'],
                         'description': m['content'],
-                        'poster_url': m['thumb_url'],
-                        'thumb_url': m['poster_url'],
+                        'poster_url': fix_url(m['thumb_url']),
+                        'thumb_url': fix_url(m['poster_url']),
                         'release_date': m['year'],
                         'is_series': m['type'] == 'series',
                         'total_episodes': m['episode_total'],
                         'current_episode': m['episode_current'],
-                        'country': combined_countries, # Lưu chuỗi đã tối ưu
-                        'genres': combined_genres,    # Lưu chuỗi đã tối ưu
+                        'country': combined_countries,
+                        'genres': combined_genres,
+                        'updated_at': timezone.now(), # ÉP BUỘC CẬP NHẬT THỜI GIAN ĐỂ LÊN ĐẦU TRANG
                     }
                 )
 
@@ -104,5 +114,9 @@ class Command(BaseCommand):
                             'link_ophim': item['data']['link_m3u8'],
                         }
                     )
-        except:
-            pass
+            
+            status = "Mới" if created else "Cập nhật"
+            self.stdout.write(self.style.SUCCESS(f"✔ {status}: {movie.title}"))
+
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f"⚠️ Lỗi phim {slug}: {e}"))

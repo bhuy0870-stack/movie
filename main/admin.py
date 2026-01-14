@@ -1,6 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
+from django.shortcuts import redirect
+from django.urls import path
+from django.core.management import call_command
+from django.contrib import messages
 from .models import Movie, Episode, Review, Achievement, UserAchievement
 from datetime import date
 
@@ -13,32 +17,60 @@ class AchievementAdmin(admin.ModelAdmin):
 class UserAchievementAdmin(admin.ModelAdmin):
     list_display = ('user', 'achievement', 'date_unlocked')
 
-# 2. Quản lý Tập phim (Hiển thị ngay bên trong trang sửa phim)
+# 2. Quản lý Tập phim
 class EpisodeInline(admin.TabularInline):
     model = Episode
-    extra = 1 # Cho phép thêm nhanh 1 tập phim trống
+    extra = 1
     fields = ('episode_name', 'server_name', 'link_ophim', 'link_bunny_id')
 
-# 3. Quản lý Phim
+# 3. Quản lý Phim + Nút điều khiển nhanh
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    # Cột hiển thị ở danh sách
-    list_display = ('title', 'origin_name', 'release_date', 'country', 'is_series', 'current_episode')
-    # Bộ lọc ở bên phải
-    list_filter = ('is_series', 'country', 'release_date')
-    # Ô tìm kiếm
+    list_display = ('title', 'origin_name', 'release_date', 'country', 'is_series', 'current_episode', 'updated_at')
+    list_filter = ('is_series', 'country', 'release_date', 'updated_at')
     search_fields = ('title', 'origin_name', 'slug')
-    # Tích hợp quản lý tập phim vào trang chi tiết phim
     inlines = [EpisodeInline]
+    ordering = ('-updated_at',)
+    readonly_fields = ('created_at', 'updated_at')
 
-# 4. Quản lý Đánh giá (Đã xóa sentiment_label bị lỗi)
+    # Sử dụng template tùy chỉnh để hiện nút bấm
+    change_list_template = "admin/movie_changelist.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('crawl-now/', self.admin_site.admin_view(self.crawl_now_view), name='movie-crawl-now'),
+            path('sync-tmdb-now/', self.admin_site.admin_view(self.sync_tmdb_view), name='movie-sync-tmdb'),
+        ]
+        return custom_urls + urls
+
+    def crawl_now_view(self, request):
+        """Cào phim mới từ OPhim"""
+        try:
+            call_command('crawl_movies', start=1, end=2)
+            self.message_user(request, "🚀 Cập nhật thành công phim mới từ OPhim!", messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"❌ Lỗi: {str(e)}", messages.ERROR)
+        return redirect("..")
+
+    def sync_tmdb_view(self, request):
+        """Đồng bộ Poster/Rating từ TMDB cho 100 phim đang thiếu"""
+        try:
+            # Gọi lệnh update_tmdb (tên file bạn đặt trong ảnh là update_tmdb.py)
+            call_command('update_tmdb') 
+            self.message_user(request, "🎬 Đã nâng cấp hình ảnh và rating TMDB thành công!", messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"❌ Lỗi: {str(e)}", messages.ERROR)
+        return redirect("..")
+
+# 4. Quản lý Đánh giá
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'movie', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
     search_fields = ('comment', 'user__username', 'movie__title')
 
-# 5. Quản lý User tùy chỉnh (Hiển thị tuổi từ last_name)
+# 5. Quản lý User tùy chỉnh
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_birth_date', 'get_age', 'is_staff')
 
@@ -58,6 +90,5 @@ class CustomUserAdmin(UserAdmin):
         return "N/A"
     get_age.short_description = 'Tuổi hiện tại'
 
-# Đăng ký lại UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

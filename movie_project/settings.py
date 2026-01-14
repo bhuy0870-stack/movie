@@ -107,12 +107,20 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- CẤU HÌNH ALLAUTH ---
+# --- CẤU HÌNH ALLAUTH (LOGIN GOOGLE) ---
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
 
-# Cấu hình Google Provider (Đã lược bỏ mục 'APP' để dùng trong Admin)
+# --- PHẦN SỬA ĐỂ VÀO THẲNG TRANG CHỦ ---
+SOCIALACCOUNT_AUTO_SIGNUP = True      # Tự động tạo user từ thông tin Google
+SOCIALACCOUNT_LOGIN_ON_GET = True     # Đăng nhập ngay khi bấm nút
+ACCOUNT_EMAIL_REQUIRED = True         # Bắt buộc email
+ACCOUNT_UNIQUE_EMAIL = True           # Email là duy nhất
+ACCOUNT_USERNAME_REQUIRED = False     # Không bắt nhập username thủ công
+ACCOUNT_EMAIL_VERIFICATION = "none"   # Bỏ qua xác thực email rườm rà
+# --------------------------------------
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -124,9 +132,6 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     }
 }
-
-SOCIALACCOUNT_LOGIN_ON_GET = True
-ACCOUNT_EMAIL_VERIFICATION = "none"
 
 # --- CẤU HÌNH AN TOÀN ---
 CSRF_TRUSTED_ORIGINS = [
@@ -147,11 +152,11 @@ PWA_SCOPE = '/'
 PWA_START_URL = '/'
 PWA_APP_ICONS = [
     {
-        'src': '/static/images/icon-192.png', # Bạn cần chuẩn bị ảnh này
+        'src': '/static/images/icon-192.png',
         'sizes': '192x192'
     },
     {
-        'src': '/static/images/icon-512.png', # Bạn cần chuẩn bị ảnh này
+        'src': '/static/images/icon-512.png',
         'sizes': '512x512'
     }
 ]
@@ -162,4 +167,3 @@ PWA_APP_ICONS_APPLE = [
     }
 ]
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
-
