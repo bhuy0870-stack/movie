@@ -1,335 +1,279 @@
 {% extends 'main/base.html' %}
 {% load static %}
 
-{% block title %}Hồ sơ - {{ user.username }}{% endblock %}
+{% block title %}Hồ sơ VIP - {{ user.username }}{% endblock %}
 
 {% block content %}
 <style>
     :root {
-        --primary-red: #ff3b30;
-        --primary-glow: rgba(255, 59, 48, 0.5);
-        --gold: #ffcc00;
-        --bg-deep: #050505;
-        --card-bg: rgba(20, 20, 20, 0.6);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --text-secondary: #9ca3af;
+        --vip-red: #ff3b30;
+        --vip-gold: #ffcc00;
+        --card-bg: #111111;
+        --glass: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.1);
     }
 
-    .profile-page-wrapper {
-        background-image: radial-gradient(circle at 10% 20%, rgba(229, 9, 20, 0.15) 0%, transparent 40%),
-                          radial-gradient(circle at 90% 80%, rgba(255, 204, 0, 0.08) 0%, transparent 40%);
+    .profile-page-bg {
+        background: #080808;
         min-height: 100vh;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        padding: 110px 15px 60px;
     }
 
-    .profile-container {
-        padding: 30px 15px;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    .profile-card {
+    .vip-card {
         background: var(--card-bg);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border: 1px solid var(--glass-border);
-        border-radius: 32px;
+        border: 1px solid var(--border);
+        border-radius: 40px;
         width: 100%;
-        max-width: 500px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        position: relative;
+        max-width: 480px;
+        margin: 0 auto;
         overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8);
     }
 
-    .profile-card::before {
-        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    }
-
-    .card-header-custom {
-        padding: 40px 30px 20px;
-        text-align: center;
-        position: relative;
-    }
-
-    .avatar-wrapper {
-        position: relative;
-        width: 130px;
+    /* AVATAR & HEADER */
+    .vip-header-top {
         height: 130px;
-        margin: 0 auto 20px;
+        background: linear-gradient(180deg, #4b0000 0%, #111 100%);
+    }
+
+    .vip-avatar-wrap {
+        position: relative;
+        width: 140px; height: 140px;
+        margin: -70px auto 20px;
         cursor: pointer;
+    }
+
+    .avatar-frame {
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        padding: 5px;
+        background: linear-gradient(45deg, var(--vip-red), var(--vip-gold));
+        box-shadow: 0 0 30px rgba(255, 59, 48, 0.4);
     }
 
     .avatar-img {
         width: 100%; height: 100%;
+        border-radius: 50%;
         object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid rgba(255,255,255,0.1);
-        padding: 4px;
-        transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        background: rgba(0,0,0,0.3);
+        border: 4px solid #111;
     }
 
-    .avatar-wrapper:hover .avatar-img {
-        transform: scale(1.05) rotate(3deg);
-        border-color: var(--primary-red);
-        box-shadow: 0 0 30px var(--primary-glow);
-    }
-
-    .camera-btn {
-        position: absolute; bottom: 5px; right: 5px;
-        width: 38px; height: 38px;
+    .edit-avatar-badge {
+        position: absolute; bottom: 8px; right: 8px;
         background: #fff; color: #000;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 14px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        transition: 0.3s;
-        border: 3px solid #1a1a1a;
+        width: 35px; height: 35px;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        border: 3px solid #111;
     }
 
-    .user-name {
-        font-family: 'Outfit', sans-serif;
-        font-weight: 800;
-        font-size: 1.8rem;
-        color: #fff;
-        margin-bottom: 5px;
-        letter-spacing: -0.5px;
+    /* STATS CONTAINER */
+    .stats-container {
+        display: grid; grid-template-columns: 1fr 1fr 1fr;
+        margin: 20px 25px;
+        background: var(--glass);
+        border-radius: 25px; padding: 20px 10px;
+        border: 1px solid var(--border);
     }
+    .stat-item { text-align: center; }
+    .stat-val { display: block; font-size: 1.4rem; font-weight: 900; color: #fff; }
+    .stat-lab { font-size: 0.7rem; color: #777; text-transform: uppercase; font-weight: 800; }
 
-    .vip-badge {
-        background: linear-gradient(45deg, #FFD700, #FFA500);
-        color: #000;
-        font-size: 0.65rem;
-        font-weight: 900;
-        padding: 4px 12px;
-        border-radius: 20px;
-        letter-spacing: 1px;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-        display: inline-block;
-    }
+    /* KHU VỰC THÔNG TIN CÁ NHÂN - CÓ NÚT SỬA */
+    .section-box { padding: 0 30px 25px; }
+    .section-title { font-size: 0.8rem; font-weight: 800; color: var(--vip-gold); text-transform: uppercase; margin-bottom: 15px; display: block; }
 
-    .stats-row {
+    .info-row-premium {
         display: flex;
         justify-content: space-between;
-        padding: 20px 0;
-        margin: 20px 30px;
-        border-top: 1px solid rgba(255,255,255,0.08);
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .stat-item { text-align: center; flex: 1; }
-    .stat-value { font-weight: 700; font-size: 1.1rem; color: #fff; display: block; font-family: 'Outfit', sans-serif; }
-    .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
-    .stat-divider { width: 1px; background: rgba(255,255,255,0.08); }
-
-    .badges-section { padding: 0 30px 20px; }
-    .section-title { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
-
-    .badge-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-    }
-
-    .badge-icon-box {
-        aspect-ratio: 1/1;
+        align-items: center;
         background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.05);
+        padding: 15px 20px;
+        border-radius: 22px;
+        border: 1px solid var(--border);
+    }
+    .info-label { font-size: 0.8rem; color: #666; font-weight: 700; text-transform: uppercase; }
+    .info-value { font-size: 1rem; color: #fff; font-weight: 800; display: block; }
+    
+    .btn-edit-trigger {
+        width: 38px; height: 38px;
+        background: rgba(255,255,255,0.05);
+        color: var(--vip-gold);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.3s;
+        border: 1px solid var(--border);
+    }
+    .btn-edit-trigger:hover { background: var(--vip-gold); color: #000; transform: scale(1.1); }
+
+    /* FORM CHỈNH SỬA (ẨN) */
+    #edit-birthdate-form {
+        display: none;
+        margin-top: 15px;
+        animation: fadeIn 0.3s ease;
+    }
+    .input-group-vip {
+        display: flex; gap: 10px;
+        background: #000; padding: 10px;
+        border-radius: 20px; border: 2px solid var(--vip-red);
+    }
+    .input-group-vip input { background: transparent; border: none; color: #fff; outline: none; width: 100%; font-weight: 700; }
+    .btn-save-final { background: var(--vip-red); border: none; color: #fff; padding: 0 20px; border-radius: 14px; font-weight: 900; }
+
+    /* HUY HIỆU & LỊCH SỬ (KHÔNG LƯỢC BỎ) */
+    .badge-scroll-vip { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+    .badge-icon-item {
+        min-width: 60px; height: 60px;
+        background: var(--glass);
+        border: 1px solid var(--border);
         border-radius: 18px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem;
-        cursor: pointer;
+        font-size: 1.4rem; cursor: pointer; transition: 0.3s;
+    }
+    .badge-icon-item:hover { transform: translateY(-5px); border-color: var(--vip-gold); }
+
+    .history-card-link {
+        display: flex; align-items: center; gap: 15px;
+        background: var(--glass);
+        padding: 12px; border-radius: 20px;
+        text-decoration: none !important; margin-bottom: 12px;
+        border: 1px solid transparent; transition: 0.3s;
+    }
+    .history-card-link:hover { background: rgba(255,255,255,0.08); transform: translateX(10px); }
+
+    .btn-logout-vip {
+        width: 100%; padding: 16px; border-radius: 22px;
+        background: transparent; border: 2px solid var(--vip-red);
+        color: var(--vip-red); font-weight: 900; text-transform: uppercase;
         transition: 0.3s;
     }
-    .badge-icon-box:hover {
-        background: rgba(255,255,255,0.1);
-        transform: translateY(-5px);
-        border-color: rgba(255,255,255,0.2);
-    }
+    .btn-logout-vip:hover { background: var(--vip-red); color: #fff; }
 
-    .history-section { padding: 0 30px 30px; }
-    .history-card-mini {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 10px;
-        transition: 0.3s;
-        text-decoration: none;
-    }
-    .history-card-mini:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(255, 255, 255, 0.2);
-        transform: translateX(5px);
-    }
-
-    .action-group { padding: 0 30px 40px; display: flex; flex-direction: column; gap: 12px; }
-    
-    .btn-custom {
-        width: 100%;
-        padding: 16px;
-        border-radius: 18px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border: none;
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        transition: 0.3s;
-        text-decoration: none;
-    }
-
-    .btn-red {
-        background: linear-gradient(135deg, var(--primary-red), #c40000);
-        color: #fff;
-        box-shadow: 0 10px 20px rgba(229, 9, 20, 0.25);
-    }
-    .btn-red:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(229, 9, 20, 0.4); color: #fff; }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid rgba(255,255,255,0.15);
-        color: #fff;
-    }
-    .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: #fff; color: #fff; }
-
-    @media (max-width: 576px) {
-        .profile-card { border-radius: 0; min-height: 100vh; border: none; max-width: 100%; }
-    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div class="profile-page-wrapper">
-    <div class="profile-container">
-        <div class="profile-card">
-            
-            <div class="card-header-custom">
-                <form id="avatar-form" action="{% url 'update_avatar' %}" method="post" enctype="multipart/form-data" class="d-none">
-                    {% csrf_token %}
-                    <input type="file" id="avatar-input" name="avatar" accept="image/*" onchange="submitAvatar()">
-                </form>
-
-                <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
+<div class="profile-page-bg">
+    <div class="vip-card">
+        <div class="vip-header-top"></div>
+        
+        <div class="text-center px-4">
+            <div class="vip-avatar-wrap" onclick="document.getElementById('avatar-input').click()">
+                <div class="avatar-frame">
                     {% if user.profile.avatar %}
-                        <img src="{{ user.profile.avatar.url }}" class="avatar-img" id="avatar-display">
+                        <img src="{{ user.profile.avatar.url }}" class="avatar-img">
                     {% else %}
-                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=1a1a1a&color=fff&size=250" class="avatar-img" id="avatar-display">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=111&color=fff&size=250" class="avatar-img">
                     {% endif %}
-                    <div class="camera-btn"><i class="fas fa-camera"></i></div>
                 </div>
-
-                <h2 class="user-name">{{ user.username }}</h2>
-                <div class="mt-2">
-                    <span class="vip-badge"><i class="fas fa-crown me-1"></i>VIP MEMBER</span>
-                </div>
-                <p class="text-white-50 small mt-3 mb-0"><i class="far fa-envelope me-2"></i>{{ user.email }}</p>
+                <div class="edit-avatar-badge"><i class="fas fa-camera"></i></div>
             </div>
+            <h2 class="text-white fw-bold mb-1">{{ user.username }}</h2>
+            <p class="text-white-50 small mb-4">{{ user.email }}</p>
+        </div>
 
-            <div class="stats-row">
-                <div class="stat-item">
-                    <span class="stat-value text-warning">{{ user_age }}</span>
-                    <span class="stat-label">Tuổi</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ achievements|length }}</span>
-                    <span class="stat-label">Huy hiệu</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ user.date_joined|date:"Y" }}</span>
-                    <span class="stat-label">Tham gia</span>
-                </div>
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-val text-warning">{{ user_age }}</span>
+                <span class="stat-lab">Tuổi</span>
             </div>
+            <div class="stat-item" style="border-left: 1px solid var(--border); border-right: 1px solid var(--border);">
+                <span class="stat-val">{{ achievements|length }}</span>
+                <span class="stat-lab">Huy hiệu</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-val">{{ user.date_joined|date:"Y" }}</span>
+                <span class="stat-lab">Gia nhập</span>
+            </div>
+        </div>
 
-            <div class="badges-section">
-                <div class="section-title">
-                    <span>Bộ sưu tập huy hiệu</span>
-                    <i class="fas fa-award small text-white-50"></i>
+        <div class="section-box">
+            <span class="section-title">Ngày sinh & Bảo mật</span>
+            <div class="info-row-premium">
+                <div>
+                    <span class="info-label">Ngày sinh của bạn</span>
+                    <span class="info-value">{% if user.last_name %}{{ user.last_name }}{% else %}Chưa cập nhật{% endif %}</span>
                 </div>
-                <div class="badge-grid">
-                    {% for ua in achievements %}
-                        <div class="badge-icon-box" onclick="showBadgeModal('{{ ua.achievement.name }}', '{{ ua.achievement.description }}', '{{ ua.achievement.icon_class }}', '{{ ua.achievement.color }}')">
-                            <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }};"></i>
-                        </div>
-                    {% empty %}
-                        <div class="text-center w-100 text-white-50 py-3 small" style="grid-column: span 4;">
-                            Chưa có huy hiệu nào. Hãy xem phim và bình luận nhé!
-                        </div>
-                    {% endfor %}
+                <div class="btn-edit-trigger" onclick="toggleEdit()">
+                    <i class="fas fa-pen-nib"></i>
                 </div>
             </div>
 
-            <div class="history-section">
-                <div class="section-title">
-                    <span>Phim vừa xem</span>
-                    <a href="{% url 'history' %}" class="text-decoration-none" style="font-size: 0.65rem; color: var(--primary-red); font-weight: 700;">XEM TẤT CẢ</a>
+            <form id="edit-birthdate-form" action="{% url 'profile' %}" method="post">
+                {% csrf_token %}
+                <div class="input-group-vip">
+                    <input type="date" name="birth_date" value="{{ user.last_name }}" required>
+                    <button type="submit" class="btn-save-final">LƯU</button>
                 </div>
-                <div class="history-list">
-                    {% for item in recent_history %}
-                    <a href="{% url 'movie_detail' item.movie.slug %}" class="history-card-mini">
-                        <img src="{{ item.movie.poster_url }}" width="40" height="55" class="rounded-3" style="object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
-                        <div class="flex-grow-1 overflow-hidden">
-                            <div class="text-white small fw-bold text-truncate">{{ item.movie.title }}</div>
-                            <div class="text-white-50" style="font-size: 0.65rem;">{{ item.watched_at|timesince }} trước</div>
-                        </div>
-                        <i class="fas fa-play-circle text-white-50"></i>
-                    </a>
-                    {% empty %}
-                    <div class="text-center w-100 text-white-50 py-3 small bg-dark bg-opacity-25 rounded-4 border border-dashed border-secondary">
-                        Bạn chưa xem phim nào gần đây.
+            </form>
+        </div>
+
+        <div class="section-box">
+            <span class="section-title">Huy hiệu đạt được</span>
+            <div class="badge-scroll-vip">
+                {% for ua in achievements %}
+                    <div class="badge-icon-item" onclick="openBadgeInfo('{{ ua.achievement.name }}', '{{ ua.achievement.description }}', '{{ ua.achievement.icon_class }}', '{{ ua.achievement.color }}')">
+                        <i class="{{ ua.achievement.icon_class }}" style="color: {{ ua.achievement.color }}; filter: drop-shadow(0 0 5px {{ ua.achievement.color }});"></i>
                     </div>
-                    {% endfor %}
+                {% empty %}
+                    <small class="text-white-50">Hãy xem phim để nhận huy hiệu.</small>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="section-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="section-title m-0">Xem gần đây</span>
+                <a href="{% url 'history' %}" class="text-decoration-none text-white-50 fw-bold" style="font-size: 10px;">XEM TẤT CẢ</a>
+            </div>
+            {% for item in recent_history %}
+            <a href="{% url 'movie_detail' item.movie.slug %}" class="history-card-link">
+                <img src="{{ item.movie.poster_url }}" width="45" height="65" class="rounded-3">
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="text-white small fw-bold text-truncate">{{ item.movie.title }}</div>
+                    <div class="text-white-50" style="font-size: 10px;">{{ item.watched_at|timesince }} trước</div>
                 </div>
-            </div>
+                <i class="fas fa-play-circle text-white-50 fs-4"></i>
+            </a>
+            {% endfor %}
+        </div>
 
-            <div class="action-group">
-                <form action="{% url 'logout' %}" method="post" class="w-100 m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-custom btn-red">
-                        <i class="fas fa-power-off"></i> ĐĂNG XUẤT
-                    </button>
-                </form>
-                <a href="{% url 'home' %}" class="btn-custom btn-outline">
-                    <i class="fas fa-arrow-left"></i> VỀ TRANG CHỦ
-                </a>
-            </div>
+        <div class="px-5 pb-5">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout-vip">
+                    <i class="fas fa-power-off me-2"></i> Đăng xuất
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="badgeInfoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content p-4" style="background: #111; border-radius: 25px; border: 1px solid var(--border); text-align: center;">
-            <div id="modal-icon-container"></div>
-            <h4 class="fw-bold text-white mb-2" id="modal-title"></h4>
-            <p class="text-white-50 small mb-4" id="modal-desc"></p>
-            <button type="button" class="btn btn-warning w-100 fw-bold rounded-pill" data-bs-dismiss="modal">TUYỆT VỜI</button>
+        <div class="modal-content" style="background: #111; border: 1px solid var(--vip-gold); border-radius: 30px; padding: 40px 20px; text-align: center;">
+            <div id="m-icon" class="mb-4"></div>
+            <h4 id="m-name" class="text-white fw-bold mb-2"></h4>
+            <p id="m-desc" class="text-white-50 small mb-4"></p>
+            <button class="btn btn-warning w-100 rounded-pill fw-bold" data-bs-dismiss="modal">TUYỆT VỜI</button>
         </div>
     </div>
 </div>
+
+<form id="avatar-form" action="{% url 'update_avatar' %}" method="post" enctype="multipart/form-data" class="d-none">
+    {% csrf_token %}
+    <input type="file" id="avatar-input" name="avatar" accept="image/*" onchange="this.form.submit()">
+</form>
 
 <script>
-    function submitAvatar() {
-        const icon = document.querySelector('.camera-btn i');
-        const img = document.getElementById('avatar-display');
-        icon.className = "fas fa-spinner fa-spin";
-        img.style.opacity = "0.5";
-        document.getElementById('avatar-form').submit();
+    function toggleEdit() {
+        const form = document.getElementById('edit-birthdate-form');
+        form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
     }
 
-    function showBadgeModal(name, desc, iconClass, color) {
-        document.getElementById('modal-title').innerText = name;
-        document.getElementById('modal-desc').innerText = desc;
-        const iconContainer = document.getElementById('modal-icon-container');
-        iconContainer.innerHTML = `<i class="${iconClass}" style="font-size: 4rem; margin-bottom: 15px; display: inline-block; color: ${color}"></i>`;
-        const myModal = new bootstrap.Modal(document.getElementById('badgeModal'));
-        myModal.show();
+    function openBadgeInfo(name, desc, icon, color) {
+        document.getElementById('m-name').innerText = name;
+        document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-icon').innerHTML = `<i class="${icon}" style="font-size: 5rem; color: ${color}; filter: drop-shadow(0 0 15px ${color});"></i>`;
+        new bootstrap.Modal(document.getElementById('badgeInfoModal')).show();
     }
 </script>
 {% endblock %}

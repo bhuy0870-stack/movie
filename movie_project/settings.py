@@ -33,8 +33,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'pwa',
-    'webpush', # Đã thêm chính xác
+    
+    
 ]
 SITE_ID = 1
 
@@ -115,9 +115,12 @@ LOGOUT_REDIRECT_URL = 'home'
 # --- CẤU HÌNH ALLAUTH TỐI ƯU ---
 # Thay thế cho ACCOUNT_AUTHENTICATION_METHOD cũ
 ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'password1', 'password2'] # Hoặc tùy biến theo nhu cầu
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "none"
+LOGIN_REDIRECT_URL = '/'
+
 
 # Quan trọng nhất: Bỏ qua bước điền Username, lấy thẳng từ Google
 SOCIALACCOUNT_AUTO_SIGNUP = True 
@@ -143,23 +146,5 @@ CSRF_TRUSTED_ORIGINS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- CẤU HÌNH PWA (APP) ---
-PWA_APP_NAME = 'BQH MOVIE'
-PWA_APP_DESCRIPTION = "Thế giới phim trong tầm tay"
-PWA_THEME_COLOR = '#c40000'
-PWA_BACKGROUND_COLOR = '#000000'
-PWA_DISPLAY = 'standalone'
-PWA_SCOPE = '/'
-PWA_START_URL = '/'
-PWA_APP_ICONS = [
-    {'src': '/static/images/icon-192.png', 'sizes': '192x192'},
-    {'src': '/static/images/icon-512.png', 'sizes': '512x512'}
-]
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'sw.js')
 
-# --- CẤU HÌNH WEBPUSH ---
-WEBPUSH_SETTINGS = {
-   "VAPID_PUBLIC_KEY": "BKP06MNPD8w3mJe8iXCIIM7v7av9-4l3eE5s9P3BS0ce3-FQIIro0qaIS8747G42_9jl4pxJbftXwCV2PPKOL44",
-   "VAPID_PRIVATE_KEY": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgw9Cjx5Sy-4bN8LrQ6fcuu4-jN8wQk086hy23THytKtOhRANCAASj9OjDTw_MN5iXvIlwiCDO7-2r_fuJd3hObPT9wUtHHt_hUCCK6NKmiEvO-OxuNv_Y5eKcSW37V8Aldjzyji-O",
-   "VAPID_ADMIN_EMAIL": "admin@bqhmovie.com"
-}
+
