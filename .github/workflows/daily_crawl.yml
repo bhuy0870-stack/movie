@@ -2,7 +2,7 @@ name: Cập nhật phim hàng ngày
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Chạy tự động lúc 7h sáng VN
+    - cron: '0 */6 * * *'
   workflow_dispatch: # Cho phép bấm nút chạy thủ công
 
 jobs:
