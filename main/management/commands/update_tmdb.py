@@ -8,56 +8,56 @@ from django.utils import timezone
 from main.models import Movie
 
 class Command(BaseCommand):
-    help = 'Nâng cấp dữ liệu phim từ TMDB (Chạy nối tiếp cho đến khi hết)'
+    help = 'Nâng cấp dữ liệu phim từ TMDB (Tối ưu cho Render)'
 
     TMDB_API_KEY = '640d361bde1790dea88b0c75524307d4'
 
     def handle(self, *args, **options):
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        })
+        # Giảm số lượng phim mỗi đợt xuống 50 để tránh treo memory trên Render Free
+        BATCH_SIZE = 50 
+
+        self.stdout.write(self.style.SUCCESS("🚀 BẮT ĐẦU ĐỒNG BỘ TMDB..."))
 
         while True:
-            # Chỉ lấy phim chưa được tối ưu (rating mặc định 0.0)
-            # Dùng .order_by('id') để chạy tuần tự không trùng lặp
-            movies = Movie.objects.filter(imdb_rating=0.0).order_by('id')[:100]
+            # Lấy phim có imdb_rating = 0.0 (chưa xử lý)
+            movies = Movie.objects.filter(imdb_rating=0.0).order_by('id')[:BATCH_SIZE]
             
             if not movies.exists():
                 self.stdout.write(self.style.SUCCESS("✅ TẤT CẢ PHIM ĐÃ ĐƯỢC ĐỒNG BỘ XONG!"))
                 break
 
             total_remain = Movie.objects.filter(imdb_rating=0.0).count()
-            self.stdout.write(self.style.WARNING(f"🚀 Còn {total_remain} phim. Đang xử lý 100 phim tiếp theo..."))
+            self.stdout.write(self.style.WARNING(f"🔄 Còn {total_remain} phim. Đang xử lý {BATCH_SIZE} phim..."))
             
-            # Sử dụng ThreadPoolExecutor để tăng tốc độ gọi API
-            with ThreadPoolExecutor(max_workers=10) as executor:
+            # Giảm max_workers xuống 5 để Render không bị tràn CPU/RAM
+            with ThreadPoolExecutor(max_workers=5) as executor:
                 executor.map(self.update_single_movie, movies)
             
-            # Nghỉ 1 giây để tránh Rate Limit của TMDB và giải phóng RAM
+            # Giải phóng bộ nhớ triệt để sau mỗi batch
             gc.collect()
-            time.sleep(1)
+            # Nghỉ một chút để TMDB không khóa API Key của bạn
+            time.sleep(2)
 
     def update_single_movie(self, movie):
         try:
-            # 1. Làm sạch tên truy vấn: Xóa năm (2024), bản cam, v.v.
-            search_query = re.sub(r'\s*\(\d{4}\)', '', movie.origin_name).strip()
+            # 1. Làm sạch tên phim: Xóa các ký tự đặc biệt và năm để TMDB tìm chính xác hơn
+            clean_name = re.sub(r'\s*\(\d{4}\)', '', movie.origin_name) # Xóa (2024)
+            clean_name = re.sub(r'(?i)vietsub|thuyết minh|lồng tiếng|bản cam', '', clean_name).strip()
             
             endpoint = "tv" if movie.is_series else "movie"
             search_url = f"https://api.themoviedb.org/3/search/{endpoint}"
             
             params = {
                 'api_key': self.TMDB_API_KEY,
-                'query': search_query,
+                'query': clean_name,
                 'language': 'vi-VN',
             }
 
             response = self.session.get(search_url, params=params, timeout=10)
             
-            # Xử lý khi bị TMDB chặn do gọi quá nhanh
-            if response.status_code == 429:
-                retry_after = int(response.headers.get('Retry-After', 5))
-                time.sleep(retry_after)
+            if response.status_code == 429: # Rate Limit
+                time.sleep(5)
                 return
 
             data = response.json()
@@ -65,19 +65,20 @@ class Command(BaseCommand):
                 best_match = data['results'][0]
                 tmdb_id = best_match['id']
 
-                # Lấy chi tiết để có Genres và Countries chuẩn
+                # 2. Lấy chi tiết để lấy Thể loại và Quốc gia chuẩn
                 detail_url = f"https://api.themoviedb.org/3/{endpoint}/{tmdb_id}"
-                detail_res = self.session.get(detail_url, params={'api_key': self.TMDB_API_KEY, 'language': 'vi-VN'}).json()
+                detail_res = self.session.get(detail_url, params={'api_key': self.TMDB_API_KEY, 'language': 'vi-VN'}, timeout=10).json()
 
-                # --- TỐI ƯU HÓA GENRES (Để lọc phim mượt hơn) ---
+                # --- TỐI ƯU HÓA THỂ LOẠI (Hỗ trợ Search/Filter) ---
                 tmdb_genres = detail_res.get('genres', [])
                 if tmdb_genres:
-                    genre_list = [f"{g['name']}, {g['name'].lower().replace(' ', '-')}" for g in tmdb_genres]
-                    movie.genres = ", ".join(genre_list)
-                else:
-                    # Fallback nếu TMDB không có thể loại tiếng Việt
-                    old_gs = [g.strip() for g in movie.genres.split(',') if g.strip()]
-                    movie.genres = ", ".join([f"{g}, {g.lower().replace(' ', '-')}" for g in old_gs])
+                    # Lưu cả tên Tiếng Việt và slug để bộ lọc (base.html) hoạt động
+                    g_list = []
+                    for g in tmdb_genres:
+                        name = g['name']
+                        slug = name.lower().replace(' ', '-')
+                        g_list.append(f"{name}, {slug}")
+                    movie.genres = ", ".join(g_list)
 
                 # --- TỐI ƯU QUỐC GIA ---
                 countries = detail_res.get('production_countries', [])
@@ -85,30 +86,26 @@ class Command(BaseCommand):
                     c_list = [f"{c['name']}, {c['name'].lower().replace(' ', '-')}" for c in countries]
                     movie.country = ", ".join(c_list)
 
-                # --- CẬP NHẬT ẢNH CHẤT LƯỢNG CAO ---
+                # --- CẬP NHẬT THÔNG TIN & ẢNH ---
                 movie.description = best_match.get('overview') or movie.description
                 if best_match.get('poster_path'):
                     movie.poster_url = f"https://image.tmdb.org/t/p/w500{best_match['poster_path']}"
                 if best_match.get('backdrop_path'):
                     movie.thumb_url = f"https://image.tmdb.org/t/p/w780{best_match['backdrop_path']}"
                 
-                # --- ĐÁNH DẤU HOÀN THÀNH & ĐẨY LÊN TRANG CHỦ ---
+                # --- ĐÁNH DẤU HOÀN THÀNH ---
                 rating = best_match.get('vote_average', 0)
                 movie.imdb_rating = rating if rating > 0 else 0.1
-                movie.updated_at = timezone.now() # Đẩy lên đầu trang chủ ngay lập tức
+                # Không ép updated_at = now() ở đây để tránh làm xáo trộn phim mới cào
                 movie.save()
                 
-                self.stdout.write(self.style.SUCCESS(f"✔ Đã nâng cấp: {movie.title}"))
+                self.stdout.write(self.style.SUCCESS(f"✔ TMDB OK: {movie.title} ({rating})"))
             else:
-                # Nếu không thấy trên TMDB: Vẫn chuẩn hóa genres cũ để bộ lọc không lỗi
-                if movie.genres:
-                    old_gs = [g.strip() for g in movie.genres.split(',') if g.strip()]
-                    movie.genres = ", ".join([f"{g}, {g.lower().replace(' ', '-')}" for g in old_gs])
-                
-                # Đánh dấu 0.01 để script không quét lại phim này ở vòng lặp sau
+                # Nếu không tìm thấy: Đánh dấu để không quét lại lần sau
                 movie.imdb_rating = 0.01 
                 movie.save()
-                self.stdout.write(self.style.ERROR(f"✘ Không thấy trên TMDB: {movie.title}"))
+                self.stdout.write(self.style.ERROR(f"✘ TMDB No Result: {movie.title}"))
 
         except Exception as e:
-            self.stdout.write(self.style.WARNING(f"⚠️ Lỗi tại {movie.title}: {str(e)}"))
+            # Ghi log lỗi nhưng không làm dừng script
+            self.stdout.write(self.style.WARNING(f"⚠️ Error {movie.title}: {str(e)}"))
