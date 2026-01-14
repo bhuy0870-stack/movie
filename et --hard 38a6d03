@@ -1,0 +1,50 @@
+[33maff803b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix hoan tat: Python 3.12, PWA va Serviceworker
+[33m91f69f0[m Fix allowed hosts and port scanning
+[33mee55f0d[m Test debug
+[33m4819d3b[m up
+[33m4702859[m fix mo khogn duoc
+[33m879b416[m Fix ALLOWED_HOSTS
+[33m6a34caf[m FIx loiloiloi
+[33m13125f4[m fix
+[33m5b62d56[m load trang
+[33m38e6f10[m DAng nhap GG
+[33ma76afdb[m VIET NAm
+[33m8589ff8[m Fix Deploy: Switch to Standard Static Storage
+[33m2654929[m Fix Deploy: Switch to Standard Static Storage
+[33m2f559f1[m Final fix settings deploy
+[33m947e17e[m Fix Deploy: Final Settings for Static and Redis
+[33mcc0e33c[m Them PWA va Redis Cache
+[33m467e59a[m Fix WhiteNoise strict mode va clean urls
+[33maf4a8d4[m Fix: Tat che do nghiem ngat cua WhiteNoise cho Jazzmin
+[33mb38991c[m Them Sitemap SEO va Giao dien Admin Jazzmin
+[33mcd0ff5d[m Fix Cloudinary config for Django 5
+[33m2b5b3c0[m Fix: them SEO
+[33m8e22f9b[m Fix: Them thu vien cloudinary vao requirements
+[33mf901ba4[m Cap nhat he thong Avatar
+[33mdc750fd[m Merge branch 'main' of https://github.com/bhuy0870-stack/movie
+[33m8a6483b[m Optimize requirements to speed up crawl
+[33mb5ebb1d[m Create daily_crawl.yml
+[33m38a6d03[m Fix Modal Donate mobile, clean unicode and move Quote to footer
+[33me068931[m Fix lỗi menu không tắt được trên điện thoại và dọn dẹp duplicate code trang Profile
+[33m7e79287[m Fix mobile căn giữa và sửa lỗi thẻ đóng endblock trong detail.html
+[33m7c544be[m Fix layout mobile căn giữa và sửa lỗi thẻ đóng endblock trong detail.html
+[33m68cc5d8[m update base template
+[33mc7d6b46[m update base template
+[33m5c2f2a6[m update base template
+[33m7960237[m Fix: Add gunicorn to requirements and config port
+[33m948ebe8[m Final version with Mega Menu and Gold UI
+[33mf72bd57[m Fix lỗi dropdown menu và hoàn thiện giao diện
+[33m17ad19c[m Ha cap Django xuong 5.1.5 de fix build error trên Render
+[33m5c36444[m Kết nối Neon Singapore và fix lỗi static
+[33m522232d[m Chuyển sang Database Neon vĩnh viễn
+[33ma78ad79[m Sửa phiên bản Django để tương thích với Python 3.11 trên Render
+[33m2e1289c[m Fix build error: Add Pillow for ImageField
+[33mff5a18a[m Nâng cấp giao diện Home và Base hoàn chỉnh với hiệu ứng tim bay
+[33m24e4398[m Switch to Python 3.11 and stable dependencies
+[33m9b08274[m Fix scikit-learn version and update requirements for python 3.13
+[33m2978744[m Add gunicorn and cleanup requirements for Render
+[33m63ecbcd[m Fix lỗi sentiment_label và cập nhật giao diện bình luận tối giản
+[33m311db50[m Fix duplicate toast notifications and optimize movie detail
+[33m300e943[m Update UI and add Leaderboard
+[33mb85fb06[m Full settings for Render deployment
+[33m6a949d6[m Khoi tao du an phim
