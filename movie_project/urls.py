@@ -11,6 +11,7 @@ urlpatterns = [
     
     # Điều hướng về ứng dụng chính
     path('', include('main.urls')), 
+    path('accounts/', include('allauth.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Cấu hình để hiển thị file static/media trong quá trình phát triển (DEBUG=True)
