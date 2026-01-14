@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google', # Provider Google
+    'pwa',
 ]
 SITE_ID = 1
 
@@ -135,4 +136,30 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- CẤU HÌNH PWA (APP) ---
+PWA_APP_NAME = 'BQH MOVIE'
+PWA_APP_DESCRIPTION = "Thế giới phim trong tầm tay"
+PWA_THEME_COLOR = '#c40000' # Màu đỏ chủ đạo của bạn
+PWA_BACKGROUND_COLOR = '#000000'
+PWA_DISPLAY = 'standalone' # Ẩn thanh trình duyệt đi
+PWA_SCOPE = '/'
+PWA_START_URL = '/'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/images/icon-192.png', # Bạn cần chuẩn bị ảnh này
+        'sizes': '192x192'
+    },
+    {
+        'src': '/static/images/icon-512.png', # Bạn cần chuẩn bị ảnh này
+        'sizes': '512x512'
+    }
+]
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/images/icon-192.png',
+        'sizes': '192x192'
+    }
+]
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
 

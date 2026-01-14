@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>BQH Logo Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body { background: #111; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 20px; }
+        canvas { border: 2px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-radius: 20px; }
+        button { padding: 15px 30px; font-size: 16px; font-weight: bold; cursor: pointer; background: #c40000; color: white; border: none; border-radius: 8px; transition: 0.2s; }
+        button:hover { background: #ffcc00; color: #000; }
+        .group-btn { display: flex; gap: 15px; }
+    </style>
+</head>
+<body>
+    <h2 style="color: #ffcc00;">CÔNG CỤ TẠO LOGO BQH</h2>
+    <canvas id="logoCanvas" width="512" height="512"></canvas>
+    
+    <div class="group-btn">
+        <button onclick="downloadLogo(192)">Tải icon-192.png</button>
+        <button onclick="downloadLogo(512)">Tải icon-512.png</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('logoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Đợi font tải xong mới vẽ
+        document.fonts.ready.then(function() {
+            drawLogo();
+        });
+
+        function drawLogo() {
+            // 1. Nền đen
+            ctx.fillStyle = "#050505";
+            ctx.fillRect(0, 0, 512, 512);
+
+            // 2. Viền Gradient Đỏ - Vàng
+            const gradientBorder = ctx.createLinearGradient(0, 0, 512, 512);
+            gradientBorder.addColorStop(0, "#c40000");
+            gradientBorder.addColorStop(1, "#ffcc00");
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = gradientBorder;
+            ctx.strokeRect(20, 20, 472, 472);
+
+            // 3. Chữ BQH
+            ctx.font = "900 200px 'Outfit', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            // Hiệu ứng bóng chữ
+            ctx.shadowColor = "rgba(196, 0, 0, 0.8)";
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = "#fff"; 
+            ctx.fillText("BQH", 256, 230);
+            
+            // Gradient cho chữ
+            ctx.shadowBlur = 0; // Tắt bóng để tô màu gradient
+            const textGrad = ctx.createLinearGradient(100, 200, 400, 300);
+            textGrad.addColorStop(0, "#ffcc00"); // Vàng
+            textGrad.addColorStop(0.5, "#ffffff"); // Trắng sáng
+            textGrad.addColorStop(1, "#c40000"); // Đỏ
+            ctx.fillStyle = textGrad;
+            ctx.fillText("BQH", 256, 230);
+
+            // 4. Chữ MOVIE nhỏ ở dưới
+            ctx.font = "700 60px 'Outfit', sans-serif";
+            ctx.fillStyle = "#fff";
+            ctx.letterSpacing = "10px";
+            ctx.fillText("MOVIE", 256, 330);
+
+            // 5. Icon Play tam giác
+            ctx.beginPath();
+            ctx.moveTo(235, 380);
+            ctx.lineTo(235, 440);
+            ctx.lineTo(290, 410);
+            ctx.fillStyle = "#c40000";
+            ctx.fill();
+        }
+
+        function downloadLogo(size) {
+            // Tạo canvas ảo để resize nếu cần
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            // Vẽ lại hình từ canvas gốc sang canvas nhỏ
+            tCtx.drawImage(canvas, 0, 0, size, size);
+
+            // Tải về
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

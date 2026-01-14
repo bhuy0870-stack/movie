@@ -1,117 +1,261 @@
 {% extends 'main/base.html' %}
-{% load socialaccount %} {% block title %}Đăng Nhập - BQH MOVIE{% endblock %}
+{% load socialaccount %}
+{% load static %}
+
+{% block title %}Đăng Nhập - BQH MOVIE{% endblock %}
 
 {% block content %}
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap');
 
-    .auth-bg {
+    /* --- BACKGROUND TRÀN MÀN HÌNH --- */
+    .auth-wrapper {
         min-height: 100vh;
-        display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), 
+        width: 100%;
+        margin-top: -80px; /* Bù trừ height của navbar */
+        padding-top: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, rgba(0,0,0,0.6) 0%, #000 100%),
                     url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bca1-07583f8b564e/vnm/VN-vi-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
-        background-size: cover; background-position: center;
-        padding: 20px;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        position: relative;
     }
 
-    .auth-card {
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 16px;
-        padding: 50px 40px;
-        width: 100%; max-width: 420px;
-        box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    /* Hiệu ứng hạt bụi mờ ảo (Optional) */
+    .auth-wrapper::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(3px);
+        z-index: 1;
     }
 
-    .brand-title { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 30px; text-align: center; letter-spacing: -1px; }
-    .brand-title span { color: #e50914; }
+    /* --- FORM CARD --- */
+    .login-card {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 420px;
+        background: rgba(20, 20, 20, 0.75); /* Màu tối trong suốt */
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-    .input-group-custom { position: relative; margin-bottom: 20px; }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- TYPOGRAPHY --- */
+    .auth-header { text-align: center; margin-bottom: 30px; }
+    .brand-mark {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        letter-spacing: -1px;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(196, 0, 0, 0.5);
+    }
+    .brand-mark span { color: var(--primary, #c40000); }
+    .auth-subtitle { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-top: 5px; }
+
+    /* --- INPUT FIELDS --- */
+    .input-group-auth {
+        position: relative;
+        margin-bottom: 20px;
+    }
     
-    .form-input {
-        width: 100%; height: 55px;
-        background: #333; border: none; border-radius: 8px;
-        color: #fff; padding: 0 20px; font-size: 16px;
-        transition: 0.2s;
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.4);
+        font-size: 1.1rem;
+        z-index: 10;
+        transition: 0.3s;
     }
-    .form-input:focus { background: #444; outline: 2px solid #e50914; outline-offset: 2px; }
-    .form-input::placeholder { color: #8c8c8c; }
 
-    .btn-submit {
-        width: 100%; height: 55px;
-        background: #e50914; color: #fff;
-        border: none; border-radius: 8px;
-        font-weight: 700; font-size: 16px;
-        margin-top: 20px; transition: 0.3s;
-        cursor: pointer;
+    .form-control-auth {
+        width: 100%;
+        height: 55px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        padding: 0 45px; /* Chừa chỗ cho icon trái và phải */
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
-    .btn-submit:hover { background: #f40612; }
 
-    /* CSS MỚI: Button Google */
-    .btn-google {
-        width: 100%; height: 55px;
-        background: #fff; color: #333;
-        border: none; border-radius: 8px;
-        font-weight: 700; font-size: 16px;
-        margin-top: 15px; transition: 0.3s;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        gap: 10px; text-decoration: none;
+    .form-control-auth:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary, #c40000);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(196, 0, 0, 0.15);
     }
-    .btn-google:hover { background: #f1f1f1; }
-    .btn-google i { font-size: 20px; color: #ea4335; }
     
-    .divider {
-        display: flex; align-items: center; color: #8c8c8c; margin: 25px 0; font-size: 14px;
-    }
-    .divider::before, .divider::after {
-        content: ""; flex: 1; height: 1px; background: #444;
-    }
-    .divider span { padding: 0 10px; }
+    .form-control-auth:focus + .input-icon { color: #fff; }
 
-    .auth-footer { margin-top: 30px; text-align: center; color: #737373; font-size: 15px; }
-    .auth-footer a { color: #fff; text-decoration: none; font-weight: 500; }
-    .auth-footer a:hover { text-decoration: underline; }
+    /* Nút hiện mật khẩu */
+    .toggle-password {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,0.4);
+        cursor: pointer;
+        z-index: 10;
+        transition: 0.3s;
+    }
+    .toggle-password:hover { color: #fff; }
 
-    /* Mobile Fix */
-    @media(max-width: 480px) {
-        .auth-card { padding: 40px 25px; background: #000; border: none; }
-        .form-input { height: 50px; font-size: 15px; } 
+    /* --- BUTTONS --- */
+    .btn-submit-auth {
+        width: 100%;
+        height: 55px;
+        background: linear-gradient(135deg, #c40000 0%, #800000 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(196, 0, 0, 0.3);
+        margin-top: 10px;
+    }
+    .btn-submit-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px rgba(196, 0, 0, 0.4);
+        filter: brightness(1.1);
+    }
+
+    /* Google Button */
+    .btn-google-auth {
+        width: 100%;
+        height: 50px;
+        background: #fff;
+        color: #1f1f1f;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        text-decoration: none;
+        transition: 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-google-auth:hover {
+        background: #f5f5f5;
+        transform: translateY(-2px);
+    }
+    .btn-google-auth i { font-size: 1.2rem; color: #ea4335; }
+
+    /* --- DIVIDER --- */
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        margin: 25px 0;
+        color: rgba(255,255,255,0.3);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .auth-divider::before, .auth-divider::after {
+        content: ""; flex: 1; height: 1px;
+        background: rgba(255,255,255,0.1);
+    }
+    .auth-divider span { padding: 0 15px; }
+
+    /* --- FOOTER --- */
+    .auth-footer { text-align: center; margin-top: 25px; font-size: 0.9rem; color: #aaa; }
+    .auth-footer a { color: #fff; text-decoration: none; font-weight: 700; transition: 0.3s; }
+    .auth-footer a:hover { color: var(--primary, #c40000); text-decoration: underline; }
+
+    /* --- MOBILE RESPONSIVE --- */
+    @media (max-width: 576px) {
+        .auth-wrapper { padding: 20px; align-items: flex-start; padding-top: 100px; }
+        .login-card { padding: 30px 20px; background: rgba(10,10,10,0.85); }
+        .brand-mark { font-size: 1.8rem; }
     }
 </style>
 
-<div class="auth-bg">
-    <div class="auth-card">
-        <div class="brand-title"><span>B</span>QH MOVIE</div>
-        
+<div class="auth-wrapper">
+    <div class="login-card">
+        <div class="auth-header">
+            <div class="brand-mark"><span>B</span>QH MOVIE</div>
+            <p class="auth-subtitle">Chào mừng trở lại! Sẵn sàng khám phá?</p>
+        </div>
+
         <form method="post">
             {% csrf_token %}
+            
             {% if form.errors %}
-                <div class="alert alert-danger py-2 small fw-bold text-center mb-4">
-                    Tên đăng nhập hoặc mật khẩu không đúng!
+                <div class="alert alert-danger d-flex align-items-center p-2 mb-4 rounded-3 border-0 bg-danger bg-opacity-25 text-white" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+                    <div class="small fw-bold">Tài khoản hoặc mật khẩu không đúng!</div>
                 </div>
             {% endif %}
 
-            <div class="input-group-custom">
-                <input type="text" name="username" class="form-input" placeholder="Tên đăng nhập" required>
+            <div class="input-group-auth">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" name="username" class="form-control-auth" placeholder="Tên đăng nhập" required autocomplete="username">
             </div>
-            <div class="input-group-custom">
-                <input type="password" name="password" class="form-input" placeholder="Mật khẩu" required>
+
+            <div class="input-group-auth">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" name="password" id="passwordField" class="form-control-auth" placeholder="Mật khẩu" required autocomplete="current-password">
+                <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
             </div>
             
-            <button type="submit" class="btn-submit">ĐĂNG NHẬP</button>
+            <button type="submit" class="btn-submit-auth">
+                ĐĂNG NHẬP <i class="fas fa-arrow-right ms-2"></i>
+            </button>
         </form>
 
-        <div class="divider"><span>HOẶC</span></div>
+        <div class="auth-divider"><span>HOẶC TIẾP TỤC VỚI</span></div>
         
-        <a href="{% provider_login_url 'google' %}" class="btn-google">
-            <i class="bi bi-google"></i> Đăng nhập bằng Google
+        <a href="{% provider_login_url 'google' %}" class="btn-google-auth">
+            <i class="fab fa-google"></i> Google
         </a>
 
         <div class="auth-footer">
-            Bạn mới tham gia BQH? <a href="{% url 'register' %}">Đăng ký ngay</a>
+            Bạn chưa có tài khoản? <a href="{% url 'register' %}">Đăng ký ngay</a>
         </div>
     </div>
 </div>
+
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById("passwordField");
+        const icon = document.querySelector(".toggle-password");
+        
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+            icon.style.color = "#fff"; // Sáng lên khi hiện
+        } else {
+            passwordField.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+            icon.style.color = ""; // Trở về màu mờ
+        }
+    }
+</script>
 {% endblock %}

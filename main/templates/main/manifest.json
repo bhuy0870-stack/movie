@@ -1,0 +1,21 @@
+{
+    "name": "BQH MOVIE",
+    "short_name": "BQH MOVIE",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#050505",
+    "theme_color": "#c40000",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/static/images/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/static/images/icon-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}
