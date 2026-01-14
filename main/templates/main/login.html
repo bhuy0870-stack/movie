@@ -1,5 +1,5 @@
 {% extends 'main/base.html' %}
-{% block title %}Đăng Nhập - BQH MOVIE{% endblock %}
+{% load socialaccount %} {% block title %}Đăng Nhập - BQH MOVIE{% endblock %}
 
 {% block content %}
 <style>
@@ -47,7 +47,29 @@
         cursor: pointer;
     }
     .btn-submit:hover { background: #f40612; }
+
+    /* CSS MỚI: Button Google */
+    .btn-google {
+        width: 100%; height: 55px;
+        background: #fff; color: #333;
+        border: none; border-radius: 8px;
+        font-weight: 700; font-size: 16px;
+        margin-top: 15px; transition: 0.3s;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        gap: 10px; text-decoration: none;
+    }
+    .btn-google:hover { background: #f1f1f1; }
+    .btn-google i { font-size: 20px; color: #ea4335; }
     
+    .divider {
+        display: flex; align-items: center; color: #8c8c8c; margin: 25px 0; font-size: 14px;
+    }
+    .divider::before, .divider::after {
+        content: ""; flex: 1; height: 1px; background: #444;
+    }
+    .divider span { padding: 0 10px; }
+
     .auth-footer { margin-top: 30px; text-align: center; color: #737373; font-size: 15px; }
     .auth-footer a { color: #fff; text-decoration: none; font-weight: 500; }
     .auth-footer a:hover { text-decoration: underline; }
@@ -55,7 +77,7 @@
     /* Mobile Fix */
     @media(max-width: 480px) {
         .auth-card { padding: 40px 25px; background: #000; border: none; }
-        .form-input { height: 50px; font-size: 15px; } /* Chữ to dễ đọc */
+        .form-input { height: 50px; font-size: 15px; } 
     }
 </style>
 
@@ -80,6 +102,12 @@
             
             <button type="submit" class="btn-submit">ĐĂNG NHẬP</button>
         </form>
+
+        <div class="divider"><span>HOẶC</span></div>
+        
+        <a href="{% provider_login_url 'google' %}" class="btn-google">
+            <i class="bi bi-google"></i> Đăng nhập bằng Google
+        </a>
 
         <div class="auth-footer">
             Bạn mới tham gia BQH? <a href="{% url 'register' %}">Đăng ký ngay</a>
