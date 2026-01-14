@@ -7,14 +7,12 @@ import cloudinary
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- BẢO MẬT ---
-# Render sẽ ưu tiên lấy SECRET_KEY từ môi trường, nếu không có mới dùng key tạm
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq')
+SECRET_KEY = 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq'
 
-# QUAN TRỌNG: Trên Render PHẢI để DEBUG = False để tránh tràn bộ nhớ
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# DEBUG nên để True khi sửa máy
+DEBUG = True
 
-# Điền chính xác domain của bạn vào đây thay vì dấu '*' để Render Health Check chạy được
-ALLOWED_HOSTS = ['movie-yu48.onrender.com', 'localhost', '127.0.0.1', '.render.com'] 
+ALLOWED_HOSTS = ['*'] 
 
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
 INSTALLED_APPS = [
@@ -24,22 +22,38 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    
     'django.contrib.sites',
     'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
     'cloudinary',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    
+    
 ]
 SITE_ID = 1
 
-# --- MIDDLEWARE (Thứ tự rất quan trọng để tránh Timed Out) ---
+# --- CẤU HÌNH CLOUDINARY ---
+cloudinary.config( 
+  cloud_name = os.environ.get('CLOUD_NAME', 'your_fallback_name'), 
+  api_key = os.environ.get('API_KEY', 'your_fallback_key'), 
+  api_secret = os.environ.get('API_SECRET', 'your_fallback_secret'), 
+  secure = True
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage' 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Phải ở vị trí này
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -48,6 +62,28 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+ROOT_URLCONF = 'movie_project.urls'
+
+# --- GIAO DIỆN (TEMPLATES) ---
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'main.context_processors.global_nav_data',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'movie_project.wsgi.application'
 
 # --- CƠ SỞ DỮ LIỆU ---
 db_url = os.environ.get('DATABASE_URL') or "postgresql://neondb_owner:npg_Vj8TvLxoR6lc@ep-dawn-wildflower-a1ix5r2h-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
@@ -60,23 +96,55 @@ DATABASES = {
     )
 }
 
-# --- CẤU HÌNH STATIC FILES (Sửa lỗi 0 files collected) ---
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# --- NGÔN NGỮ VÀ MÚI GIỜ ---
+LANGUAGE_CODE = 'vi'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
+USE_I18N = True
+USE_TZ = True
 
-# Sử dụng Manifest để hỗ trợ cache file tĩnh tốt hơn trên Render
+# --- CẤU HÌNH STATIC FILES ---
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- Cấu hình Allauth (Sửa lỗi Warning dẫn đến sập server) ---
-ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"
+# --- CẤU HÌNH ALLAUTH (LOGIN GOOGLE) ---
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = 'home'
 
-# --- AN TOÀN ---
+# --- CẤU HÌNH ALLAUTH TỐI ƯU ---
+# Thay thế cho ACCOUNT_AUTHENTICATION_METHOD cũ
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'username'] # Hoặc tùy biến theo nhu cầu
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "none"
+LOGIN_REDIRECT_URL = '/'
+
+
+# Quan trọng nhất: Bỏ qua bước điền Username, lấy thẳng từ Google
+SOCIALACCOUNT_AUTO_SIGNUP = True 
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+ACCOUNT_UNIQUE_EMAIL = True
+# Adapter xử lý logic đăng nhập
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
+
+# --- CẤU HÌNH AN TOÀN ---
 CSRF_TRUSTED_ORIGINS = [
-    'https://movie-yu48.onrender.com',
     'https://*.render.com',
+    'https://*.onrender.com',
+    'https://*.ngrok-free.app',
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
