@@ -1,4 +1,5 @@
 {% load static %}
+{% load webpush_notifications %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -86,7 +87,6 @@
         .btn-app-nav:hover { color: var(--primary) !important; }
 
         /* --- DROPDOWN CUSTOM --- */
-        /* Ẩn mũi tên mặc định của Bootstrap */
         .dropdown-toggle::after { display: none !important; }
 
         .dropdown-menu {
@@ -162,7 +162,6 @@
             .mega-column { margin-bottom: 20px; }
             .mega-title { color: var(--accent); margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--accent); }
             
-            /* Sửa scrollbar ngang dropdown history mobile */
             #historyDropdown + .dropdown-menu { width: 100% !important; max-width: 100%; }
         }
 
@@ -209,7 +208,6 @@
         
         #historyDropdown + .dropdown-menu { max-height: 450px; overflow-y: auto; width: 300px; }
         
-        /* Store Button in Modal */
         .btn-store {
             display: inline-flex; align-items: center; justify-content: center; gap: 10px;
             background: #222; border: 1px solid var(--border); color: #fff;
@@ -222,7 +220,7 @@
         .floating-btn {
             position: fixed;
             bottom: 20px;
-            right: 20px; /* Góc dưới bên phải */
+            right: 20px;
             z-index: 9999;
             background: linear-gradient(135deg, var(--primary), #ffcc00);
             color: #fff;
@@ -232,36 +230,49 @@
             cursor: pointer;
             font-weight: 800;
             font-size: 14px;
-            display: none; /* Mặc định ẩn, JS sẽ hiện nếu cần */
+            display: none;
             align-items: center;
             gap: 10px;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             animation: floatBtn 3s ease-in-out infinite;
             border: 2px solid rgba(255,255,255,0.2);
         }
-
         .floating-btn:hover {
             transform: scale(1.1) translateY(-5px);
             box-shadow: 0 15px 30px rgba(255, 204, 0, 0.5);
         }
+        .floating-btn i { font-size: 18px; animation: downloadBounce 2s infinite; }
 
-        .floating-btn i {
-            font-size: 18px;
-            animation: downloadBounce 2s infinite;
+        /* --- NÚT CHUÔNG THÔNG BÁO PUSH --- */
+        #push-notification-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px; /* Đối xứng với nút tải app */
+            z-index: 9999;
+        }
+        .webpush-button {
+            background: rgba(20, 20, 20, 0.9) !important;
+            border: 1px solid var(--border) !important;
+            color: #fff !important;
+            border-radius: 50% !important;
+            width: 50px !important;
+            height: 50px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5) !important;
+            transition: all 0.3s !important;
+            font-size: 1.2rem !important;
+        }
+        .webpush-button:hover {
+            background: var(--primary) !important;
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px var(--primary-glow) !important;
         }
 
-        @keyframes floatBtn {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
+        @keyframes floatBtn { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes downloadBounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-3px); } 60% { transform: translateY(-1.5px); } }
 
-        @keyframes downloadBounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-3px); }
-            60% { transform: translateY(-1.5px); }
-        }
-
-        /* Ẩn nút khi đã cài App rồi */
         @media all and (display-mode: standalone) {
             #floating-install-app { display: none !important; }
         }
@@ -415,30 +426,20 @@
                 <div class="p-4 p-md-5 text-center">
                     <h4 class="fw-bold text-white mb-2">Trải nghiệm tốt hơn trên App</h4>
                     <p class="text-white-50 small mb-4">Quét mã QR hoặc tải trực tiếp từ cửa hàng</p>
-                    
                     <div class="qr-frame mb-4">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://bqhmovie.com/download" width="180" alt="App QR">
                     </div>
-
                     <div class="d-flex flex-column gap-2">
-                        <a href="#" class="btn-store">
-                            <i class="fab fa-apple fs-4"></i>
-                            <div class="text-start">
-                                <div class="extremely-small text-white-50">Download on the</div>
-                                <div class="fw-bold" style="line-height:1">App Store</div>
-                            </div>
-                        </a>
-                        <a href="#" class="btn-store">
-                            <i class="fab fa-google-play fs-4"></i>
-                            <div class="text-start">
-                                <div class="extremely-small text-white-50">GET IT ON</div>
-                                <div class="fw-bold" style="line-height:1">Google Play</div>
-                            </div>
-                        </a>
+                        <a href="#" class="btn-store"><i class="fab fa-apple fs-4"></i><div class="text-start"><div class="extremely-small text-white-50">Download on the</div><div class="fw-bold" style="line-height:1">App Store</div></div></a>
+                        <a href="#" class="btn-store"><i class="fab fa-google-play fs-4"></i><div class="text-start"><div class="extremely-small text-white-50">GET IT ON</div><div class="fw-bold" style="line-height:1">Google Play</div></div></a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="push-notification-container">
+        {% webpush_button %}
     </div>
 
     <div id="floating-install-app" class="floating-btn" onclick="installPWA()">
@@ -452,8 +453,6 @@
             const navContent = document.getElementById('navContent');
             const toggler = document.querySelector('.navbar-toggler');
             
-            // Xử lý click trên mobile để đóng menu
-            // Đã fix: Loại trừ class .dropdown-toggle để không bị đóng menu khi bấm mở dropdown
             document.querySelectorAll('.nav-link:not(.dropdown-toggle), .dropdown-item').forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 992) {
@@ -463,7 +462,6 @@
                 });
             });
 
-            // Click ra ngoài thì đóng menu mobile
             document.addEventListener('click', function(event) {
                 const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
                 if (!isClickInside && navContent.classList.contains('show')) {
@@ -474,24 +472,12 @@
         });
 
         function initNavbar() {
-            // Logic hover cho desktop
             const dropdowns = document.querySelectorAll('.nav-item.dropdown');
             dropdowns.forEach(dropdown => {
                 const menu = dropdown.querySelector('.dropdown-menu');
                 if(!menu) return;
-
-                dropdown.addEventListener('mouseenter', () => {
-                    if (window.innerWidth >= 992) {
-                        menu.classList.add('show');
-                        menu.setAttribute('data-bs-popper', 'static');
-                    }
-                });
-                dropdown.addEventListener('mouseleave', () => {
-                    if (window.innerWidth >= 992) {
-                        menu.classList.remove('show');
-                        menu.removeAttribute('data-bs-popper');
-                    }
-                });
+                dropdown.addEventListener('mouseenter', () => { if (window.innerWidth >= 992) { menu.classList.add('show'); menu.setAttribute('data-bs-popper', 'static'); } });
+                dropdown.addEventListener('mouseleave', () => { if (window.innerWidth >= 992) { menu.classList.remove('show'); menu.removeAttribute('data-bs-popper'); } });
             });
         }
         initNavbar();
@@ -500,18 +486,12 @@
         // LIVE SEARCH LOGIC
         const searchInput = document.getElementById('live-search');
         const resultsBox = document.getElementById('search-results-box');
-        
         if(searchInput) {
             let debounceTimer;
             searchInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
                 const q = this.value.trim();
-                
-                if (q.length < 2) { 
-                    resultsBox.style.display = 'none'; 
-                    return; 
-                }
-
+                if (q.length < 2) { resultsBox.style.display = 'none'; return; }
                 debounceTimer = setTimeout(() => {
                     fetch(`/ajax-search/?q=${encodeURIComponent(q)}`)
                     .then(r => r.json())
@@ -519,39 +499,18 @@
                         if (res.status === 'success' && res.data.length > 0) {
                             let html = '';
                             res.data.forEach(m => {
-                                html += `
-                                <a href="/movie/${m.slug}/" class="search-item d-flex gap-2 p-2 border-bottom border-white border-opacity-10 text-decoration-none" onmousedown="window.location.href='/movie/${m.slug}/'; return false;">
-                                    <img src="${m.poster}" style="width:40px; height:55px; object-fit:cover; border-radius:4px;" alt="${m.title}">
-                                    <div class="search-item-info overflow-hidden">
-                                        <span class="title text-white small fw-bold d-block text-truncate">${m.title}</span>
-                                        <span class="text-warning extremely-small">★ ${m.imdb}</span>
-                                    </div>
-                                </a>`;
+                                html += `<a href="/movie/${m.slug}/" class="search-item d-flex gap-2 p-2 border-bottom border-white border-opacity-10 text-decoration-none" onmousedown="window.location.href='/movie/${m.slug}/'; return false;"><img src="${m.poster}" style="width:40px; height:55px; object-fit:cover; border-radius:4px;" alt="${m.title}"><div class="search-item-info overflow-hidden"><span class="title text-white small fw-bold d-block text-truncate">${m.title}</span><span class="text-warning extremely-small">★ ${m.imdb}</span></div></a>`;
                             });
                             resultsBox.innerHTML = html;
                             resultsBox.style.display = 'block';
-                        } else { 
-                            resultsBox.style.display = 'none'; 
-                        }
-                    })
-                    .catch(err => console.error("Search error:", err));
+                        } else { resultsBox.style.display = 'none'; }
+                    });
                 }, 300);
             });
-            
-            // Đóng search khi nhấn ESC
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') resultsBox.style.display = 'none';
-            });
+            searchInput.addEventListener('keydown', function(e) { if (e.key === 'Escape') resultsBox.style.display = 'none'; });
         }
+        document.addEventListener('click', (e) => { if (searchInput && !searchInput.contains(e.target) && resultsBox && !resultsBox.contains(e.target)) { resultsBox.style.display = 'none'; } });
 
-        // Click ra ngoài đóng search box
-        document.addEventListener('click', (e) => {
-            if (searchInput && !searchInput.contains(e.target) && resultsBox && !resultsBox.contains(e.target)) {
-                resultsBox.style.display = 'none';
-            }
-        });
-
-        // Animation tim bay khi bấm Donate
         function createHeartBurst(e) {
             const colors = ['#ffcc00', '#ff4757', '#ffffff'];
             for (let i = 0; i < 12; i++) {
@@ -567,71 +526,52 @@
             }
         }
 
-        // Copy STK
         function copyBank(btn) {
             const stk = "1025765518";
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(stk).then(() => {
-                    btn.innerText = "ĐÃ SAO CHÉP!";
-                    setTimeout(() => { btn.innerText = "SAO CHÉP SỐ TÀI KHOẢN"; }, 2000);
-                });
-            } else {
-                alert("STK: " + stk);
-            }
+            navigator.clipboard.writeText(stk).then(() => {
+                btn.innerText = "ĐÃ SAO CHÉP!";
+                setTimeout(() => { btn.innerText = "SAO CHÉP SỐ TÀI KHOẢN"; }, 2000);
+            });
         }
 
-        // Loading Bar chạy khi load trang
         window.addEventListener('load', () => {
             const bar = document.getElementById('loading-bar');
-            if(bar) { 
-                bar.style.width = '100%'; 
-                setTimeout(() => { bar.style.opacity = '0'; }, 500); 
-            }
+            if(bar) { bar.style.width = '100%'; setTimeout(() => { bar.style.opacity = '0'; }, 500); }
         });
     </script>
     
     <script>
-        // 1. Đăng ký Service Worker
+        // SERVICE WORKER & PWA INSTALL
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('ServiceWorker registration successful');
-                }, function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
+                navigator.serviceWorker.register('/serviceworker.js').then(function(reg) {
+                    console.log('SW Registered thành công!');
+                }).catch(function(err) {
+                    console.log('SW Registration failed: ', err);
                 });
             });
-        }
 
-        // 2. Logic Nút Cài Đặt Lơ Lửng
         let deferredPrompt;
         const installBtn = document.getElementById('floating-install-app');
-        
-        // Bắt sự kiện trình duyệt sẵn sàng cài đặt (Chỉ Chrome/Android)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Hiện nút
             installBtn.style.display = 'flex';
         });
 
         function installPWA() {
-            // Nếu có sự kiện cài tự động (Android/Chrome)
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        installBtn.style.display = 'none'; // Ẩn nút sau khi cài
-                    }
+                deferredPrompt.userChoice.then((choice) => {
+                    if (choice.outcome === 'accepted') installBtn.style.display = 'none';
                     deferredPrompt = null;
                 });
             } else {
-                // Nếu là iOS hoặc trình duyệt khác -> Mở Modal hướng dẫn (QR Code)
                 const appModal = new bootstrap.Modal(document.getElementById('appModal'));
                 appModal.show();
             }
         }
 
-        // Kiểm tra nếu đang chạy trên App rồi thì ẩn nút đi
         if (window.matchMedia('(display-mode: standalone)').matches) {
             installBtn.style.display = 'none';
         }

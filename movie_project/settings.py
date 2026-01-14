@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     
-    'django.contrib.sites',        # Chỉ giữ lại 1 dòng duy nhất ở đây
+    'django.contrib.sites',
     'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
@@ -32,8 +32,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google', # Provider Google
+    'allauth.socialaccount.providers.google',
     'pwa',
+    'webpush', # Đã thêm chính xác
 ]
 SITE_ID = 1
 
@@ -108,28 +109,23 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # --- CẤU HÌNH ALLAUTH (LOGIN GOOGLE) ---
-SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
 
-# --- PHẦN SỬA ĐỂ VÀO THẲNG TRANG CHỦ ---
-SOCIALACCOUNT_AUTO_SIGNUP = True      # Tự động tạo user từ thông tin Google
+# --- CẤU HÌNH ALLAUTH BẮT BUỘC ĐỂ VÀO THẲNG ---
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True      # Quan trọng nhất: Tự động tạo user
 SOCIALACCOUNT_LOGIN_ON_GET = True     # Đăng nhập ngay khi bấm nút
-ACCOUNT_EMAIL_REQUIRED = True         # Bắt buộc email
-ACCOUNT_UNIQUE_EMAIL = True           # Email là duy nhất
-ACCOUNT_USERNAME_REQUIRED = False     # Không bắt nhập username thủ công
-ACCOUNT_EMAIL_VERIFICATION = "none"   # Bỏ qua xác thực email rườm rà
-# --------------------------------------
+ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+ACCOUNT_EMAIL_VERIFICATION = "none"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
 
@@ -145,25 +141,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # --- CẤU HÌNH PWA (APP) ---
 PWA_APP_NAME = 'BQH MOVIE'
 PWA_APP_DESCRIPTION = "Thế giới phim trong tầm tay"
-PWA_THEME_COLOR = '#c40000' # Màu đỏ chủ đạo của bạn
+PWA_THEME_COLOR = '#c40000'
 PWA_BACKGROUND_COLOR = '#000000'
-PWA_DISPLAY = 'standalone' # Ẩn thanh trình duyệt đi
+PWA_DISPLAY = 'standalone'
 PWA_SCOPE = '/'
 PWA_START_URL = '/'
 PWA_APP_ICONS = [
-    {
-        'src': '/static/images/icon-192.png',
-        'sizes': '192x192'
-    },
-    {
-        'src': '/static/images/icon-512.png',
-        'sizes': '512x512'
-    }
+    {'src': '/static/images/icon-192.png', 'sizes': '192x192'},
+    {'src': '/static/images/icon-512.png', 'sizes': '512x512'}
 ]
-PWA_APP_ICONS_APPLE = [
-    {
-        'src': '/static/images/icon-192.png',
-        'sizes': '192x192'
-    }
-]
-PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'serviceworker.js')
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'sw.js')
+
+# --- CẤU HÌNH WEBPUSH ---
+WEBPUSH_SETTINGS = {
+   "VAPID_PUBLIC_KEY": "BKP06MNPD8w3mJe8iXCIIM7v7av9-4l3eE5s9P3BS0ce3-FQIIro0qaIS8747G42_9jl4pxJbftXwCV2PPKOL44",
+   "VAPID_PRIVATE_KEY": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgw9Cjx5Sy-4bN8LrQ6fcuu4-jN8wQk086hy23THytKtOhRANCAASj9OjDTw_MN5iXvIlwiCDO7-2r_fuJd3hObPT9wUtHHt_hUCCK6NKmiEvO-OxuNv_Y5eKcSW37V8Aldjzyji-O",
+   "VAPID_ADMIN_EMAIL": "admin@bqhmovie.com"
+}

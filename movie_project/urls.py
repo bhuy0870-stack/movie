@@ -13,7 +13,8 @@ urlpatterns = [
     # Điều hướng về ứng dụng chính
     path('', include('main.urls')), 
     path('accounts/', include('allauth.urls')),
-    # path('', include('pwa.urls')),
+    path('', include('pwa.urls')),
+    path('webpush/', include('webpush.urls')),
 
     path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/manifest+json')),
     path('sw.js', TemplateView.as_view(template_name='main/sw.js', content_type='application/javascript')),

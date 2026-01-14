@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone  # Thêm để cập nhật thời gian thực
 from main.models import Movie, Episode
+from webpush import send_group_notification # Thư viện gửi thông báo
 
 class Command(BaseCommand):
     help = 'Cào phim OPhim chuyên nghiệp và tự động đẩy phim mới lên đầu'
@@ -85,6 +86,12 @@ class Command(BaseCommand):
                 return url
 
             with transaction.atomic():
+                # Kiểm tra số tập trước khi update để biết có tập mới không
+                old_movie = Movie.objects.filter(slug=slug).first()
+                has_new_episode = False
+                if old_movie and old_movie.current_episode != m['episode_current']:
+                    has_new_episode = True
+
                 # update_or_create sẽ kích hoạt auto_now=True của trường updated_at
                 movie, created = Movie.objects.update_or_create(
                     slug=slug,
@@ -115,6 +122,19 @@ class Command(BaseCommand):
                         }
                     )
             
+            # --- GỬI THÔNG BÁO PUSH (Nếu là phim mới hoặc có tập mới) ---
+            if created or has_new_episode:
+                notification_title = "🎬 Phim mới" if created else "🔔 Tập mới"
+                payload = {
+                    "title": f"{notification_title}: {movie.title}",
+                    "body": f"Trạng thái: {movie.current_episode}. Xem ngay tại BQH MOVIE!",
+                    "url": f"https://movie-yu48.onrender.com/phim/{movie.slug}/"
+                }
+                try:
+                    send_group_notification(group_name="phim-moi", payload=payload)
+                except:
+                    pass
+
             status = "Mới" if created else "Cập nhật"
             self.stdout.write(self.style.SUCCESS(f"✔ {status}: {movie.title}"))
 
