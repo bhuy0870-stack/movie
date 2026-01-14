@@ -112,15 +112,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
 
-# --- CẤU HÌNH ALLAUTH BẮT BUỘC ĐỂ VÀO THẲNG ---
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# --- CẤU HÌNH ALLAUTH TỐI ƯU ---
+# Thay thế cho ACCOUNT_AUTHENTICATION_METHOD cũ
+ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-SOCIALACCOUNT_AUTO_SIGNUP = True      # Quan trọng nhất: Tự động tạo user
-SOCIALACCOUNT_LOGIN_ON_GET = True     # Đăng nhập ngay khi bấm nút
-ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+# Quan trọng nhất: Bỏ qua bước điền Username, lấy thẳng từ Google
+SOCIALACCOUNT_AUTO_SIGNUP = True 
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+ACCOUNT_UNIQUE_EMAIL = True
+# Adapter xử lý logic đăng nhập
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
