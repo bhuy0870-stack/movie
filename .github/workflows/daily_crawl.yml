@@ -19,6 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          pip install django-webpush  # Ép cài trực tiếp ở đây
 
       - name: Run Crawl
         env:
