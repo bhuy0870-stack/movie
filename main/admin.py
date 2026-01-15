@@ -1,3 +1,6 @@
+import json
+import io
+import contextlib
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -6,7 +9,7 @@ from django.urls import path
 from django.core.management import call_command
 from django.contrib import messages
 from django.utils.html import format_html
-from django.http import JsonResponse # Thêm để xử lý AJAX
+from django.http import StreamingHttpResponse, JsonResponse
 from .models import Movie, Episode, Review, Achievement, UserAchievement
 from datetime import date
 
@@ -14,7 +17,6 @@ from datetime import date
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'show_color')
-    
     def show_color(self, obj):
         return format_html(
             '<div style="background-color: {}; width: 20px; height: 20px; border-radius: 4px; display: inline-block; margin-right: 10px; border: 1px solid #444;"></div> {}',
@@ -28,13 +30,13 @@ class UserAchievementAdmin(admin.ModelAdmin):
     list_filter = ('achievement', 'date_unlocked')
     search_fields = ('user__username', 'achievement__name')
 
-# 2. Quản lý Tập phim (Inline)
+# 2. Quản lý Tập phim
 class EpisodeInline(admin.TabularInline):
     model = Episode
     extra = 1
     fields = ('episode_name', 'server_name', 'link_ophim')
 
-# 3. Quản lý Phim (Movie)
+# 3. Quản lý Phim
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
     list_display = ('title', 'origin_name', 'release_date', 'current_episode', 'updated_at')
@@ -55,36 +57,41 @@ class MovieAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def crawl_now_view(self, request):
-        """Cào phim trả về JSON để hiện thanh tiến trình"""
-        try:
-            call_command('crawl_movies', start=1, end=2)
-            return JsonResponse({'status': 'success', 'message': '🚀 Cập nhật phim thành công!'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        """Streaming log cào phim về trình duyệt"""
+        def stream():
+            yield f"data: {json.dumps({'msg': '🚀 Khởi động hệ thống Crawler...'})}\n\n"
+            
+            # Chặn output của command để bắt log (nếu script của bạn có print)
+            f = io.StringIO()
+            try:
+                yield f"data: {json.dumps({'msg': '📡 Đang kết nối API OPhim (Trang 1 -> 2)...'})}\n\n"
+                # Thực thi lệnh crawl
+                call_command('crawl_movies', start=1, end=2)
+                yield f"data: {json.dumps({'msg': '✅ Hoàn tất lưu dữ liệu vào Neon Database.', 'done': True})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'msg': f'❌ Lỗi: {str(e)}', 'done': True})}\n\n"
+
+        return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
     def sync_tmdb_view(self, request):
-        """Đồng bộ TMDB trả về JSON"""
         try:
             call_command('update_tmdb') 
             return JsonResponse({'status': 'success', 'message': '🎬 Đồng bộ TMDB thành công!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-# 4. Quản lý Đánh giá
+# 4. Quản lý Đánh giá & User (Giữ nguyên phần bạn đã viết)
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'movie', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
     search_fields = ('comment', 'user__username', 'movie__title')
 
-# 5. Quản lý User
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_birth_date', 'display_age', 'is_staff')
-
     def get_birth_date(self, obj):
         return obj.last_name if obj.last_name else "Chưa có"
     get_birth_date.short_description = 'Ngày sinh'
-
     def display_age(self, obj):
         if obj.last_name:
             try:
