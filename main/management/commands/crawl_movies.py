@@ -5,9 +5,9 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone  # Thêm để cập nhật thời gian thực
+from django.utils import timezone
 from main.models import Movie, Episode
-from webpush import send_group_notification # Thư viện gửi thông báo
+from webpush import send_group_notification
 
 class Command(BaseCommand):
     help = 'Cào phim OPhim chuyên nghiệp và tự động đẩy phim mới lên đầu'
@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--start', type=int, default=1, help='Trang bắt đầu')
-        parser.add_argument('--end', type=int, default=3, help='Trang kết thúc (Mặc định cào 3 trang mới nhất)')
+        parser.add_argument('--end', type=int, default=3, help='Trang kết thúc')
 
     def handle(self, *args, **options):
         start_page = options['start']
@@ -29,7 +29,6 @@ class Command(BaseCommand):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
 
-        # Tăng lên 10 workers để chạy nhanh hơn trên môi trường GitHub Actions
         with ThreadPoolExecutor(max_workers=10) as executor:
             pages = range(start_page, end_page + 1)
             executor.map(self.process_page, pages)
@@ -66,51 +65,48 @@ class Command(BaseCommand):
             if not valid_eps:
                 return
 
-            # --- TỐI ƯU HÓA GENRES (Thể loại) ---
-            genre_list = []
-            for cat in m.get('category', []):
-                genre_list.append(cat['name'])
-                genre_list.append(cat['slug'])
-            combined_genres = ", ".join(genre_list)
+            # --- TỐI ƯU GENRES & COUNTRY ---
+            combined_genres = ", ".join([cat['name'] for cat in m.get('category', [])] + [cat['slug'] for cat in m.get('category', [])])
+            combined_countries = ", ".join([c['name'] for c in m.get('country', [])] + [c['slug'] for c in m.get('country', [])])
 
-            # --- TỐI ƯU HÓA COUNTRY (Quốc gia) ---
-            country_list = []
-            for c in m.get('country', []):
-                country_list.append(c['name'])
-                country_list.append(c['slug'])
-            combined_countries = ", ".join(country_list)
-
-            # --- XỬ LÝ LINK ẢNH (Phòng trường hợp link thiếu https) ---
             def fix_url(url):
                 if url and url.startswith('//'): return f"https:{url}"
                 return url
 
             with transaction.atomic():
-                # Kiểm tra số tập trước khi update để biết có tập mới không
-                old_movie = Movie.objects.filter(slug=slug).first()
+                # 1. Tìm phim cũ dựa trên slug (Tránh lỗi Duplicate ID)
+                movie = Movie.objects.filter(slug=slug).first()
                 has_new_episode = False
-                if old_movie and old_movie.current_episode != m['episode_current']:
-                    has_new_episode = True
+                created = False
 
-                # update_or_create sẽ kích hoạt auto_now=True của trường updated_at
-                movie, created = Movie.objects.update_or_create(
-                    slug=slug,
-                    defaults={
-                        'title': m['name'],
-                        'origin_name': m['origin_name'],
-                        'description': m['content'],
-                        'poster_url': fix_url(m['thumb_url']),
-                        'thumb_url': fix_url(m['poster_url']),
-                        'release_date': m['year'],
-                        'is_series': m['type'] == 'series',
-                        'total_episodes': m['episode_total'],
-                        'current_episode': m['episode_current'],
-                        'country': combined_countries,
-                        'genres': combined_genres,
-                        'updated_at': timezone.now(), # ÉP BUỘC CẬP NHẬT THỜI GIAN ĐỂ LÊN ĐẦU TRANG
-                    }
-                )
+                movie_data = {
+                    'title': m['name'],
+                    'origin_name': m['origin_name'],
+                    'description': m['content'],
+                    'poster_url': fix_url(m['thumb_url']),
+                    'thumb_url': fix_url(m['poster_url']),
+                    'release_date': m['year'],
+                    'is_series': m['type'] == 'series',
+                    'total_episodes': m['episode_total'],
+                    'current_episode': m['episode_current'],
+                    'country': combined_countries,
+                    'genres': combined_genres,
+                    'updated_at': timezone.now(), # Đẩy lên đầu trang
+                }
 
+                if movie:
+                    if movie.current_episode != m['episode_current']:
+                        has_new_episode = True
+                    # Update phim đã có
+                    for key, value in movie_data.items():
+                        setattr(movie, key, value)
+                    movie.save()
+                else:
+                    # Tạo phim mới hoàn toàn (Để Postgres tự cấp ID mới nhất)
+                    movie = Movie.objects.create(slug=slug, **movie_data)
+                    created = True
+
+                # 2. Cập nhật tập phim
                 for item in valid_eps:
                     Episode.objects.update_or_create(
                         movie=movie,
@@ -122,7 +118,7 @@ class Command(BaseCommand):
                         }
                     )
             
-            # --- GỬI THÔNG BÁO PUSH (Nếu là phim mới hoặc có tập mới) ---
+            # --- GỬI THÔNG BÁO ---
             if created or has_new_episode:
                 notification_title = "🎬 Phim mới" if created else "🔔 Tập mới"
                 payload = {

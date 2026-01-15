@@ -1,14 +1,93 @@
 {% extends "admin/change_list.html" %}
+{% load static %}
+
 {% block object-tools-items %}
     <li>
-        <a href="crawl-now/" class="addlink" style="background: #28a745 !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
+        <a href="javascript:void(0)" id="btn-crawl-action" class="addlink" style="background: #28a745 !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
             🚀 CÀO PHIM MỚI
         </a>
     </li>
     <li>
-        <a href="sync-tmdb-now/" class="addlink" style="background: #007bff !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
+        <a href="javascript:void(0)" id="btn-tmdb-action" class="addlink" style="background: #007bff !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
             🎬 ĐỒNG BỘ TMDB
         </a>
     </li>
     {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <div id="progress-wrapper" style="display: none; background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span id="progress-label" style="color: #ffcc00; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                ⏳ Đang khởi tạo...
+            </span>
+            <span id="progress-percentage" style="color: white; font-family: monospace; font-weight: bold; font-size: 1.1rem;">0%</span>
+        </div>
+        <div style="width: 100%; background: #333; height: 12px; border-radius: 10px; overflow: hidden; border: 1px solid #444;">
+            <div id="progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #28a745, #007bff); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 15px rgba(0,123,255,0.5);"></div>
+        </div>
+        <div id="progress-sub-text" style="color: #888; font-size: 0.75rem; margin-top: 8px; font-style: italic;">Vui lòng không đóng trình duyệt cho đến khi hoàn tất.</div>
+    </div>
+
+    {{ block.super }}
+
+    <script>
+        function startTask(apiUrl, btnId) {
+            const btn = document.getElementById(btnId);
+            const wrapper = document.getElementById('progress-wrapper');
+            const fill = document.getElementById('progress-bar-fill');
+            const label = document.getElementById('progress-label');
+            const percentText = document.getElementById('progress-percentage');
+            const subText = document.getElementById('progress-sub-text');
+
+            if (!confirm('Bạn có chắc chắn muốn thực hiện tác vụ này không?')) return;
+
+            // Vô hiệu hóa nút và hiện thanh tiến trình
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+            wrapper.style.display = 'block';
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            let progress = 0;
+            // Chạy tiến trình giả lập để tạo cảm giác mượt mà
+            const fakeProgress = setInterval(() => {
+                if (progress < 92) {
+                    progress += Math.random() * 3;
+                    fill.style.width = progress + '%';
+                    percentText.innerText = Math.floor(progress) + '%';
+                    
+                    if (progress > 20) label.innerText = '📡 Đang kết nối API...';
+                    if (progress > 50) label.innerText = '💾 Đang nạp dữ liệu vào Database...';
+                    if (progress > 80) label.innerText = '⚙️ Đang tối ưu hóa hình ảnh...';
+                }
+            }, 700);
+
+            // Gửi request thực tế tới Django Admin View
+            fetch(apiUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(fakeProgress);
+                fill.style.width = '100%';
+                percentText.innerText = '100%';
+                label.innerText = '✅ ' + data.message;
+                label.style.color = '#28a745';
+                subText.innerText = 'Đang làm mới danh sách phim...';
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(error => {
+                clearInterval(fakeProgress);
+                alert('❌ Lỗi hệ thống: ' + error);
+                window.location.reload();
+            });
+        }
+
+        // Gán sự kiện cho các nút
+        document.getElementById('btn-crawl-action').onclick = () => startTask('crawl-now/', 'btn-crawl-action');
+        document.getElementById('btn-tmdb-action').onclick = () => startTask('sync-tmdb-now/', 'btn-tmdb-action');
+    </script>
 {% endblock %}

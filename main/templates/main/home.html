@@ -190,7 +190,7 @@
             <div class="filter-sticky">
                 <div class="filter-scroll" id="filter-container">
                     <span class="filter-label">Khu vực:</span>
-                    <a href="?country=all" class="filter-btn {% if not current_country or current_country == 'all' %}active{% endif %}">Tất cả</a>
+                    <a href="?country=" class="filter-btn {% if not current_country %}active{% endif %}">Tất cả</a>
                     <a href="?country=viet-nam" class="filter-btn {% if current_country == 'viet-nam' %}active{% endif %}">Việt Nam</a>
                     <a href="?country=au-my" class="filter-btn {% if current_country == 'au-my' %}active{% endif %}">Âu Mỹ</a>
                     <a href="?country=han-quoc" class="filter-btn {% if current_country == 'han-quoc' %}active{% endif %}">Hàn Quốc</a>
@@ -242,16 +242,19 @@
 <script>
     const userIsAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
     
+    // Xử lý Loader
     window.addEventListener('pageshow', (e) => { if(e.persisted || document.readyState === 'complete') document.getElementById('page-loader').style.display = 'none'; });
     window.addEventListener('load', () => { document.getElementById('page-loader').style.display = 'none'; });
     function showLoaderAndGo(url) { if(url !== window.location.href) { document.getElementById('page-loader').style.display = 'flex'; window.location.href = url; } }
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Khởi tạo Swiper
         const swiper = new Swiper(".mySwiper", {
             effect: "coverflow", grabCursor: true, centeredSlides: true, slidesPerView: "auto", loop: true, autoplay: { delay: 4000 },
             coverflowEffect: { rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false },
             on: { init: function () { loadVisibleSpotlight(this); }, slideChange: function () { loadVisibleSpotlight(this); } }
         });
+
         function loadVisibleSpotlight(s) {
             s.slides.forEach(slide => {
                 const img = slide.querySelector('.spotlight-lazy');
@@ -261,28 +264,57 @@
             });
         }
 
+        // Xử lý AJAX cho bộ lọc và phân trang
         const contentArea = document.getElementById('movie-content-area');
         const filterContainer = document.getElementById('filter-container');
+
         function handleAjaxClick(e) {
             const target = e.target.closest('a');
             if (!target) return;
+
+            // Kiểm tra xem có phải link lọc hoặc link phân trang không
             if (target.classList.contains('filter-btn') || target.classList.contains('ajax-link')) {
-                e.preventDefault(); const url = target.href;
-                if (target.classList.contains('filter-btn')) { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); target.classList.add('active'); }
+                e.preventDefault();
+                const url = target.href;
+
+                // Cập nhật trạng thái active cho nút lọc
+                if (target.classList.contains('filter-btn')) {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    target.classList.add('active');
+                }
+
                 contentArea.classList.add('grid-loading');
+                
                 fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.text()).then(html => {
-                    contentArea.innerHTML = html; contentArea.classList.remove('grid-loading');
+                .then(r => {
+                    if (!r.ok) throw new Error("Network response was not ok");
+                    return r.text();
+                })
+                .then(html => {
+                    contentArea.innerHTML = html;
+                    contentArea.classList.remove('grid-loading');
                     window.history.pushState({path: url}, '', url);
-                }).catch(err => { console.error(err); contentArea.classList.remove('grid-loading'); });
+                    // Cuộn nhẹ lên đầu danh sách phim để người dùng biết nội dung đã thay đổi
+                    window.scrollTo({ top: contentArea.offsetTop - 150, behavior: 'smooth' });
+                })
+                .catch(err => {
+                    console.error(err);
+                    contentArea.classList.remove('grid-loading');
+                });
             }
         }
+
         if(filterContainer) filterContainer.addEventListener('click', handleAjaxClick);
         contentArea.addEventListener('click', handleAjaxClick);
         window.addEventListener('popstate', () => window.location.reload());
 
+        // Hiệu ứng Ambient Background khi hover phim
         const ambientBg = document.getElementById('ambient-bg');
-        const changeAmbient = (imgUrl) => { if(!imgUrl) return; ambientBg.style.backgroundImage = `url('${imgUrl}')`; ambientBg.style.opacity = '0.4'; };
+        const changeAmbient = (imgUrl) => { 
+            if(!imgUrl) return; 
+            ambientBg.style.backgroundImage = `url('${imgUrl}')`; 
+            ambientBg.style.opacity = '0.4'; 
+        };
         
         contentArea.addEventListener('mouseover', (e) => {
             const card = e.target.closest('.m-card');
@@ -291,17 +323,46 @@
                 if(img) changeAmbient(img.src || img.dataset.src);
             }
         });
+
         contentArea.addEventListener('mouseout', (e) => {
-             if (e.target.closest('.m-card')) { ambientBg.style.backgroundImage = 'none'; ambientBg.style.backgroundColor = '#050505'; }
+             if (e.target.closest('.m-card')) { 
+                 ambientBg.style.backgroundImage = 'none'; 
+                 ambientBg.style.backgroundColor = '#050505'; 
+                 ambientBg.style.opacity = '0.3';
+             }
         });
     });
 
-    function showToast(msg) { const b = document.getElementById('toast-box'); const t = document.createElement('div'); t.className = `custom-toast`; t.innerText = msg; b.appendChild(t); setTimeout(() => t.remove(), 3000); }
+    // Hàm hiển thị Toast thông báo
+    function showToast(msg) { 
+        const b = document.getElementById('toast-box'); 
+        const t = document.createElement('div'); 
+        t.className = `custom-toast animate__animated animate__fadeInUp`; 
+        t.innerText = msg; 
+        b.appendChild(t); 
+        setTimeout(() => {
+            t.classList.replace('animate__fadeInUp', 'animate__fadeOutDown');
+            setTimeout(() => t.remove(), 500);
+        }, 3000); 
+    }
+
+    // Hàm Toggle Yêu thích
     function toggleWishlist(btn, id) {
         if (!userIsAuthenticated) { showToast('Bạn cần đăng nhập!'); return; }
         btn.classList.toggle('active');
+        const icon = btn.querySelector('i');
+        
         fetch(`/toggle-watchlist/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
-        .then(r => r.json()).then(d => showToast(d.status === 'added' ? 'Đã lưu phim' : 'Đã bỏ lưu'));
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'added') {
+                icon.classList.replace('far', 'fas');
+                showToast('Đã lưu phim vào yêu thích');
+            } else {
+                icon.classList.replace('fas', 'far');
+                showToast('Đã xóa khỏi yêu thích');
+            }
+        });
     }
 </script>
 {% endblock %}
