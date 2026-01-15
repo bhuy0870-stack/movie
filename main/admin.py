@@ -47,7 +47,7 @@ class MovieAdmin(admin.ModelAdmin):
     ordering = ('-updated_at',)
     readonly_fields = ('created_at', 'updated_at')
 
-    # Template tùy chỉnh để hiện nút bấm cào phim
+    # Sử dụng template đã có thanh tiến trình của Huy
     change_list_template = "admin/movie_changelist.html"
 
     def get_urls(self):
@@ -59,25 +59,25 @@ class MovieAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def crawl_now_view(self, request):
-        """Chạy cào phim dưới dạng Thread ngầm để tránh Render SIGKILL/Timeout"""
+        """Hàm xử lý cào phim (Trả về JSON ngay lập tức để hiện thanh tiến trình)"""
         def run_crawl():
             try:
-                # Cào 2 trang mới nhất để cập nhật phim
+                # Chỉ cào 2 trang để tránh Render bị đầy RAM
                 call_command('crawl_movies', start=1, end=2)
             except Exception as e:
                 print(f"Lỗi cào phim ngầm: {e}")
 
-        # Khởi chạy luồng riêng để trả về response ngay lập tức cho trình duyệt
+        # Chạy ngầm để Gunicorn không giết tiến trình (SIGKILL)
         thread = threading.Thread(target=run_crawl)
         thread.start()
 
         return JsonResponse({
             'status': 'success', 
-            'message': '🚀 Tiến trình đã bắt đầu chạy ngầm! Hệ thống đang cập nhật, vui lòng đợi một chút rồi tải lại trang.'
+            'message': '🚀 Lệnh cào phim đã được gửi! Phim đang được cập nhật ngầm, hãy xem bảng log phía trên.'
         })
 
     def sync_tmdb_view(self, request):
-        """Đồng bộ TMDB chạy ngầm tương tự crawl"""
+        """Hàm xử lý đồng bộ TMDB"""
         def run_sync():
             try:
                 call_command('update_tmdb')
@@ -89,7 +89,7 @@ class MovieAdmin(admin.ModelAdmin):
 
         return JsonResponse({
             'status': 'success', 
-            'message': '🎬 Đã bắt đầu đồng bộ Poster/Rating từ TMDB ngầm!'
+            'message': '🎬 Đã kích hoạt đồng bộ TMDB! Hình ảnh đang được cập nhật ngầm.'
         })
 
 # --- 4. Quản lý Đánh giá (Review) ---
@@ -99,12 +99,11 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ('rating', 'created_at')
     search_fields = ('comment', 'user__username', 'movie__title')
 
-# --- 5. Quản lý User (Tuổi & Ngày sinh) ---
+# --- 5. Quản lý User (Chỉnh sửa hiển thị Tuổi) ---
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_birth_date', 'display_age', 'is_staff')
 
     def get_birth_date(self, obj):
-        # Sử dụng last_name để chứa ngày sinh (mẹo nhanh)
         return obj.last_name if obj.last_name else "Chưa có"
     get_birth_date.short_description = 'Ngày sinh'
 
@@ -114,8 +113,6 @@ class CustomUserAdmin(UserAdmin):
                 birth_date = date.fromisoformat(obj.last_name)
                 today = date.today()
                 age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-                
-                # Highlight tuổi
                 color = "green" if age >= 18 else "orange"
                 return format_html('<b style="color: {};">{} tuổi</b>', color, age)
             except:
@@ -123,6 +120,6 @@ class CustomUserAdmin(UserAdmin):
         return "N/A"
     display_age.short_description = 'Tuổi'
 
-# Đăng ký lại User Admin
+# Đăng ký lại hệ thống User
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

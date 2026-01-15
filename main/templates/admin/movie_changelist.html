@@ -16,24 +16,25 @@
 {% endblock %}
 
 {% block content %}
-    <div id="crawler-box" style="display: none; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    <div id="crawler-box" style="display: none; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <span id="p-status" style="color: #ffcc00; font-weight: bold; font-family: 'Courier New';">⏳ ĐANG XỬ LÝ...</span>
-            <span id="p-percent" style="color: white; font-weight: bold;">0%</span>
+            <span id="p-status" style="color: #ffcc00; font-weight: bold; font-family: 'Courier New', monospace; letter-spacing: 1px;">⏳ ĐANG XỬ LÝ...</span>
+            <span id="p-percent" style="color: white; font-weight: bold; font-family: monospace;">0%</span>
         </div>
         
-        <div style="width: 100%; background: #222; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 20px; border: 1px solid #444;">
-            <div id="p-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #28a745, #007bff); transition: width 0.3s;"></div>
+        <div style="width: 100%; background: #222; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 20px; border: 1px solid #444;">
+            <div id="p-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #28a745, #007bff); transition: width 0.4s ease;"></div>
         </div>
 
         <div id="p-log" style="background: #000; height: 180px; overflow-y: auto; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #00ff00; border: 1px solid #444; border-radius: 5px; line-height: 1.6;">
-            <div style="color: #888;">[INFO] Khởi tạo môi trường...</div>
+            <div style="color: #888;">[INFO] Hệ thống sẵn sàng thực thi tác vụ...</div>
         </div>
     </div>
 
     {{ block.super }}
 
     <script>
+        // Hàm ghi nhật ký vào bảng log
         function updateLog(message, isHeader = false) {
             const logBox = document.getElementById('p-log');
             const entry = document.createElement('div');
@@ -44,67 +45,97 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        document.getElementById('btn-crawl-logic').onclick = function() {
+        // Hàm xử lý chạy tác vụ chung (Crawl hoặc TMDB)
+        function runTask(apiUrl, btnId, taskName) {
             const box = document.getElementById('crawler-box');
             const bar = document.getElementById('p-bar');
             const percentText = document.getElementById('p-percent');
             const statusText = document.getElementById('p-status');
-            const btn = this;
+            const btn = document.getElementById(btnId);
 
-            if (!confirm("Bắt đầu tiến trình cào phim?")) return;
+            if (!confirm(`Xác nhận thực hiện: ${taskName}?`)) return;
 
-            // Reset và hiển thị giao diện
+            // Hiển thị khung log và khóa nút bấm
             box.style.display = 'block';
             btn.disabled = true;
             btn.style.opacity = '0.5';
-            updateLog('Gửi yêu cầu đến máy chủ...', true);
+            btn.style.pointerEvents = 'none';
+            
+            bar.style.width = '0%';
+            percentText.innerText = '0%';
+            statusText.innerText = `⏳ ĐANG CHẠY: ${taskName}`;
+            updateLog(`Gửi yêu cầu ${taskName} đến máy chủ...`, true);
 
             let progress = 0;
             const timer = setInterval(() => {
-                if (progress < 90) {
-                    progress += 0.5;
+                if (progress < 92) {
+                    progress += 0.4;
                     bar.style.width = progress + '%';
                     percentText.innerText = Math.floor(progress) + '%';
                 }
-            }, 800);
+            }, 600);
 
-            fetch('crawl-now/')
+            fetch(apiUrl)
                 .then(response => {
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    
-                    function read() {
-                        return reader.read().then(({ done, value }) => {
-                            if (done) return;
-                            const chunk = decoder.decode(value);
-                            const lines = chunk.split('\n');
-                            
-                            lines.forEach(line => {
-                                if (line.startsWith('data: ')) {
-                                    try {
-                                        const data = JSON.parse(line.substring(6));
-                                        updateLog(data.msg);
-                                        if (data.done) {
-                                            clearInterval(timer);
-                                            bar.style.width = '100%';
-                                            percentText.innerText = '100%';
-                                            statusText.innerText = '✅ HOÀN THÀNH!';
-                                            setTimeout(() => window.location.reload(), 2000);
-                                        }
-                                    } catch(e) {}
-                                }
+                    // Nếu server trả về stream (như crawl-now)
+                    if (response.headers.get('content-type')?.includes('text/event-stream')) {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        
+                        function read() {
+                            return reader.read().then(({ done, value }) => {
+                                if (done) return;
+                                const chunk = decoder.decode(value);
+                                const lines = chunk.split('\n');
+                                
+                                lines.forEach(line => {
+                                    if (line.startsWith('data: ')) {
+                                        try {
+                                            const data = JSON.parse(line.substring(6));
+                                            updateLog(data.msg);
+                                            if (data.done) {
+                                                finishTask(timer, bar, percentText, statusText);
+                                            }
+                                        } catch(e) {}
+                                    }
+                                });
+                                return read();
                             });
-                            return read();
+                        }
+                        return read();
+                    } else {
+                        // Nếu server trả về JSON (như sync-tmdb-now)
+                        return response.json().then(data => {
+                            updateLog(data.message);
+                            finishTask(timer, bar, percentText, statusText);
                         });
                     }
-                    return read();
                 })
                 .catch(err => {
                     clearInterval(timer);
                     updateLog('❌ Lỗi kết nối: ' + err);
                     btn.disabled = false;
                     btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
                 });
+        }
+
+        function finishTask(timer, bar, percentText, statusText) {
+            clearInterval(timer);
+            bar.style.width = '100%';
+            percentText.innerText = '100%';
+            statusText.innerText = '✅ TÁC VỤ HOÀN TẤT!';
+            updateLog('Hệ thống sẽ tải lại trang sau 2 giây...', true);
+            setTimeout(() => window.location.reload(), 2000);
+        }
+
+        // Gán sự kiện click cho 2 nút
+        document.getElementById('btn-crawl-logic').onclick = function() {
+            runTask('crawl-now/', 'btn-crawl-logic', 'CÀO PHIM OPHIM');
+        };
+
+        document.getElementById('btn-tmdb-logic').onclick = function() {
+            runTask('sync-tmdb-now/', 'btn-tmdb-logic', 'ĐỒNG BỘ TMDB');
         };
     </script>
 {% endblock %}
