@@ -1,6 +1,4 @@
 import json
-import io
-import contextlib
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -9,9 +7,10 @@ from django.urls import path
 from django.core.management import call_command
 from django.contrib import messages
 from django.utils.html import format_html
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import JsonResponse
 from .models import Movie, Episode, Review, Achievement, UserAchievement
 from datetime import date
+import threading # QUAN TRỌNG: Để chạy ngầm không bị timeout
 
 # 1. Quản lý Thành tích
 @admin.register(Achievement)
@@ -57,21 +56,23 @@ class MovieAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def crawl_now_view(self, request):
-        """Streaming log cào phim về trình duyệt"""
-        def stream():
-            yield f"data: {json.dumps({'msg': '🚀 Khởi động hệ thống Crawler...'})}\n\n"
-            
-            # Chặn output của command để bắt log (nếu script của bạn có print)
-            f = io.StringIO()
+        """Chạy cào phim dưới dạng Thread ngầm để tránh Render SIGKILL/Timeout"""
+        def run_crawl():
             try:
-                yield f"data: {json.dumps({'msg': '📡 Đang kết nối API OPhim (Trang 1 -> 2)...'})}\n\n"
-                # Thực thi lệnh crawl
+                # Cào nhẹ 2 trang để tránh tràn RAM Render
                 call_command('crawl_movies', start=1, end=2)
-                yield f"data: {json.dumps({'msg': '✅ Hoàn tất lưu dữ liệu vào Neon Database.', 'done': True})}\n\n"
             except Exception as e:
-                yield f"data: {json.dumps({'msg': f'❌ Lỗi: {str(e)}', 'done': True})}\n\n"
+                print(f"Lỗi cào phim ngầm: {e}")
 
-        return StreamingHttpResponse(stream(), content_type='text/event-stream')
+        # Khởi tạo và chạy luồng riêng
+        thread = threading.Thread(target=run_crawl)
+        thread.start()
+
+        # Trả về JSON ngay lập tức để JS hiển thị thanh tiến trình giả lập
+        return JsonResponse({
+            'status': 'success', 
+            'message': '🚀 Tiến trình đã bắt đầu! Phim đang được cào ngầm, vui lòng đợi 1-2 phút rồi F5 trang.'
+        })
 
     def sync_tmdb_view(self, request):
         try:
@@ -80,7 +81,7 @@ class MovieAdmin(admin.ModelAdmin):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-# 4. Quản lý Đánh giá & User (Giữ nguyên phần bạn đã viết)
+# 4. Quản lý Đánh giá & User
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'movie', 'rating', 'created_at')

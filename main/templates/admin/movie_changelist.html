@@ -3,14 +3,14 @@
 
 {% block object-tools-items %}
     <li>
-        <a href="javascript:void(0)" id="btn-crawl-logic" class="addlink" style="background: #28a745 !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
+        <button type="button" id="btn-crawl-logic" class="addlink" style="background: #28a745 !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px; border: none; cursor: pointer;">
             🚀 CÀO PHIM MỚI
-        </a>
+        </button>
     </li>
     <li>
-        <a href="javascript:void(0)" id="btn-tmdb-logic" class="addlink" style="background: #007bff !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px;">
+        <button type="button" id="btn-tmdb-logic" class="addlink" style="background: #007bff !important; color: white; font-weight: bold; border-radius: 4px; padding: 10px 15px; border: none; cursor: pointer;">
             🎬 ĐỒNG BỘ TMDB
-        </a>
+        </button>
     </li>
     {{ block.super }}
 {% endblock %}
@@ -27,7 +27,7 @@
         </div>
 
         <div id="p-log" style="background: #000; height: 180px; overflow-y: auto; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #00ff00; border: 1px solid #444; border-radius: 5px; line-height: 1.6;">
-            <div style="color: #888;">[INFO] Chờ lệnh từ quản trị viên...</div>
+            <div style="color: #888;">[INFO] Hệ thống sẵn sàng...</div>
         </div>
     </div>
 
@@ -45,27 +45,24 @@
         }
 
         document.getElementById('btn-crawl-logic').onclick = function() {
-            if(!confirm('Bắt đầu cào phim OPhim (Trang 1-2) và ghi nhật ký?')) return;
-            
-            const btn = this;
             const box = document.getElementById('crawler-box');
             const bar = document.getElementById('p-bar');
             const percentText = document.getElementById('p-percent');
             const statusText = document.getElementById('p-status');
 
-            btn.style.pointerEvents = 'none'; btn.style.opacity = '0.5';
-            box.style.display = 'block';
-            updateLog('Bắt đầu tiến trình cào phim...', true);
+            box.style.display = 'block'; // Hiển thị khung log ngay lập tức
+            updateLog('Bắt đầu gửi yêu cầu cào phim...', true);
 
             let progress = 0;
             const timer = setInterval(() => {
                 if (progress < 95) {
-                    progress += 0.3;
+                    progress += 0.5;
                     bar.style.width = progress + '%';
                     percentText.innerText = Math.floor(progress) + '%';
                 }
-            }, 600);
+            }, 500);
 
+            // Fetch dữ liệu từ API Admin
             fetch('crawl-now/')
                 .then(response => {
                     const reader = response.body.getReader();
@@ -78,34 +75,23 @@
                             const lines = chunk.split('\n');
                             lines.forEach(line => {
                                 if (line.startsWith('data: ')) {
-                                    const data = JSON.parse(line.substring(6));
-                                    updateLog(data.msg);
-                                    if (data.done) {
-                                        clearInterval(timer);
-                                        bar.style.width = '100%';
-                                        percentText.innerText = '100%';
-                                        statusText.innerText = '✅ HOÀN THÀNH!';
-                                        updateLog('💡 Hệ thống sẽ tự động tải lại sau 2 giây.', true);
-                                        setTimeout(() => window.location.reload(), 2000);
-                                    }
+                                    try {
+                                        const data = JSON.parse(line.substring(6));
+                                        updateLog(data.msg);
+                                        if (data.done) {
+                                            clearInterval(timer);
+                                            bar.style.width = '100%';
+                                            percentText.innerText = '100%';
+                                            statusText.innerText = '✅ HOÀN THÀNH!';
+                                            setTimeout(() => window.location.reload(), 2000);
+                                        }
+                                    } catch(e) {}
                                 }
                             });
                             return read();
                         });
                     }
                     return read();
-                });
-        };
-
-        // Nút TMDB (Không dùng stream, dùng AJAX đơn giản)
-        document.getElementById('btn-tmdb-logic').onclick = function() {
-            if(!confirm('Cập nhật Poster/Rating từ TMDB?')) return;
-            updateLog('🚀 Đang gọi TMDB API...', true);
-            fetch('sync-tmdb-now/')
-                .then(res => res.json())
-                .then(data => {
-                    updateLog(data.message);
-                    setTimeout(() => window.location.reload(), 1000);
                 });
         };
     </script>
