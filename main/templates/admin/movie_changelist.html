@@ -18,7 +18,7 @@
 {% block content %}
     <div id="crawler-box" style="display: none; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <span id="p-status" style="color: #ffcc00; font-weight: bold; font-family: 'Courier New';">⏳ ĐANG CHUẨN BỊ...</span>
+            <span id="p-status" style="color: #ffcc00; font-weight: bold; font-family: 'Courier New';">⏳ ĐANG XỬ LÝ...</span>
             <span id="p-percent" style="color: white; font-weight: bold;">0%</span>
         </div>
         
@@ -27,7 +27,7 @@
         </div>
 
         <div id="p-log" style="background: #000; height: 180px; overflow-y: auto; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #00ff00; border: 1px solid #444; border-radius: 5px; line-height: 1.6;">
-            <div style="color: #888;">[INFO] Hệ thống sẵn sàng...</div>
+            <div style="color: #888;">[INFO] Khởi tạo môi trường...</div>
         </div>
     </div>
 
@@ -49,20 +49,25 @@
             const bar = document.getElementById('p-bar');
             const percentText = document.getElementById('p-percent');
             const statusText = document.getElementById('p-status');
+            const btn = this;
 
-            box.style.display = 'block'; // Hiển thị khung log ngay lập tức
-            updateLog('Bắt đầu gửi yêu cầu cào phim...', true);
+            if (!confirm("Bắt đầu tiến trình cào phim?")) return;
+
+            // Reset và hiển thị giao diện
+            box.style.display = 'block';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            updateLog('Gửi yêu cầu đến máy chủ...', true);
 
             let progress = 0;
             const timer = setInterval(() => {
-                if (progress < 95) {
+                if (progress < 90) {
                     progress += 0.5;
                     bar.style.width = progress + '%';
                     percentText.innerText = Math.floor(progress) + '%';
                 }
-            }, 500);
+            }, 800);
 
-            // Fetch dữ liệu từ API Admin
             fetch('crawl-now/')
                 .then(response => {
                     const reader = response.body.getReader();
@@ -73,6 +78,7 @@
                             if (done) return;
                             const chunk = decoder.decode(value);
                             const lines = chunk.split('\n');
+                            
                             lines.forEach(line => {
                                 if (line.startsWith('data: ')) {
                                     try {
@@ -92,6 +98,12 @@
                         });
                     }
                     return read();
+                })
+                .catch(err => {
+                    clearInterval(timer);
+                    updateLog('❌ Lỗi kết nối: ' + err);
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
                 });
         };
     </script>

@@ -1,4 +1,6 @@
 import json
+import threading
+from datetime import date
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -9,14 +11,14 @@ from django.contrib import messages
 from django.utils.html import format_html
 from django.http import JsonResponse
 from .models import Movie, Episode, Review, Achievement, UserAchievement
-from datetime import date
-import threading # QUAN TRỌNG: Để chạy ngầm không bị timeout
 
-# 1. Quản lý Thành tích
+# --- 1. Quản lý Thành tích (Achievement) ---
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'show_color')
+    
     def show_color(self, obj):
+        # Hiển thị ô màu thực tế trong danh sách admin
         return format_html(
             '<div style="background-color: {}; width: 20px; height: 20px; border-radius: 4px; display: inline-block; margin-right: 10px; border: 1px solid #444;"></div> {}',
             obj.color, obj.color
@@ -29,13 +31,13 @@ class UserAchievementAdmin(admin.ModelAdmin):
     list_filter = ('achievement', 'date_unlocked')
     search_fields = ('user__username', 'achievement__name')
 
-# 2. Quản lý Tập phim
+# --- 2. Quản lý Tập phim (Inline) ---
 class EpisodeInline(admin.TabularInline):
     model = Episode
     extra = 1
     fields = ('episode_name', 'server_name', 'link_ophim')
 
-# 3. Quản lý Phim
+# --- 3. Quản lý Phim (Movie) ---
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
     list_display = ('title', 'origin_name', 'release_date', 'current_episode', 'updated_at')
@@ -45,6 +47,7 @@ class MovieAdmin(admin.ModelAdmin):
     ordering = ('-updated_at',)
     readonly_fields = ('created_at', 'updated_at')
 
+    # Template tùy chỉnh để hiện nút bấm cào phim
     change_list_template = "admin/movie_changelist.html"
 
     def get_urls(self):
@@ -59,46 +62,60 @@ class MovieAdmin(admin.ModelAdmin):
         """Chạy cào phim dưới dạng Thread ngầm để tránh Render SIGKILL/Timeout"""
         def run_crawl():
             try:
-                # Cào nhẹ 2 trang để tránh tràn RAM Render
+                # Cào 2 trang mới nhất để cập nhật phim
                 call_command('crawl_movies', start=1, end=2)
             except Exception as e:
                 print(f"Lỗi cào phim ngầm: {e}")
 
-        # Khởi tạo và chạy luồng riêng
+        # Khởi chạy luồng riêng để trả về response ngay lập tức cho trình duyệt
         thread = threading.Thread(target=run_crawl)
         thread.start()
 
-        # Trả về JSON ngay lập tức để JS hiển thị thanh tiến trình giả lập
         return JsonResponse({
             'status': 'success', 
-            'message': '🚀 Tiến trình đã bắt đầu! Phim đang được cào ngầm, vui lòng đợi 1-2 phút rồi F5 trang.'
+            'message': '🚀 Tiến trình đã bắt đầu chạy ngầm! Hệ thống đang cập nhật, vui lòng đợi một chút rồi tải lại trang.'
         })
 
     def sync_tmdb_view(self, request):
-        try:
-            call_command('update_tmdb') 
-            return JsonResponse({'status': 'success', 'message': '🎬 Đồng bộ TMDB thành công!'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        """Đồng bộ TMDB chạy ngầm tương tự crawl"""
+        def run_sync():
+            try:
+                call_command('update_tmdb')
+            except Exception as e:
+                print(f"Lỗi TMDB ngầm: {e}")
 
-# 4. Quản lý Đánh giá & User
+        thread = threading.Thread(target=run_sync)
+        thread.start()
+
+        return JsonResponse({
+            'status': 'success', 
+            'message': '🎬 Đã bắt đầu đồng bộ Poster/Rating từ TMDB ngầm!'
+        })
+
+# --- 4. Quản lý Đánh giá (Review) ---
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'movie', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
     search_fields = ('comment', 'user__username', 'movie__title')
 
+# --- 5. Quản lý User (Tuổi & Ngày sinh) ---
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_birth_date', 'display_age', 'is_staff')
+
     def get_birth_date(self, obj):
+        # Sử dụng last_name để chứa ngày sinh (mẹo nhanh)
         return obj.last_name if obj.last_name else "Chưa có"
     get_birth_date.short_description = 'Ngày sinh'
+
     def display_age(self, obj):
         if obj.last_name:
             try:
                 birth_date = date.fromisoformat(obj.last_name)
                 today = date.today()
                 age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+                
+                # Highlight tuổi
                 color = "green" if age >= 18 else "orange"
                 return format_html('<b style="color: {};">{} tuổi</b>', color, age)
             except:
@@ -106,5 +123,6 @@ class CustomUserAdmin(UserAdmin):
         return "N/A"
     display_age.short_description = 'Tuổi'
 
+# Đăng ký lại User Admin
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
