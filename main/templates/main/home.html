@@ -18,7 +18,7 @@
     }
 
     body { cursor: auto !important; }
-    a, button, .m-card, .swiper-slide, .donate-widget-cute { cursor: pointer !important; }
+    a, button, .m-card, .swiper-slide { cursor: pointer !important; }
 
     #page-loader { position: fixed; inset: 0; background: #050505; z-index: 10000; display: none; justify-content: center; align-items: center; }
     .spinner-cinema { width: 45px; height: 45px; border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--primary-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -116,29 +116,9 @@
     .m-meta span.quality { color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 0 4px; border-radius: 4px; font-size: 0.6rem; }
 
     .sidebar-wrapper { position: sticky; top: 100px; padding: 0 15px; }
-
-    /* CSS CHO WIDGET DONATE MỚI (OPTION 2) */
-    .donate-widget-cute {
-        background: rgba(255, 204, 51, 0.1);
-        border: 1px solid rgba(255, 204, 51, 0.3);
-        border-radius: 16px;
-        padding: 12px 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: 0.3s;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-    }
-    .donate-widget-cute:hover {
-        background: rgba(255, 204, 51, 0.2);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        border-color: var(--primary-gold);
-    }
-    /* KẾT THÚC CSS WIDGET DONATE MỚI */
-
+    .donate-widget-cute { background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border: 1px solid var(--glass-border); border-radius: 28px; padding: 35px 25px; text-align: center; }
+    .btn-cute { background: #fff; color: #000; font-weight: 800; border: none; padding: 14px; width: 100%; border-radius: 50px; margin-top: 25px; font-size: 0.85rem; letter-spacing: 1px; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .btn-cute:hover { transform: translateY(-5px); background: var(--primary-gold); }
     .social-card { display: flex; align-items: center; gap: 15px; padding: 18px; background: var(--surface); border: 1px solid var(--glass-border); border-radius: 20px; text-decoration: none !important; margin-bottom: 12px; transition: 0.3s; }
     .social-card:hover { background: rgba(255,255,255,0.06); transform: translateX(8px); border-color: rgba(255,255,255,0.2); }
     
@@ -228,15 +208,11 @@
 
         <div class="col-lg-3 sidebar-col mt-5 mt-lg-0">
             <div class="sidebar-wrapper">
-                <div class="donate-widget-cute mb-4" data-bs-toggle="modal" data-bs-target="#donateModal">
-                    <div class="d-flex align-items-center gap-3">
-                        <div style="font-size: 1.5rem;">☕</div>
-                        <div style="text-align: left;">
-                            <div class="fw-bold text-white" style="font-size: 0.95rem;">Mời BQH ly Cafe</div>
-                            <div class="text-white-50" style="font-size: 0.75rem;">Ủng hộ Server mượt mà</div>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right text-warning small"></i>
+                <div class="donate-widget-cute mb-5">
+                    <div style="font-size: 2.5rem;">☕</div>
+                    <h5 class="fw-bold text-white mt-3" style="font-family: var(--text-display);">Mời BQH ly Cafe</h5>
+                    <p class="text-white-50 small px-3">Sự ủng hộ của bạn giúp tớ duy trì máy chủ mượt mà mỗi ngày.</p>
+                    <button class="btn-cute" data-bs-toggle="modal" data-bs-target="#donateModal">ỦNG HỘ TÔI</button>
                 </div>
                 <div class="mb-4">
                     <h6 class="fw-bold text-white-50 small mb-4 letter-spacing-2">SOCIALS</h6>
@@ -256,35 +232,6 @@
                 <div class="text-center mt-5 text-white-50 small">
                     <p>© 2026 BQH MOVIE</p><p style="font-size: 10px; opacity: 0.5;">Cinema Experience At Home</p>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
-        <div class="modal-content" style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden;">
-            <div class="modal-header border-0 pb-0" style="padding: 20px 20px 10px;">
-                <h6 class="modal-title text-white fw-bold" style="font-family: 'Outfit'; letter-spacing: 0.5px;">ỦNG HỘ TÁC GIẢ</h6>
-                <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.7rem;"></button>
-            </div>
-            <div class="modal-body text-center p-4">
-                <div class="qr-wrapper mb-3" style="background: #fff; padding: 10px; border-radius: 16px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://me.momo.vn/banhquanghuy" 
-                         alt="QR Donate" style="width: 180px; height: 180px; display: block;">
-                </div>
-                <div class="info-box">
-                    <p class="text-white-50 small mb-2">Quét mã để mời mình ly cafe nhé!</p>
-                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
-                        <div class="text-warning fw-bold small">MB BANK</div>
-                        <div class="text-white fw-bold" style="letter-spacing: 1px;">0870 00 22 88 18</div>
-                        <div class="text-white-50" style="font-size: 10px; text-transform: uppercase;">BANH QUANG HUY</div>
-                    </div>
-                </div>
-                <button type="button" class="btn w-100 mt-3" data-bs-dismiss="modal" 
-                        style="background: #fff; color: #000; font-weight: 800; border-radius: 12px; font-size: 0.8rem; padding: 10px;">
-                    ĐÓNG
-                </button>
             </div>
         </div>
     </div>
