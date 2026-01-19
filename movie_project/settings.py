@@ -108,34 +108,50 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# --- CẤU HÌNH ALLAUTH (LOGIN GOOGLE) ---
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = 'home'
+# --- CẤU HÌNH ALLAUTH TỐI ƯU (ĐÃ SỬA) ---
 
-# --- CẤU HÌNH ALLAUTH TỐI ƯU ---
-# Thay thế cho ACCOUNT_AUTHENTICATION_METHOD cũ
-ACCOUNT_LOGIN_METHODS = {'username', 'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email', 'username'] # Hoặc tùy biến theo nhu cầu
+# 1. Cấu hình đăng nhập cơ bản
+# Sử dụng Email làm phương thức chính để đăng nhập/định danh
+ACCOUNT_AUTHENTICATION_METHOD = 'email' 
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = "none"
-LOGIN_REDIRECT_URL = '/'
-
-
-# Quan trọng nhất: Bỏ qua bước điền Username, lấy thẳng từ Google
-SOCIALACCOUNT_AUTO_SIGNUP = True 
-SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_UNIQUE_EMAIL = True
-# Adapter xử lý logic đăng nhập
+
+# 2. Xử lý Username (QUAN TRỌNG)
+# Không bắt buộc người dùng nhập username (hệ thống tự sinh ngầm từ email)
+ACCOUNT_USERNAME_REQUIRED = False 
+# Không hiển thị trường nào trong form đăng ký thêm (để bỏ qua trang Sign Up)
+ACCOUNT_SIGNUP_FIELDS = [] 
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username' # Vẫn giữ trường này trong DB
+ACCOUNT_PRESERVE_USERNAME_CASING = False
+
+# 3. Bỏ qua xác thực Email (Vì Google đã xác thực rồi)
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# 4. Cấu hình Google (Auto Signup)
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True # Bỏ qua trang "Tiếp tục với Google"
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Adapter xử lý logic (Mặc định)
 SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
     }
 }
+
+# --- CÁC CẤU HÌNH KHÁC GIỮ NGUYÊN ---
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/' # Đổi thành '/' cho gọn thay vì tên view 'home'
 
 # --- CẤU HÌNH AN TOÀN ---
 CSRF_TRUSTED_ORIGINS = [
