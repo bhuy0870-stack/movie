@@ -178,8 +178,12 @@
         .extremely-small { font-size: 10px !important; line-height: 1.2; }
         .heart-particle { position: fixed; pointer-events: none; font-size: 20px; z-index: 10000; animation: heartFly 1s ease-out forwards; }
         @keyframes heartFly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-        /* Modal Style đã được xử lý ở dưới, không cần CSS thừa ở đây */
+        
         .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; flex-shrink: 0; }
+        
+        /* COPY BUTTON FEEDBACK */
+        .copy-feedback { position: absolute; background: #28a745; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; top: -30px; right: 0; opacity: 0; transition: 0.3s; }
+        .copy-feedback.show { opacity: 1; top: -40px; }
     </style>
 </head>
 <body>
@@ -303,30 +307,43 @@
     </div>
 
     <div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
-            <div class="modal-content" style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden;">
-                <div class="modal-header border-0 pb-0" style="padding: 20px 20px 10px;">
-                    <h6 class="modal-title text-white fw-bold" style="font-family: 'Outfit'; letter-spacing: 0.5px;">ỦNG HỘ TÁC GIẢ</h6>
-                    <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.7rem;"></button>
-                </div>
-                <div class="modal-body text-center p-4">
-                    <div class="qr-wrapper mb-3" style="background: #fff; padding: 10px; border-radius: 16px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                        <img src="{% static 'images/vcb_qr.jpg' %}" 
-                             onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=1025765518'" 
-                             alt="QR Vietcombank" style="width: 180px; height: 180px; display: block;">
-                    </div>
-                    <div class="info-box">
-                        <p class="text-white-50 small mb-2">Quét mã để mời mình ly cafe nhé!</p>
-                        <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.2);">
-                            <div class="text-warning fw-bold small">VIETCOMBANK</div>
-                            <div class="text-white fw-bold" style="letter-spacing: 1px; font-size: 1.1rem;">1025765518</div>
-                            <div class="text-white-50" style="font-size: 10px; text-transform: uppercase;">BANH QUANG HUY</div>
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 650px;">
+            <div class="modal-content overflow-hidden" style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;">
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 d-flex align-items-center justify-content-center bg-white p-4" style="min-height: 250px;">
+                            <img src="https://img.vietqr.io/image/vcb-1025765518-compact.jpg" 
+                                 onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=1025765518'"
+                                 alt="QR Donate" style="width: 100%; max-width: 180px; display: block;">
+                        </div>
+                        
+                        <div class="col-md-7 p-4 d-flex flex-column justify-content-center position-relative">
+                            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                            
+                            <h5 class="text-white fw-bold mb-1" style="font-family: 'Outfit'; letter-spacing: 0.5px;">CẢM ƠN BẠN ❤️</h5>
+                            <p class="text-white-50 small mb-4">Sự ủng hộ của bạn giúp Server luôn mượt mà.</p>
+                            
+                            <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2);">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white-50 small">Ngân hàng</span>
+                                    <span class="text-warning fw-bold small">VIETCOMBANK</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white-50 small">Số tài khoản</span>
+                                    <span class="text-white fw-bold fs-5" id="bank-num">1025765518</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-white-50 small">Chủ tài khoản</span>
+                                    <span class="text-white fw-bold small text-uppercase">BANH QUANG HUY</span>
+                                </div>
+                            </div>
+                            
+                            <button class="btn w-100 fw-bold position-relative" onclick="copyBankNum()" style="background: #fff; color: #000; border-radius: 12px; padding: 10px;">
+                                <i class="fas fa-copy me-2"></i> SAO CHÉP STK
+                                <div id="copy-msg" class="copy-feedback">Đã chép!</div>
+                            </button>
                         </div>
                     </div>
-                    <button type="button" class="btn w-100 mt-3" data-bs-dismiss="modal" 
-                            style="background: #fff; color: #000; font-weight: 800; border-radius: 12px; font-size: 0.8rem; padding: 10px;">
-                        ĐÓNG
-                    </button>
                 </div>
             </div>
         </div>
@@ -338,7 +355,7 @@
             const navContent = document.getElementById('navContent');
             const toggler = document.querySelector('.navbar-toggler');
             
-            // Auto close mobile menu on click
+            // Auto close mobile menu
             document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 992) {
@@ -348,7 +365,7 @@
                 });
             });
 
-            // Click outside to close menu
+            // Click outside
             document.addEventListener('click', function(event) {
                 if (window.innerWidth < 992) {
                     const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
@@ -379,39 +396,40 @@
                     })
                     .then(response => response.text())
                     .then(html => {
-                        // Trích xuất phần kết quả từ HTML trả về (đơn giản hóa)
-                        // Trong thực tế nên có 1 API endpoint trả về JSON thì tốt hơn
-                        // Ở đây ta giả lập hiển thị box nếu có kết quả
-                        // Để đơn giản, bạn có thể redirect hoặc xử lý logic search AJAX chi tiết hơn
-                        resultsBox.innerHTML = '<div class="p-2 text-white-50 small text-center">Nhấn Enter để tìm kiếm đầy đủ...</div>';
+                        resultsBox.innerHTML = '<div class="p-2 text-white-50 small text-center">Nhấn Enter để xem kết quả...</div>';
                         resultsBox.style.display = 'block';
                     });
                 }, 500);
             });
         });
 
-        // Hiệu ứng tim bay khi bấm Donate
+        // Hiệu ứng tim bay
         function createHeartBurst(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const count = 10;
-
             for (let i = 0; i < count; i++) {
                 const heart = document.createElement('i');
                 heart.className = 'fas fa-heart heart-particle text-danger';
                 heart.style.left = rect.left + rect.width / 2 + 'px';
                 heart.style.top = rect.top + rect.height / 2 + 'px';
-                
-                // Random hướng bay
                 const tx = (Math.random() - 0.5) * 100 + 'px';
                 const ty = (Math.random() - 1) * 100 - 50 + 'px';
-                
                 heart.style.setProperty('--tx', tx);
                 heart.style.setProperty('--ty', ty);
-                
                 document.body.appendChild(heart);
                 setTimeout(() => heart.remove(), 1000);
             }
+        }
+
+        // Copy STK function
+        function copyBankNum() {
+            const num = document.getElementById('bank-num').innerText;
+            navigator.clipboard.writeText(num).then(() => {
+                const msg = document.getElementById('copy-msg');
+                msg.classList.add('show');
+                setTimeout(() => msg.classList.remove('show'), 2000);
+            });
         }
     </script>
 </body>
