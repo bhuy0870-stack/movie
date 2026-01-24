@@ -17,6 +17,7 @@ ALLOWED_HOSTS = ['*']
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
 INSTALLED_APPS = [
     'jazzmin',
+    'django.contrib.sitemaps',
     'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
