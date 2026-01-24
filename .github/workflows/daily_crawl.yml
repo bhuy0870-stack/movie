@@ -1,61 +1,30 @@
-name: Cập nhật phim và AI hàng ngày
+name: Cập nhật phim hàng ngày
 
 on:
-  schedule:
-    - cron: '0 */6 * * *' # Chạy mỗi 6 tiếng
-  workflow_dispatch:      # Cho phép bấm nút chạy thủ công
-
-# Cấp quyền cho GitHub Action được phép ghi đè code (để push file ai_index)
-permissions:
-  contents: write
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Cho phép bấm nút chạy thủ công
 
 jobs:
-  crawl_and_train:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install django-webpush
-          # Cài thêm thư viện cho AI nếu trong requirements.txt chưa có
-          pip install google-generativeai langchain langchain-community faiss-cpu sentence-transformers
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install django-webpush  # Ép cài trực tiếp ở đây
 
-      - name: Run Crawl Movies
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-        run: |
-          python manage.py crawl_movies --start 1 --end 2
-
-      - name: Build AI Index (Dạy AI học phim mới)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          # Cần thêm API Key này vào Secrets của GitHub nhé!
-          GENAI_API_KEY: ${{ secrets.GENAI_API_KEY }} 
-        run: |
-          python manage.py build_ai_index
-
-      - name: Commit and Push new AI Data
-        run: |
-          git config --global user.name 'GitHub Action Bot'
-          git config --global user.email 'action@github.com'
-          
-          # Thêm folder ai_index vào git
-          git add ai_index/
-          
-          # Kiểm tra xem có gì thay đổi không. Nếu có thì Commit và Push
-          if git diff --staged --quiet; then
-            echo "No changes in AI Index."
-          else
-            git commit -m "🤖 Auto-update: Phim mới & AI Index"
-            git push
-          fi
+      - name: Run Crawl
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: |
+          python manage.py crawl_movies --start 1 --end 2
