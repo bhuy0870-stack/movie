@@ -18,186 +18,199 @@
             --accent: #ffcc00;
             --accent-glow: rgba(255, 204, 0, 0.3);
             --bg-deep: #050505;
-            --surface: rgba(20, 20, 20, 0.95);
-            --border: rgba(255, 255, 255, 0.1);
-            --text-main: #e0e0e0;
+            --surface: rgba(15, 15, 15, 0.95);
+            --border: rgba(255, 255, 255, 0.08);
+            --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body { 
-            background-color: var(--bg-deep); color: var(--text-main); 
+            background-color: var(--bg-deep); color: #e0e0e0; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            padding-top: 70px; overflow-x: hidden; 
-            -webkit-font-smoothing: antialiased;
+            padding-top: 70px; /* Mobile padding */
+            overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
 
-        /* --- NAVBAR & HEADER --- */
-        .navbar { 
-            background: rgba(10, 10, 10, 0.95) !important;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 15px; z-index: 3000; transition: all 0.3s;
+        /* --- LOADING BAR --- */
+        #loading-bar {
+            position: fixed; top: 0; left: 0; width: 0%; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            z-index: 99999; transition: width 0.3s ease;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
-        .brand-logo { font-size: 1.2rem; font-weight: 800; color: #fff !important; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+
+        /* --- NAVBAR CORE --- */
+        .navbar { 
+            background: rgba(10, 10, 10, 0.98) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 15px; z-index: 3000; 
+            transition: all 0.3s;
+            min-height: 60px;
+        }
+
+        .brand-logo { 
+            font-size: 1.1rem; font-weight: 800; color: #fff !important; 
+            text-decoration: none !important; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+        }
         .brand-logo .logo-mark {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; width: 36px; height: 36px; display: flex; 
+            color: #fff; width: 34px; height: 34px; display: flex; 
             align-items: center; justify-content: center; border-radius: 10px;
-            box-shadow: 0 4px 15px var(--primary-glow);
+            box-shadow: 0 5px 15px var(--primary-glow);
         }
-        .nav-link { 
-            font-weight: 600; color: rgba(255,255,255,0.7) !important; 
-            text-transform: uppercase; font-size: 0.85rem; padding: 10px 15px !important;
-            transition: 0.3s;
-        }
-        .nav-link:hover, .nav-link.active { color: #fff !important; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        .btn-donate-nav { color: var(--accent) !important; font-weight: 800 !important; cursor: pointer; }
 
-        /* --- SEARCH BOX --- */
+        .nav-link { 
+            font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.7) !important; 
+            text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 15px !important;
+            transition: var(--transition-fast); white-space: nowrap; 
+        }
+        .nav-link:hover, .nav-link.active { color: #fff !important; }
+        .btn-donate-nav { color: var(--accent) !important; font-weight: 800 !important; text-shadow: 0 0 10px var(--accent-glow); cursor: pointer; }
+
+        /* --- DROPDOWN CHUNG --- */
+        .dropdown-menu {
+            background: #151515 !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            z-index: 5000;
+        }
+        .dropdown-item { 
+            color: rgba(255,255,255,0.7) !important; font-size: 0.9rem; padding: 10px 14px; 
+            border-radius: 8px; transition: 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .dropdown-item:hover { background: rgba(196, 0, 0, 0.15) !important; color: #fff !important; transform: translateX(5px); }
+
+        /* --- SEARCH BOX (STYLES CŨ & MỚI CHO AJAX) --- */
         .search-container { position: relative; width: 100%; margin-bottom: 15px; z-index: 3001; } 
         .search-wrapper {
             background: rgba(255,255,255,0.08); border: 1px solid var(--border);
-            border-radius: 25px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;
-            transition: 0.3s;
+            border-radius: 12px; padding: 10px 15px; display: flex; align-items: center; gap: 10px;
         }
-        .search-wrapper:focus-within { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
-        .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 0.9rem; width: 100%; }
-        
+        .search-wrapper input { background: transparent; border: none; color: #fff; outline: none; font-size: 16px; width: 100%; }
+
         #search-results-box {
-            position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow: hidden; 
-            display: none; z-index: 9999; max-height: 400px; overflow-y: auto;
+            position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+            background: #141414; border: 1px solid #333; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            overflow: hidden; display: none; z-index: 9999; 
+            max-height: 350px; overflow-y: auto;
         }
+        
+        /* STYLE CHO KẾT QUẢ TÌM KIẾM AJAX */
         .search-result-item {
-            display: flex; gap: 12px; padding: 10px; text-decoration: none;
-            border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
+            display: flex; align-items: center; padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s; text-decoration: none;
         }
-        .search-result-item:hover { background: rgba(255,255,255,0.1); }
-        .search-result-item img { width: 45px; height: 60px; object-fit: cover; border-radius: 4px; background: #333; }
-        .search-info div { color: #fff; font-size: 0.9rem; font-weight: 600; }
-        .search-info span { color: #aaa; font-size: 0.75rem; }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover { background: rgba(255, 255, 255, 0.1); }
 
-        /* --- USER AVATAR --- */
+        .search-poster {
+            width: 45px; height: 60px; border-radius: 4px;
+            object-fit: cover; margin-right: 12px; background: #333;
+        }
+        .search-info { flex: 1; overflow: hidden; }
+        .search-title { 
+            color: #fff; font-size: 0.9rem; font-weight: 600; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            margin-bottom: 2px;
+        }
+        .search-meta { font-size: 0.75rem; color: #aaa; display: flex; align-items: center; gap: 8px; }
+        .search-rating { color: var(--accent); font-weight: bold; }
+        /* ------------------------------------- */
+
+        /* --- USER GATE (AVATAR) --- */
         .user-gate { 
-            display: flex; align-items: center; gap: 10px; cursor: pointer;
-            padding: 5px 10px 5px 5px; border-radius: 30px; 
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            transition: 0.3s;
+            padding: 6px; cursor: pointer; display: flex; 
+            align-items: center; gap: 12px; background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); border-radius: 12px; transition: 0.3s;
+            width: 100%; /* Full width mobile */
         }
-        .user-gate:hover { background: rgba(255,255,255,0.1); }
-        .avatar-box { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: #333; }
+        .avatar-box { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--primary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* --- CHATBOT UI PRO (GLASSMORPHISM) --- */
-        #ai-chat-btn {
-            position: fixed; bottom: 30px; right: 30px;
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 28px; cursor: pointer;
-            box-shadow: 0 5px 25px rgba(0, 114, 255, 0.5);
-            z-index: 10000; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #ai-chat-btn:hover { transform: scale(1.1) rotate(15deg); box-shadow: 0 10px 30px rgba(0, 114, 255, 0.8); }
+        .logout-btn { background: transparent; border: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 0; color: #ff4757 !important; font-weight: 700; }
 
-        #ai-chat-box {
-            position: fixed; bottom: 100px; right: 30px;
-            width: 380px; height: 600px;
-            background: rgba(20, 20, 20, 0.95);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            display: none; flex-direction: column; overflow: hidden;
-            z-index: 10000; transform-origin: bottom right;
-        }
-        #ai-chat-box.show { display: flex; animation: chatPopUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* --- MOBILE SPECIFIC FIXES --- */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: #0f0f0f;
+                position: absolute; top: 100%; left: 0; right: 0;
+                padding: 20px;
+                border-bottom: 1px solid var(--primary);
+                max-height: 80vh; /* Quan trọng: Cho phép cuộn nếu menu dài */
+                overflow-y: auto; 
+                box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            }
+            
+            .navbar-nav { width: 100%; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+            
+            /* Dropdown trên mobile */
+            .dropdown-menu { 
+                position: static !important; float: none; width: 100%;
+                display: none; background: rgba(255,255,255,0.03) !important;
+                border: none !important; margin-top: 5px;
+            }
+            .dropdown-menu.show { display: block !important; }
+            
+            /* Mega menu mobile */
+            .mega-menu-wrapper { display: block; }
+            .mega-column { margin-bottom: 15px; }
+            .mega-title { color: var(--accent); margin-top: 10px; margin-bottom: 5px; padding-left: 10px; font-size: 0.8rem; text-transform: uppercase; border-left: 3px solid var(--accent); }
 
-        @keyframes chatPopUp {
-            from { opacity: 0; transform: scale(0.5) translateY(50px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .chat-header {
-            background: linear-gradient(90deg, #0072ff, #00c6ff);
-            padding: 15px 20px; color: white;
-            display: flex; justify-content: space-between; align-items: center;
+            .btn-login { width: 100%; display: block; padding: 12px; text-align: center; margin-top: 10px; }
         }
 
-        .chat-body {
-            flex: 1; padding: 20px; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth;
-        }
-
-        /* Message Bubbles */
-        .msg-row { display: flex; gap: 10px; align-items: flex-end; }
-        .msg-row.user { justify-content: flex-end; }
-        .avatar-bot { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #fff; padding: 2px; }
-        
-        .msg-bubble {
-            padding: 12px 16px; border-radius: 18px; max-width: 80%;
-            font-size: 0.95rem; line-height: 1.5; word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .user .msg-bubble { background: linear-gradient(135deg, #0072ff, #00c6ff); color: white; border-bottom-right-radius: 4px; }
-        .bot .msg-bubble { background: #2a2a2a; color: #e0e0e0; border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; }
-        .bot .msg-bubble strong { color: #ffcc00; }
-
-        /* Typing Animation */
-        .typing-indicator { display: flex; gap: 5px; padding: 12px 16px; background: #2a2a2a; border-radius: 18px; border-bottom-left-radius: 4px; width: fit-content; }
-        .dot { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-
-        /* Chips (Gợi ý) */
-        .quick-actions {
-            padding: 10px 15px; display: flex; gap: 8px; overflow-x: auto;
-            border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);
-        }
-        .quick-actions::-webkit-scrollbar { height: 0; }
-        .chip {
-            background: rgba(255,255,255,0.1); color: #ccc; padding: 6px 12px;
-            border-radius: 20px; font-size: 0.8rem; white-space: nowrap; cursor: pointer;
-            transition: 0.2s; border: 1px solid transparent;
-        }
-        .chip:hover { background: rgba(0, 114, 255, 0.2); color: #00c6ff; border-color: #0072ff; }
-
-        .chat-footer { padding: 15px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
-        .chat-footer input {
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 10px 15px; border-radius: 25px; outline: none; transition: 0.3s;
-        }
-        .chat-footer input:focus { border-color: #0072ff; background: rgba(255,255,255,0.1); }
-        .chat-footer button {
-            width: 42px; height: 42px; border-radius: 50%; border: none;
-            background: linear-gradient(135deg, #0072ff, #00c6ff); color: white;
-            cursor: pointer; transition: 0.2s;
-        }
-        .chat-footer button:hover { transform: scale(1.1); }
-        .chat-footer button:disabled { background: #444; cursor: not-allowed; transform: none; }
-
-        /* DESKTOP MEDIA QUERY */
+        /* --- DESKTOP SPECIFIC --- */
         @media (min-width: 992px) {
             body { padding-top: 110px; }
             .navbar {
-                margin: 15px 3%; border-radius: 20px; padding: 5px 20px; min-height: 80px;
-                border: 1px solid var(--border);
+                border: 1px solid var(--border); border-radius: 20px;
+                margin: 15px 2%; padding: 5px 20px; min-height: 80px;
+                background: var(--surface) !important;
             }
-            .search-container { width: 300px; margin: 0; }
-            .dropdown-menu { display: block !important; opacity: 0; visibility: hidden; transform: translateY(15px); transition: 0.2s; }
-            .nav-item.dropdown:hover > .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+            .navbar-collapse { position: static; background: transparent; padding: 0; border: none; box-shadow: none; overflow: visible; }
+            .navbar-nav { border: none; margin: 0; padding: 0; width: auto; flex-direction: row; align-items: center; }
+            .search-container { width: 260px; margin-bottom: 0; }
+            .user-gate { width: auto; border-radius: 50px; padding: 5px 12px 5px 5px; }
+            
+            .dropdown-menu {
+                display: block !important; position: absolute; opacity: 0; visibility: hidden;
+                transform: translateY(15px) translateX(-50%); transition: 0.25s;
+                left: 50%; width: auto;
+            }
+            .nav-item.dropdown:hover > .dropdown-menu {
+                opacity: 1; visibility: visible; transform: translateY(0) translateX(-50%);
+            }
+            .mega-menu-content { min-width: 700px; padding: 20px; }
+            .mega-menu-wrapper { display: flex; gap: 30px; }
+            .mega-column { flex: 1; }
+            .mega-title { border-left: 3px solid var(--primary); padding-left: 10px; margin-bottom: 15px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
+            
+            /* Dropdown User căn phải */
+            .user-dropdown-mobile .dropdown-menu { left: auto !important; right: 0 !important; transform: translateY(15px) !important; width: 220px; }
+            .user-dropdown-mobile:hover .dropdown-menu { transform: translateY(0) !important; }
         }
-        @media (max-width: 480px) {
-            #ai-chat-box { width: 100%; right: 0; bottom: 0; height: 100vh; border-radius: 0; }
-            #ai-chat-btn { bottom: 80px; right: 20px; }
-        }
+
+        /* --- UTILS --- */
+        .extremely-small { font-size: 10px !important; line-height: 1.2; }
+        .heart-particle { position: fixed; pointer-events: none; font-size: 20px; z-index: 10000; animation: heartFly 1s ease-out forwards; }
+        @keyframes heartFly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        
+        .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; flex-shrink: 0; }
+        
+        /* COPY BUTTON FEEDBACK */
+        .copy-feedback { position: absolute; background: #28a745; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; top: -30px; right: 0; opacity: 0; transition: 0.3s; }
+        .copy-feedback.show { opacity: 1; top: -40px; }
     </style>
 </head>
 <body>
+    <div id="loading-bar"></div>
 
     <nav class="navbar navbar-expand-lg fixed-top shadow-lg">
-        <div class="container-fluid px-0 d-flex align-items-center justify-content-between">
+        <div class="container-fluid px-0 d-flex flex-row align-items-center justify-content-between">
             <a class="brand-logo" href="{% url 'home' %}">
                 <div class="logo-mark">B</div><span>QH MOVIE</span>
             </a>
@@ -207,69 +220,102 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navContent">
-                <ul class="navbar-nav mx-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Trang chủ</a></li>
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
                     
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="#">Thể loại <i class="fas fa-chevron-down ms-1" style="font-size: 0.7em"></i></a>
-                        <div class="dropdown-menu bg-dark border-secondary p-3 shadow-lg" style="min-width: 250px;">
-                            <div class="row">
-                                <div class="col-6">
+                        <a class="nav-link" href="#" id="genreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Danh mục <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i>
+                        </a>
+                        <div class="dropdown-menu mega-menu-content" aria-labelledby="genreDropdown">
+                            <div class="mega-menu-wrapper">
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Thể loại</h6>
                                     {% for g in genre_list|slice:":5" %}
-                                    <a class="dropdown-item text-white-50 small py-2" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
                                     {% endfor %}
                                 </div>
-                                <div class="col-6">
+                                <div class="mega-column">
+                                    <h6 class="mega-title">&nbsp;</h6>
                                     {% for g in genre_list|slice:"5:10" %}
-                                    <a class="dropdown-item text-white-50 small py-2" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
+                                    <a class="dropdown-item" href="{% url 'home' %}?genre={{ g.slug }}">{{ g.name }}</a>
+                                    {% endfor %}
+                                </div>
+                                <div class="mega-column">
+                                    <h6 class="mega-title">Quốc gia</h6>
+                                    {% for c in country_list %}
+                                    <a class="dropdown-item" href="{% url 'home' %}?country={{ c.slug }}">{{ c.name }}</a>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
                     </li>
 
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" id="historyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Lịch sử <i class="fas fa-clock-rotate-left ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i>
+                        </a>
+                        <div class="dropdown-menu shadow-lg p-2" aria-labelledby="historyDropdown">
+                            <h6 class="mega-title mx-2 mt-2" style="font-size: 0.7rem;">Phim vừa xem</h6>
+                            {% if recent_history_nav %}
+                                {% for item in recent_history_nav %}
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'movie_detail' item.movie.slug %}">
+                                    <img src="{{ item.movie.poster_url }}" width="35" height="45" class="rounded object-fit-cover shadow-sm flex-shrink-0">
+                                    <div class="overflow-hidden flex-grow-1">
+                                        <div class="text-white small fw-bold text-truncate" style="max-width: 180px;">{{ item.movie.title }}</div>
+                                        <div class="text-white-50 extremely-small">{{ item.watched_at|timesince }} trước</div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-3 text-white-50 small">Trống</div>
+                            {% endif %}
+                        </div>
+                    </li>
+
                     <li class="nav-item">
-                        <a class="nav-link btn-donate-nav" data-bs-toggle="modal" data-bs-target="#donateModal">
-                            <i class="fas fa-heart me-1"></i>DONATE
+                        <a class="nav-link btn-donate-nav" data-bs-toggle="modal" data-bs-target="#donateModal" onclick="createHeartBurst(event)">
+                            <i class="fas fa-heart me-1"></i> <span>DONATE</span>
                         </a>
                     </li>
                 </ul>
 
-                <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mt-3 mt-lg-0">
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0">
                     <div class="search-container">
                         <form action="{% url 'home' %}" method="GET" class="search-wrapper">
-                            <i class="fas fa-search text-white-50"></i>
-                            <input type="search" id="live-search" name="q" placeholder="Tìm tên phim..." autocomplete="off" value="{{ query|default:'' }}">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="live-search" name="q" placeholder="Tìm kiếm phim..." autocomplete="off" value="{{ query|default:'' }}" inputmode="search">
                         </form>
                         <div id="search-results-box"></div>
                     </div>
 
                     {% if user.is_authenticated %}
-                        <div class="nav-item dropdown">
-                            <div class="user-gate" data-bs-toggle="dropdown">
+                        <div class="nav-item dropdown user-dropdown-mobile">
+                            <div class="user-gate" data-bs-toggle="dropdown" aria-expanded="false" role="button">
                                 <div class="avatar-box">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.avatar.url }}">
+                                        <img src="{{ user.profile.avatar.url }}" alt="Avatar">
                                     {% else %}
-                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff">
+                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff" alt="Avatar">
                                     {% endif %}
                                 </div>
-                                <span class="fw-bold small text-white">{{ user.username }}</span>
+                                <span class="user-name-text fw-bold text-white">{{ user.username }}</span>
                             </div>
-                            <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary mt-2">
-                                <li><a class="dropdown-item text-white" href="{% url 'profile' %}">Tài khoản</a></li>
-                                <li><a class="dropdown-item text-white" href="{% url 'watchlist' %}">Tủ phim</a></li>
-                                <li><hr class="dropdown-divider border-secondary"></li>
-                                <li>
-                                    <form action="{% url 'logout' %}" method="post" class="px-2">
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="fas fa-user-circle"></i> Tài khoản</a>
+                                <a class="dropdown-item py-2" href="{% url 'watchlist' %}"><i class="fas fa-heart"></i> Yêu thích</a>
+                                <a class="dropdown-item py-2" href="{% url 'history' %}"><i class="fas fa-history"></i> Lịch sử xem</a>
+                                <li><hr class="dropdown-divider border-white border-opacity-10"></li>
+                                <div class="px-2">
+                                    <form action="{% url 'logout' %}" method="post" class="m-0">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-danger w-100">Đăng xuất</button>
+                                        <button type="submit" class="logout-btn"><i class="fas fa-power-off"></i> Đăng xuất</button>
                                     </form>
-                                </li>
-                            </ul>
+                                </div>
+                            </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-sm btn-outline-light rounded-pill px-4 fw-bold">Login</a>
+                        <a href="{% url 'login' %}" class="btn-login shadow-lg text-center">LOGIN</a>
                     {% endif %}
                 </div>
             </div>
@@ -280,194 +326,192 @@
         {% block content %}{% endblock %}
     </div>
 
-    <div class="modal fade" id="donateModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark border-secondary">
-                <div class="modal-body text-center p-4">
-                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                    <h4 class="fw-bold text-white mb-3">Ủng hộ Server ❤️</h4>
-                    <img src="{% static 'images/vcb_qr.jpg' %}" 
-                         onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=1025765518'"
-                         class="img-fluid rounded shadow-lg mb-3" style="max-width: 200px;">
-                    <p class="text-white-50">Vietcombank: <span class="text-warning fw-bold" id="bank-num">1025765518</span></p>
-                    <button class="btn btn-light w-100 fw-bold" onclick="copyBankNum()"><i class="fas fa-copy me-2"></i>Copy STK</button>
+    <div class="modal fade" id="donateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 650px;">
+            <div class="modal-content overflow-hidden" style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;">
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 d-flex align-items-center justify-content-center bg-white p-4" style="min-height: 250px;">
+                            <img src="{% static 'images/vcb_qr.jpg' %}"
+                                 onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=1025765518'"
+                                 alt="QR Donate" style="width: 100%; max-width: 180px; display: block;">
+                        </div>
+                        
+                        <div class="col-md-7 p-4 d-flex flex-column justify-content-center position-relative">
+                            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                            
+                            <h5 class="text-white fw-bold mb-1" style="font-family: 'Outfit'; letter-spacing: 0.5px;">CAM ON BAN ❤️</h5>
+                            <p class="text-white-50 small mb-4">Sự ủng hộ của bạn giúp Server luôn mượt mà.</p>
+                            
+                            <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2);">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white-50 small">Ngân hàng</span>
+                                    <span class="text-warning fw-bold small">VIETCOMBANK</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-white-50 small">Số tài khoản</span>
+                                    <span class="text-white fw-bold fs-5" id="bank-num">1025765518</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-white-50 small">Chủ tài khoản</span>
+                                    <span class="text-white fw-bold small text-uppercase">BANH QUANG HUY</span>
+                                </div>
+                            </div>
+                            
+                            <button class="btn w-100 fw-bold position-relative" onclick="copyBankNum()" style="background: #fff; color: #000; border-radius: 12px; padding: 10px;">
+                                <i class="fas fa-copy me-2"></i> SAO CHÉP STK
+                                <div id="copy-msg" class="copy-feedback">Đã chép!</div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="ai-chat-btn" onclick="toggleChat()">
-        <i class="fas fa-robot"></i>
-    </div>
-
-    <div id="ai-chat-box">
-        <div class="chat-header">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fas fa-robot"></i>
-                <div>
-                    <div style="line-height:1; font-weight:700;">BQH Assistant</div>
-                    <small style="font-size: 0.75rem; opacity: 0.8;">Online • Trả lời ngay</small>
-                </div>
-            </div>
-            <div onclick="toggleChat()" style="cursor:pointer; opacity:0.8;"><i class="fas fa-times"></i></div>
-        </div>
-
-        <div class="chat-body" id="chat-messages">
-            <div class="msg-row bot">
-                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="avatar-bot">
-                <div class="msg-bubble">
-                    Chào Huy! 👋 Mình là trợ lý phim ảnh.<br>Hôm nay bạn muốn xem thể loại gì?
-                </div>
-            </div>
-            
-            <div class="msg-row bot" id="typing-indicator" style="display: none;">
-                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="avatar-bot">
-                <div class="typing-indicator">
-                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="quick-actions">
-            <div class="chip" onclick="sendQuick('Phim hành động mới nhất')">🔥 Hành động hay</div>
-            <div class="chip" onclick="sendQuick('Phim tình cảm buồn')">😭 Phim buồn</div>
-            <div class="chip" onclick="sendQuick('Tư vấn phim hoạt hình')">🎬 Hoạt hình</div>
-            <div class="chip" onclick="sendQuick('Phim kinh dị đáng sợ nhất')">👻 Kinh dị</div>
-        </div>
-
-        <div class="chat-footer">
-            <input type="text" id="chat-input-text" placeholder="Hỏi gì đó..." onkeypress="handleEnter(event)">
-            <button onclick="sendChat()" id="btn-send"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- 1. CLEANUP SERVICE WORKER (FIX 404) ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
+        document.addEventListener('DOMContentLoaded', function() {
+            const navContent = document.getElementById('navContent');
+            const toggler = document.querySelector('.navbar-toggler');
+            
+            // Auto close mobile menu
+            document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 992) {
+                        const bsCollapse = bootstrap.Collapse.getInstance(navContent) || new bootstrap.Collapse(navContent);
+                        bsCollapse.hide();
+                    }
+                });
+            });
+
+            // Click outside
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth < 992) {
+                    const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
+                    if (!isClickInside && navContent.classList.contains('show')) {
+                        const bsCollapse = bootstrap.Collapse.getInstance(navContent);
+                        bsCollapse.hide();
+                    }
                 }
             });
-        }
 
-        // --- 2. LIVE SEARCH LOGIC ---
-        const searchInput = document.getElementById('live-search');
-        const resultsBox = document.getElementById('search-results-box');
-        let debounceTimer;
+            // --- TÍNH NĂNG TÌM KIẾM THÔNG MINH (AJAX) MỚI ---
+            const searchInput = document.getElementById('live-search');
+            const resultsBox = document.getElementById('search-results-box');
+            let debounceTimer;
 
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            const query = this.value.trim();
-            if (query.length < 2) { resultsBox.style.display = 'none'; return; }
-
-            resultsBox.style.display = 'block';
-            resultsBox.innerHTML = '<div class="p-3 text-white-50 small text-center">Đang tìm...</div>';
-
-            debounceTimer = setTimeout(async () => {
+            // 1. Hàm gọi API từ Backend
+            const fetchMovies = async (query) => {
                 try {
-                    const res = await fetch(`/ajax-search/?q=${encodeURIComponent(query)}`, {
-                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    // Gọi đến URL ajax_search đã tạo
+                    const response = await fetch(`/ajax-search/?q=${encodeURIComponent(query)}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
-                    const data = await res.json();
+                    const data = await response.json();
+                    
                     if (data.status === 'success' && data.data.length > 0) {
-                        resultsBox.innerHTML = data.data.map(m => `
-                            <a href="/movie/${m.slug}/" class="search-result-item">
-                                <img src="${m.poster}" onerror="this.src='https://via.placeholder.com/45'">
-                                <div class="search-info">
-                                    <div>${m.title}</div>
-                                    <span>⭐ ${m.imdb}</span>
-                                </div>
-                            </a>
-                        `).join('');
+                        renderResults(data.data);
                     } else {
-                        resultsBox.innerHTML = '<div class="p-3 text-white-50 small text-center">Không tìm thấy phim.</div>';
+                        resultsBox.innerHTML = '<div class="p-3 text-center text-white-50 small">Không tìm thấy phim nào.</div>';
+                        resultsBox.style.display = 'block';
                     }
-                } catch(e) { resultsBox.style.display = 'none'; }
-            }, 300);
-        });
+                } catch (error) {
+                    console.error('Lỗi tìm kiếm:', error);
+                    resultsBox.style.display = 'none';
+                }
+            };
 
-        // Đóng search khi click ra ngoài
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
-                resultsBox.style.display = 'none';
-            }
-        });
-
-        // --- 3. COPY STK FUNCTION ---
-        function copyBankNum() {
-            const num = document.getElementById('bank-num').innerText;
-            navigator.clipboard.writeText(num);
-            alert("Đã sao chép số tài khoản!");
-        }
-
-        // --- 4. CHATBOT LOGIC (OPTIMIZED) ---
-        const chatBox = document.getElementById('ai-chat-box');
-        const chatBody = document.getElementById('chat-messages');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const inputField = document.getElementById('chat-input-text');
-        const btnSend = document.getElementById('btn-send');
-
-        function toggleChat() {
-            chatBox.classList.toggle('show');
-            if(chatBox.classList.contains('show')) { inputField.focus(); scrollToBottom(); }
-        }
-
-        function scrollToBottom() { chatBody.scrollTop = chatBody.scrollHeight; }
-        function sendQuick(txt) { inputField.value = txt; sendChat(); }
-        function handleEnter(e) { if(e.key === 'Enter') sendChat(); }
-
-        async function sendChat() {
-            const text = inputField.value.trim();
-            if(!text) return;
-
-            inputField.disabled = true; btnSend.disabled = true;
-            addMessage(text, 'user');
-            inputField.value = '';
-            
-            typingIndicator.style.display = 'flex'; scrollToBottom();
-
-            try {
-                const res = await fetch(`/api/ai-chat/?q=${encodeURIComponent(text)}`);
-                const data = await res.json();
+            // 2. Hàm hiển thị HTML kết quả
+            const renderResults = (movies) => {
+                const html = movies.map(movie => `
+                    <a href="/movie/${movie.slug}/" class="search-result-item">
+                        <img src="${movie.poster}" class="search-poster" alt="${movie.title}" onerror="this.src='https://placehold.co/45x60?text=No+Img'">
+                        <div class="search-info">
+                            <div class="search-title">${movie.title}</div>
+                            <div class="search-meta">
+                                <span class="search-rating"><i class="fas fa-star me-1"></i>${movie.imdb}</span>
+                                <span class="text-white-50 small ms-auto">${movie.title}</span>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
                 
-                typingIndicator.style.display = 'none';
-                
-                // Format Markdown cơ bản
-                let formattedAns = data.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                addMessage(formattedAns, 'bot', true);
+                // Nút "Xem tất cả"
+                const viewAllHtml = `
+                    ${html}
+                    <a href="{% url 'home' %}?q=${searchInput.value}" class="d-block p-2 text-center small fw-bold text-decoration-none border-top border-secondary border-opacity-25" style="color: var(--accent);">
+                        Xem tất cả kết quả <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                `;
 
-                // Render phim gợi ý
-                if(data.related_movies && data.related_movies.length > 0) {
-                    let html = '<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; margin-top:5px;">';
-                    data.related_movies.forEach(m => {
-                        html += `
-                        <a href="/movie/${m.slug}/" style="min-width:90px; text-decoration:none; color:white;">
-                            <img src="${m.poster}" style="width:90px; height:120px; border-radius:8px; object-fit:cover;">
-                            <div style="font-size:0.7rem; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90px;">${m.title}</div>
-                        </a>`;
-                    });
-                    html += '</div>';
-                    addMessage(html, 'bot', true);
+                resultsBox.innerHTML = viewAllHtml;
+                resultsBox.style.display = 'block';
+            };
+
+            // 3. Sự kiện gõ phím (Có Debounce 300ms)
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    resultsBox.style.display = 'none';
+                    return;
                 }
 
-            } catch(e) {
-                typingIndicator.style.display = 'none';
-                addMessage("⚠️ Lỗi kết nối AI. Vui lòng thử lại sau!", 'bot');
-            } finally {
-                inputField.disabled = false; btnSend.disabled = false; inputField.focus();
+                // Hiện loading giả
+                resultsBox.style.display = 'block';
+                resultsBox.innerHTML = '<div class="p-3 text-center text-white-50 small"><i class="fas fa-circle-notch fa-spin me-2"></i>Đang tìm...</div>';
+
+                debounceTimer = setTimeout(() => {
+                    fetchMovies(query);
+                }, 300);
+            });
+
+            // 4. Ẩn khi click ra ngoài
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+                    resultsBox.style.display = 'none';
+                }
+            });
+
+            // 5. Hiện lại khi focus
+            searchInput.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2 && resultsBox.innerHTML !== '') {
+                    resultsBox.style.display = 'block';
+                }
+            });
+            // ----------------------------------------------------
+
+        });
+
+        // Hiệu ứng tim bay
+        function createHeartBurst(event) {
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            const count = 10;
+            for (let i = 0; i < count; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fas fa-heart heart-particle text-danger';
+                heart.style.left = rect.left + rect.width / 2 + 'px';
+                heart.style.top = rect.top + rect.height / 2 + 'px';
+                const tx = (Math.random() - 0.5) * 100 + 'px';
+                const ty = (Math.random() - 1) * 100 - 50 + 'px';
+                heart.style.setProperty('--tx', tx);
+                heart.style.setProperty('--ty', ty);
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
             }
         }
 
-        function addMessage(content, sender, isHtml=false) {
-            const div = document.createElement('div');
-            div.className = `msg-row ${sender}`;
-            const avatar = sender === 'bot' ? `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="avatar-bot">` : '';
-            div.innerHTML = `${avatar}<div class="msg-bubble">${content}</div>`;
-            
-            chatBody.insertBefore(div, typingIndicator);
-            scrollToBottom();
+        // Copy STK function
+        function copyBankNum() {
+            const num = document.getElementById('bank-num').innerText;
+            navigator.clipboard.writeText(num).then(() => {
+                const msg = document.getElementById('copy-msg');
+                msg.classList.add('show');
+                setTimeout(() => msg.classList.remove('show'), 2000);
+            });
         }
     </script>
 </body>

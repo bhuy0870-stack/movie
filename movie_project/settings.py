@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- BẢO MẬT ---
 SECRET_KEY = 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq'
-GENAI_API_KEY = os.environ.get('GENAI_API_KEY', 'AIzaSyAG6ShAwHw8N3dBbu-fX4s0CTi44Sma0CE')
+
 # DEBUG nên để True khi sửa máy
 DEBUG = True
 
