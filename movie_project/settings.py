@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- BẢO MẬT ---
 SECRET_KEY = 'django-insecure-^0d&erhpz6!3xko+=gpco+4psmqdmpt=n%*#h(4ey7iy$8=gmq'
-
+GENAI_API_KEY = os.environ.get('GENAI_API_KEY', 'AIzaSyAG6ShAwHw8N3dBbu-fX4s0CTi44Sma0CE')
 # DEBUG nên để True khi sửa máy
 DEBUG = True
 
@@ -16,6 +16,7 @@ ALLOWED_HOSTS = ['*']
 
 # --- ĐỊNH NGHĨA ỨNG DỤNG ---
 INSTALLED_APPS = [
+    'jazzmin',
     'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -163,6 +164,33 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+JAZZMIN_SETTINGS = {
+    "site_title": "BQH Movie Admin",
+    "site_header": "Movie Hub",
+    "site_brand": "Hệ thống Quản trị Movie Hub",
+    "welcome_sign": "Chào mừng Huy đến với trang quản trị Movie Hub",
+    "copyright": "BQH Movie Ltd",
+    "search_model": ["auth.User", "main.Movie"], # Giúp tìm kiếm nhanh phim từ thanh search của Admin
+    "topmenu_links": [
+        {"name": "Trang chủ",  "url": "home", "permissions": ["auth.view_user"]},
+        {"model": "auth.User"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "main.Movie": "fas fa-film",
+        "main.Genre": "fas fa-tags",
+    },
+    "order_with_respect_to": ["main", "auth"],
+}
+
+# Tùy chọn giao diện tối (Dark mode) hoặc màu sắc khác
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly", # Huy có thể đổi thành 'flatly', 'slate', 'lux'...
+}
 
 
 
