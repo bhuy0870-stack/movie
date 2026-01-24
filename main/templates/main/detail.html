@@ -5,13 +5,14 @@
 
 {% block content %}
 <style>
-    /* --- CUSTOM CSS --- */
+    /* --- VARIABLES & UTILS --- */
     :root {
         --primary: #e50914;
         --glass-border: rgba(255, 255, 255, 0.1);
         --card-bg: #111;
     }
 
+    /* --- HERO SECTION --- */
     .movie-hero { position: relative; min-height: 85vh; padding-top: 20px; overflow: hidden; }
     .hero-backdrop {
         position: absolute; inset: 0; z-index: 0;
@@ -28,9 +29,12 @@
     .poster-card img { width: 100%; height: 100%; object-fit: cover; }
     
     .movie-title-large {
-        font-family: system-ui, -apple-system, sans-serif;
-        font-weight: 800; font-size: clamp(2rem, 5vw, 3.8rem);
-        line-height: 1.1; color: #fff; text-shadow: 0 0 30px rgba(0,0,0,0.5);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-weight: 800;
+        font-size: clamp(2rem, 5vw, 3.8rem);
+        line-height: 1.1;
+        color: #fff; text-shadow: 0 0 30px rgba(0,0,0,0.5);
+        letter-spacing: -1px;
     }
     
     .meta-badge {
@@ -51,13 +55,17 @@
     .btn-action-circle:hover { background: #fff; color: #000; }
     .btn-action-circle.active { background: var(--primary); border-color: var(--primary); color: #fff; animation: heartBeat 0.4s; }
 
+    /* --- PLAYER & EPISODES --- */
     .player-wrapper {
         background: #000; border-radius: 16px; overflow: hidden;
         border: 1px solid #333; aspect-ratio: 16/9; width: 100%; margin-bottom: 20px;
     }
     iframe { width: 100%; height: 100%; border: none; }
     
-    .episode-list { display: flex; flex-wrap: wrap; gap: 10px; max-height: 300px; overflow-y: auto; padding: 5px; }
+    .episode-list {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        max-height: 300px; overflow-y: auto; padding: 5px;
+    }
     .ep-btn {
         min-width: 60px; padding: 8px 15px; background: #1a1a1a; color: #ccc;
         border: 1px solid #333; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
@@ -66,6 +74,7 @@
     .ep-btn:hover { background: #333; color: #fff; }
     .ep-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
+    /* --- REVIEWS --- */
     .review-section { background: #0a0a0a; border-radius: 20px; padding: 25px; border: 1px solid #222; }
     .comment-input {
         background: #111; border: 1px solid #333; color: #fff;
@@ -75,15 +84,26 @@
     .comment-input:focus { outline: none; border-color: #555; background: #1a1a1a; }
     
     .review-item {
-        background: var(--card-bg); border: 1px solid #2a2a2a; border-radius: 12px;
-        padding: 20px; margin-bottom: 20px; transition: 0.3s; animation: fadeIn 0.4s ease;
+        background: var(--card-bg);
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: 0.3s;
     }
     .review-item:hover { border-color: #444; }
 
-    .reply-list { margin-top: 15px; padding-top: 15px; border-top: 1px solid #2a2a2a; padding-left: 20px; }
+    .reply-list { 
+        margin-top: 15px; 
+        padding-top: 15px;
+        border-top: 1px solid #2a2a2a;
+        padding-left: 20px;
+    }
+    
     .reply-form { margin-top: 15px; display: none; }
     .reply-form.show { display: block; animation: fadeIn 0.3s; }
 
+    /* --- TOAST --- */
     #toast-box {
         position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
         z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -92,29 +112,24 @@
         background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); color: #fff;
         padding: 10px 20px; border-radius: 50px; border: 1px solid var(--glass-border);
         box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 0.85rem; font-weight: 600;
-        display: flex; align-items: center; gap: 10px; animation: slideUp 0.4s;
+        display: flex; align-items: center; gap: 10px; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .toast-msg.success i { color: #00c851; } .toast-msg.danger i { color: #ff4444; }
+    .toast-msg.success i { color: #00c851; }
+    .toast-msg.danger i { color: #ff4444; }
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes heartBeat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CSS CHO BỘ LỌC AI & BADGE */
-    .ai-filter-btn { border-radius: 50px; font-size: 0.85rem; font-weight: 600; padding: 6px 16px; border: 1px solid #333; color: #aaa; background: transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
-    .ai-filter-btn:hover { color: #fff; border-color: #666; background: #222; }
-    
-    .ai-filter-btn.active.all { background: #fff; color: #000; border-color: #fff; }
-    .ai-filter-btn.active.pos { background: #28a745; color: #fff; border-color: #28a745; }
-    .ai-filter-btn.active.neg { background: #dc3545; color: #fff; border-color: #dc3545; }
-    .ai-filter-btn.active.neu { background: #6c757d; color: #fff; border-color: #6c757d; }
-    
-    .sentiment-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .sentiment-pos { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.3); }
-    .sentiment-neg { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); }
-    .sentiment-neu { background: rgba(108, 117, 125, 0.2); color: #adb5bd; border: 1px solid rgba(108, 117, 125, 0.3); }
-
-    @media (max-width: 768px) { .poster-card { width: 140px; margin: 0 auto 20px; } .col-md-8.col-lg-9 { text-align: center !important; } .movie-title-large { text-align: center; } .hero-actions { justify-content: center; } }
+    @media (max-width: 768px) { 
+        .movie-hero { padding-top: 0; } 
+        .reply-list { padding-left: 10px; } 
+        .poster-card { width: 140px; margin: 0 auto 20px; } 
+        .col-md-8.col-lg-9 { text-align: center !important; } 
+        .movie-title-large { text-align: center !important; display: block; }
+        .text-white-50.mb-3 { text-align: center !important; display: block; }
+        .hero-meta, .hero-actions { justify-content: center !important; } 
+    }
 </style>
 
 <div id="toast-box"></div>
@@ -182,23 +197,7 @@
             </div>
 
             <div class="review-section">
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3 border-opacity-25 flex-wrap gap-2">
-                    <h5 class="text-white fw-bold mb-0">BÌNH LUẬN (<span id="visible-count">{{ count_total }}</span>)</h5>
-                    <div class="d-flex gap-2">
-                        <button onclick="filterReviews('ALL', this)" class="ai-filter-btn all active">
-                            Tất cả
-                        </button>
-                        <button onclick="filterReviews('POS', this)" class="ai-filter-btn pos">
-                            <i class="fas fa-smile"></i> Khen ({{ count_pos }})
-                        </button>
-                        <button onclick="filterReviews('NEU', this)" class="ai-filter-btn neu">
-                            <i class="fas fa-meh"></i> Trung lập ({{ count_neu }})
-                        </button>
-                        <button onclick="filterReviews('NEG', this)" class="ai-filter-btn neg">
-                            <i class="fas fa-frown"></i> Chê ({{ count_neg }})
-                        </button>
-                    </div>
-                </div>
+                <h5 class="text-white fw-bold mb-4 border-bottom border-secondary pb-3 border-opacity-25">BÌNH LUẬN ({{ reviews.count }})</h5>
                 
                 {% if user.is_authenticated %}
                 <form onsubmit="submitReview(event, null)" class="mb-5 d-flex gap-3">
@@ -211,7 +210,7 @@
                         {% endif %}
                     </div>
                     <div class="flex-grow-1">
-                        <textarea name="comment" class="comment-input" rows="2" placeholder="AI sẽ phân tích cảm xúc bình luận của bạn..."></textarea>
+                        <textarea name="comment" class="comment-input" rows="2" placeholder="Chia sẻ cảm nghĩ của bạn về phim..."></textarea>
                         <div class="text-end mt-2">
                             <button type="submit" class="btn btn-danger btn-sm rounded-pill fw-bold px-4 py-2">Gửi bình luận</button>
                         </div>
@@ -223,7 +222,7 @@
 
                 <div id="review-list">
                     {% for review in reviews %}
-                    <div class="review-item filter-item" id="review-{{ review.id }}" data-sentiment="{{ review.sentiment_label|default:'NEU' }}">
+                    <div class="review-item" id="review-{{ review.id }}">
                         <div class="d-flex gap-3">
                             <div class="flex-shrink-0">
                                 {% if review.user.profile.avatar %}
@@ -240,19 +239,11 @@
                                             {% for ua in review.user.achievements.all %}
                                                 <i class="{{ ua.achievement.icon_class }} small ms-1" style="color: {{ ua.achievement.color }}"></i>
                                             {% endfor %}
-                                            
-                                            {% if review.sentiment_label == 'POS' %}
-                                                <span class="sentiment-badge sentiment-pos ms-2"><i class="fas fa-robot me-1"></i>Tích cực</span>
-                                            {% elif review.sentiment_label == 'NEG' %}
-                                                <span class="sentiment-badge sentiment-neg ms-2"><i class="fas fa-robot me-1"></i>Tiêu cực</span>
-                                            {% else %}
-                                                <span class="sentiment-badge sentiment-neu ms-2"><i class="fas fa-robot me-1"></i>Trung lập</span>
-                                            {% endif %}
                                         </h6>
                                         <span class="small" style="font-size: 11px; color: #888;">{{ review.created_at|timesince }} trước</span>
                                     </div>
                                     {% if request.user == review.user %}
-                                        <button onclick="deleteReview({{ review.id }})" class="btn btn-sm text-danger p-0 opacity-50 hover-opacity-100"><i class="fas fa-trash-alt"></i></button>
+                                        <button onclick="deleteReview({{ review.id }})" class="btn btn-sm text-danger p-0 opacity-50 hover-opacity-100" title="Xóa"><i class="fas fa-trash-alt"></i></button>
                                     {% endif %}
                                 </div>
                                 
@@ -324,31 +315,6 @@
 </div>
 
 <script>
-    // --- JAVASCRIPT LỌC BÌNH LUẬN (KHÔNG RELOAD) ---
-    function filterReviews(sentiment, btn) {
-        // 1. Cập nhật nút active
-        document.querySelectorAll('.ai-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        // 2. Lặp qua các item để ẩn hiện
-        const items = document.querySelectorAll('.filter-item');
-        let visibleCount = 0;
-
-        items.forEach(item => {
-            const itemSentiment = item.getAttribute('data-sentiment');
-            // Nếu chọn ALL hoặc trùng nhãn (Lưu ý: null ở backend thì ở đây default là NEU)
-            if (sentiment === 'ALL' || itemSentiment === sentiment) {
-                item.style.display = 'block';
-                visibleCount++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        
-        // Cập nhật số lượng hiển thị trên Header (Option)
-        // document.getElementById('visible-count').innerText = visibleCount;
-    }
-
     function showToast(message, type = 'success') {
         const box = document.getElementById('toast-box');
         const toast = document.createElement('div');
@@ -389,14 +355,20 @@
         fetch(`{% url 'add_review' movie.id %}`, {
             method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}
         })
-        .then(r => { if (!r.ok) { throw new Error('HTTP status ' + r.status); } return r.json(); })
+        .then(r => {
+            if (!r.ok) { throw new Error('HTTP status ' + r.status); }
+            return r.json();
+        })
         .then(d => {
             if(d.status === 'success') {
-                showToast('Đã gửi bình luận! Đang tải lại...', 'success');
-                setTimeout(() => location.reload(), 1000); 
+                showToast('Đã gửi bình luận thành công!', 'success');
+                location.reload(); 
             }
         })
-        .catch(err => { console.error(err); alert("Lỗi khi gửi bình luận!"); });
+        .catch(err => {
+            console.error(err);
+            alert("Lỗi khi gửi bình luận!");
+        });
     }
 
     function deleteReview(id) {
@@ -416,22 +388,35 @@
             btn.querySelector('span').innerText = d.count;
             const icon = btn.querySelector('i');
             if(d.liked) { 
-                icon.classList.replace('far', 'fas'); icon.classList.add('text-danger'); showToast('Đã thả tim', 'success');
+                icon.classList.replace('far', 'fas'); 
+                icon.classList.add('text-danger'); 
+                showToast('Đã thả tim bình luận', 'success');
             } else { 
-                icon.classList.replace('fas', 'far'); icon.classList.remove('text-danger'); showToast('Đã bỏ tim', 'success');
+                icon.classList.replace('fas', 'far'); 
+                icon.classList.remove('text-danger'); 
+                showToast('Đã bỏ tim bình luận', 'success');
             }
         });
     }
     
-    function shareMovie() { navigator.clipboard.writeText(window.location.href); showToast('Đã copy link phim!', 'success'); }
+    function shareMovie() {
+        navigator.clipboard.writeText(window.location.href);
+        showToast('Đã copy link phim!', 'success');
+    }
 
+    /* --- LOGIC LỊCH SỬ XEM PHIM (MỚI THÊM) --- */
     window.addEventListener('DOMContentLoaded', (event) => {
         {% if user.is_authenticated %}
         setTimeout(() => {
-            fetch("{% url 'update_history' movie.id %}", { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+            fetch("{% url 'update_history' movie.id %}", {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
             .then(response => response.json())
-            .then(data => { if(data.status === 'success') console.log("History updated."); });
-        }, 5000);
+            .then(data => {
+                if(data.status === 'success') console.log("Lịch sử xem đã được cập nhật thành công.");
+            })
+            .catch(error => console.error('Lỗi khi cập nhật lịch sử:', error));
+        }, 5000); // Gửi yêu cầu sau 5 giây để tránh ghi nhận các lượt click nhầm
         {% endif %}
     });
 </script>
