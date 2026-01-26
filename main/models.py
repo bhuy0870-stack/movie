@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from cloudinary.models import CloudinaryField
+from django.db.models.functions import Cast
+from django.db.models import IntegerField
 
 # --- 1. HỆ THỐNG THÀNH TÍCH ---
 class Achievement(models.Model):
@@ -22,7 +24,7 @@ class UserAchievement(models.Model):
     class Meta:
         unique_together = ('user', 'achievement')
 
-# --- 2. HỆ THỐNG PHIM (Tối ưu chống lỗi 22k phim) ---
+# --- 2. HỆ THỐNG PHIM ---
 class Movie(models.Model):
     slug = models.SlugField(unique=True, db_index=True, max_length=255)
     title = models.CharField(max_length=255)
@@ -57,7 +59,9 @@ class Episode(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['id']
+        # Sửa lỗi sắp xếp 1, 10, 2 bằng cách ép kiểu ngay trong Meta (nếu DB hỗ trợ)
+        # Hoặc dùng logic sắp xếp trong Views (Xem phần views bên dưới)
+        ordering = ['id'] 
 
     def __str__(self):
         return f"{self.movie.title} - {self.episode_name}"
@@ -93,7 +97,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = CloudinaryField('image', null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True, null=True)
-    birth_date = models.DateField(null=True, blank=True) # Thêm dòng này
+    birth_date = models.DateField(null=True, blank=True)
+
 # --- 5. LỊCH SỬ XEM ---
 class WatchHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watch_history')

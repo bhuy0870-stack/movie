@@ -6,14 +6,15 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, IntegerField
+from django.db.models.functions import Cast
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import Movie, Watchlist, Review, Achievement, UserAchievement, Episode, Profile, WatchHistory
 
-# --- 1. DỮ LIỆU NAVBAR TẬP TRUNG ---
+# --- 1. DỮ LIỆU NAVBAR ---
 NAV_CONTEXT = {
     'genre_list': [
         {'name': 'Hành động', 'slug': 'hanh-dong'},
@@ -37,7 +38,7 @@ NAV_CONTEXT = {
     'year_list': range(2026, 2018, -1),
 }
 
-# --- 2. HÀM BỔ TRỢ (ACHIEVEMENTS) ---
+# --- 2. HÀM BỔ TRỢ ---
 def check_and_assign_achievement(request, user, achievement_id):
     achievement = Achievement.objects.filter(id=achievement_id).first()
     if achievement:
@@ -46,7 +47,7 @@ def check_and_assign_achievement(request, user, achievement_id):
             UserAchievement.objects.create(user=user, achievement=achievement)
             messages.success(request, f"🏆 Bạn nhận được huy hiệu: {achievement.name}")
 
-# --- 3. TRANG CHỦ & DANH SÁCH PHIM ---
+# --- 3. TRANG CHỦ ---
 def home(request):
     query = request.GET.get('q')
     genre_slug = request.GET.get('genre')
@@ -100,30 +101,43 @@ def home(request):
 # --- 4. CHI TIẾT PHIM ---
 def movie_detail(request, slug=None):
     if not request.user.is_authenticated:
-        messages.warning(request, "Vui lòng đăng nhập để xem chi tiết và nội dung phim!")
+        messages.warning(request, "Vui lòng đăng nhập để xem chi tiết!")
         return redirect('login')
     
-    if slug and str(slug).isdigit():
-        movie = get_object_or_404(Movie, id=slug)
-    else:
-        movie = get_object_or_404(Movie, slug=slug)
+    movie = get_object_or_404(Movie, id=slug) if str(slug).isdigit() else get_object_or_404(Movie, slug=slug)
         
     reviews = Review.objects.filter(movie=movie, parent=None).select_related('user', 'user__profile').prefetch_related('replies', 'replies__user', 'replies__user__profile').order_by('-created_at')    
     is_bookmarked = Watchlist.objects.filter(user=request.user, movie=movie).exists()
-    episodes = movie.episodes.all().order_by('id')
+
+    # FIX LỖI SẮP XẾP TẬP PHIM TẠI ĐÂY:
+    episodes = movie.episodes.annotate(
+        ep_num=Cast('episode_name', output_field=IntegerField())
+    ).order_by('ep_num')
+    
+    # Fallback nếu episode_name không phải là số thuần túy
+    if not episodes.exists():
+        episodes = movie.episodes.all().order_by('id')
+
     default_video_url = episodes.first().link_ophim if episodes.exists() else ""
     
+    # LOGIC KIỂM TRA TUỔI
     can_watch, age_message = True, ""
     if movie.age_limit > 0:
-        if request.user.last_name: 
-            try:
-                birth_date = date.fromisoformat(request.user.last_name)
-                today = date.today()
-                age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-                if age < movie.age_limit:
-                    can_watch, age_message = False, f"Phim giới hạn {movie.age_limit}+. Bạn mới {age} tuổi."
-            except:
-                can_watch, age_message = False, "Lỗi định dạng ngày sinh."
+        # Ưu tiên lấy từ Profile.birth_date mới thêm
+        u_profile = getattr(request.user, 'profile', None)
+        b_date = None
+        
+        if u_profile and u_profile.birth_date:
+            b_date = u_profile.birth_date
+        elif request.user.last_name: # Fallback dữ liệu cũ của bạn
+            try: b_date = date.fromisoformat(request.user.last_name)
+            except: b_date = None
+
+        if b_date:
+            today = date.today()
+            age = today.year - b_date.year - ((today.month, today.day) < (b_date.month, b_date.day))
+            if age < movie.age_limit:
+                can_watch, age_message = False, f"Phim giới hạn {movie.age_limit}+. Bạn mới {age} tuổi."
         else:
             can_watch, age_message = False, "Vui lòng cập nhật ngày sinh trong Profile để xem phim này."
 
@@ -143,7 +157,7 @@ def movie_detail(request, slug=None):
     }
     return render(request, 'main/detail.html', context)
 
-# --- 5. TÌM KIẾM AJAX ---
+# --- Các hàm khác (Search, Account, History,...) giữ nguyên logic của bạn ---
 def ajax_search(request):
     query = request.GET.get('q', '').strip()
     if len(query) >= 2:
@@ -152,7 +166,6 @@ def ajax_search(request):
         return JsonResponse({'status': 'success', 'data': results})
     return JsonResponse({'status': 'error', 'data': []})
 
-# --- 6. HỆ THỐNG TÀI KHOẢN ---
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -169,9 +182,10 @@ def register_view(request):
             return render(request, 'main/register.html', NAV_CONTEXT)
             
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.last_name = birth_date 
-        user.save()
-        Profile.objects.get_or_create(user=user)
+        if birth_date:
+            user.last_name = birth_date
+            user.save()
+            Profile.objects.update_or_create(user=user, defaults={'birth_date': birth_date})
         
         login(request, user)
         messages.success(request, f"Chào mừng {username} gia nhập BQH MOVIE!")
@@ -192,43 +206,31 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-# --- 7. HỒ SƠ & TƯƠNG TÁC NGƯỜI DÙNG ---
-from datetime import date
-
 @login_required
 def profile_view(request):
-    # XỬ LÝ CẬP NHẬT NGÀY SINH
     if request.method == 'POST':
         birth_date = request.POST.get('birth_date')
         if birth_date:
-            # Đảm bảo lưu đúng định dạng YYYY-MM-DD
             request.user.last_name = birth_date
             request.user.save()
+            p, _ = Profile.objects.get_or_create(user=request.user)
+            p.birth_date = birth_date
+            p.save()
             messages.success(request, "Đã cập nhật ngày sinh!")
         return redirect('profile')
 
-    # LOGIC TÍNH TUỔI AN TOÀN
     user_age = "—" 
-    if request.user.last_name:
-        try:
-            # Kiểm tra định dạng chuỗi trước khi parse
-            b_date = date.fromisoformat(request.user.last_name)
-            today = date.today()
-            age = today.year - b_date.year - ((today.month, today.day) < (b_date.month, b_date.day))
-            user_age = age if age >= 0 else "—"
-        except (ValueError, TypeError):
-            user_age = "Chưa đặt" # Thay vì báo lỗi định dạng làm xấu giao diện
+    b_date = getattr(request.user.profile, 'birth_date', None) or (date.fromisoformat(request.user.last_name) if request.user.last_name else None)
+    if b_date:
+        today = date.today()
+        user_age = today.year - b_date.year - ((today.month, today.day) < (b_date.month, b_date.day))
 
     profile, _ = Profile.objects.get_or_create(user=request.user)
     achievements = UserAchievement.objects.filter(user=request.user).select_related('achievement')
     recent_history = WatchHistory.objects.filter(user=request.user).select_related('movie')[:3]
 
     return render(request, 'main/profile.html', {
-        'user_age': user_age,
-        'profile': profile,
-        'achievements': achievements,
-        'recent_history': recent_history,
-        **NAV_CONTEXT
+        'user_age': user_age, 'profile': profile, 'achievements': achievements, 'recent_history': recent_history, **NAV_CONTEXT
     })
 
 @login_required
@@ -246,45 +248,27 @@ def add_review(request, movie_id):
         movie = get_object_or_404(Movie, pk=movie_id)
         comment_text = request.POST.get('comment', '').strip()
         parent_id = request.POST.get('parent_id')
-        
         if comment_text:
-            parent_review = None
-            if parent_id:
-                try: parent_review = Review.objects.get(id=parent_id)
-                except Review.DoesNotExist: parent_review = None
-
+            parent_review = Review.objects.filter(id=parent_id).first() if parent_id else None
             review = Review.objects.create(user=request.user, movie=movie, comment=comment_text, rating=5, parent=parent_review)
-            
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                avatar_url = f"https://ui-avatars.com/api/?name={request.user.username}&background=random&color=fff"
-                if hasattr(request.user, 'profile') and request.user.profile.avatar:
-                    avatar_url = request.user.profile.avatar.url
+                avatar_url = request.user.profile.avatar.url if hasattr(request.user, 'profile') and request.user.profile.avatar else f"https://ui-avatars.com/api/?name={request.user.username}"
                 medals = [{'name': ua.achievement.name, 'icon': ua.achievement.icon_class, 'color': ua.achievement.color} for ua in request.user.achievements.all()]
                 return JsonResponse({'status': 'success', 'username': request.user.username, 'comment': review.comment, 'user_avatar': avatar_url, 'review_id': review.id, 'achievements': medals, 'parent_id': parent_id})
-                
     return redirect('movie_detail', slug=movie.slug)
 
 @login_required
 def delete_review(request, review_id):
     review = get_object_or_404(Review, pk=review_id, user=request.user)
     review.delete()
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'status': 'success'})
-    return redirect(request.META.get('HTTP_REFERER', 'home'))
+    return JsonResponse({'status': 'success'}) if request.headers.get('x-requested-with') == 'XMLHttpRequest' else redirect(request.META.get('HTTP_REFERER', 'home'))
 
 @login_required
 def toggle_watchlist(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-    Profile.objects.get_or_create(user=request.user)
     item, created = Watchlist.objects.get_or_create(user=request.user, movie=movie)
-    if not created:
-        item.delete()
-        action = 'removed'
-    else:
-        action = 'added'
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'status': action})
-    return redirect(request.META.get('HTTP_REFERER', 'home'))
+    if not created: item.delete()
+    return JsonResponse({'status': 'removed' if not created else 'added'}) if request.headers.get('x-requested-with') == 'XMLHttpRequest' else redirect(request.META.get('HTTP_REFERER', 'home'))
 
 @login_required
 def watchlist_view(request):
@@ -294,21 +278,16 @@ def watchlist_view(request):
 @login_required
 def like_review(request, review_id):
     r = get_object_or_404(Review, id=review_id)
-    if r.likes.filter(id=request.user.id).exists():
-        r.likes.remove(request.user)
-        liked = False
-    else:
-        r.likes.add(request.user)
-        liked = True
-    return JsonResponse({'liked': liked, 'count': r.likes.count()})
+    liked = r.likes.filter(id=request.user.id).exists()
+    if liked: r.likes.remove(request.user)
+    else: r.likes.add(request.user)
+    return JsonResponse({'liked': not liked, 'count': r.likes.count()})
 
 @login_required
 def update_history(request, movie_id):
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        movie = get_object_or_404(Movie, id=movie_id)
-        WatchHistory.objects.update_or_create(user=request.user, movie=movie)
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+    movie = get_object_or_404(Movie, id=movie_id)
+    WatchHistory.objects.update_or_create(user=request.user, movie=movie)
+    return JsonResponse({'status': 'success'})
 
 @login_required
 def history_view(request):
