@@ -1,0 +1,67 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+{% block content_title %} 
+    <div style="margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+        <h1 class="mb-0 text-white" style="font-weight: 800; font-size: 26px;">
+            <i class="fas fa-trophy text-warning"></i> HỆ THỐNG THÀNH TÍCH
+        </h1>
+    </div>
+{% endblock %}
+
+{% block result_list %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .stat-card{background:linear-gradient(145deg, #1e1e1e, #252525);padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);text-align:center;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.2);} 
+    .chart-box{background:#1e1e1e;padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05); box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+    .card-title-lg { font-size: 2.5rem; margin: 0; font-weight: 800; }
+    .card-sub { color: #aaa; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-top: 5px; }
+</style>
+
+<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; margin-bottom:30px;">
+    <div class="stat-card">
+        <h2 class="card-title-lg" style="color:#e83e8c;">{{ stats.total_badges }}</h2>
+        <div class="card-sub">LOẠI HUY HIỆU</div>
+    </div>
+    <div class="stat-card">
+        <h2 class="card-title-lg" style="color:#6610f2;">{{ stats.total_unlocks }}</h2>
+        <div class="card-sub">TỔNG LƯỢT MỞ KHÓA</div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:30px;">
+    <div class="chart-box">
+        <h4 style="color:#e0e0e0; margin-bottom:20px; border-left:4px solid #6610f2; padding-left:10px;">🏅 Top Badge Phổ biến</h4>
+        <div style="height:280px;"><canvas id="aBar"></canvas></div>
+    </div>
+    <div class="chart-box">
+        <h4 style="color:#e0e0e0; margin-bottom:20px; border-left:4px solid #e83e8c; padding-left:10px;">🍕 Tỉ lệ sở hữu</h4>
+        <div style="height:280px;"><canvas id="aPie"></canvas></div>
+    </div>
+</div>
+
+<script>
+    Chart.defaults.color = '#bbb';
+    new Chart(document.getElementById('aBar'), {
+        type:'bar',
+        data:{
+            labels:{{stats.bar_labels|safe}},
+            datasets:[{
+                label:'Số người đạt',
+                data:{{stats.bar_data|safe}},
+                backgroundColor:'#6610f2',
+                borderRadius: 4
+            }]
+        },
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#333'}},y:{grid:{display:false}}}}
+    });
+    new Chart(document.getElementById('aPie'), {
+        type:'doughnut',
+        data:{
+            labels:{{stats.pie_labels|safe}},
+            datasets:[{data:{{stats.pie_data|safe}},backgroundColor:['#e83e8c','#343a40'],borderWidth:0, hoverOffset:4}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#ccc', padding: 20}}}}
+    });
+</script>
+{{ block.super }}
+{% endblock %}

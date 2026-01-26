@@ -2,7 +2,25 @@
 {% load static %}
 
 {% block content_title %}
-    <h1 class="mb-4" style="font-weight: 800; color: #fff;"> 📊 DASHBOARD QUẢN TRỊ PHIM </h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+        <h1 class="mb-0" style="font-weight: 800; color: #fff; font-size: 26px; text-transform: uppercase; letter-spacing: 1px;"> 
+            <i class="fas fa-film text-warning"></i> QUẢN LÝ KHO PHIM 
+        </h1>
+        
+        <div style="display: flex; gap: 12px;">
+            <button onclick="triggerAction('{% url 'admin:custom_movie_crawl' %}')" 
+                    class="btn-action" 
+                    style="background: linear-gradient(135deg, #c40000, #ff4444); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(196, 0, 0, 0.4); transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-spider"></i> CÀO PHIM NGAY
+            </button>
+            
+            <button onclick="triggerAction('{% url 'admin:custom_movie_sync' %}')" 
+                    class="btn-action" 
+                    style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4); transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-sync-alt"></i> ĐỒNG BỘ TMDB
+            </button>
+        </div>
+    </div>
 {% endblock %}
 
 {% block result_list %}
@@ -10,42 +28,45 @@
 
     <style>
         .stats-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
             gap: 20px; margin-bottom: 30px; 
         }
         .stat-card {
-            background: #1e1e1e; border-radius: 12px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(145deg, #1e1e1e, #252525); border-radius: 12px; padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.2s;
         }
-        .stat-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.8; }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+        .stat-icon { font-size: 2.2rem; margin-bottom: 15px; opacity: 0.9; }
         .stat-number { font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1; }
-        .stat-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 5px; }
+        .stat-label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-top: 5px; font-weight: 600; }
         
         .charts-row { display: flex; gap: 20px; margin-bottom: 40px; flex-wrap: wrap; }
         .chart-box { 
             background: #1e1e1e; padding: 20px; border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1); flex: 1; min-width: 300px;
+            border: 1px solid rgba(255,255,255,0.05); flex: 1; min-width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .chart-title { 
-            color: #fff; font-size: 1rem; margin-bottom: 20px; font-weight: 700;
-            border-left: 4px solid #c40000; padding-left: 10px; 
+            color: #e0e0e0; font-size: 1.1rem; margin-bottom: 20px; font-weight: 700;
+            border-left: 5px solid #c40000; padding-left: 12px; display: flex; align-items: center;
         }
     </style>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon" style="color: #0d6efd;"><i class="fas fa-video"></i></div>
+            <div class="stat-icon" style="color: #0d6efd; text-shadow: 0 0 10px rgba(13, 110, 253, 0.4);"><i class="fas fa-video"></i></div>
             <div class="stat-number">{{ stats.total_movies }}</div>
             <div class="stat-label">Tổng Phim</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon" style="color: #ffc107;"><i class="fas fa-comments"></i></div>
+            <div class="stat-icon" style="color: #ffc107; text-shadow: 0 0 10px rgba(255, 193, 7, 0.4);"><i class="fas fa-comments"></i></div>
             <div class="stat-number">{{ stats.total_reviews }}</div>
             <div class="stat-label">Lượt Đánh giá</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon" style="color: #198754;"><i class="fas fa-star-half-alt"></i></div>
+            <div class="stat-icon" style="color: #198754; text-shadow: 0 0 10px rgba(25, 135, 84, 0.4);"><i class="fas fa-star-half-alt"></i></div>
             <div class="stat-number">{{ stats.avg_rating }}</div>
             <div class="stat-label">Điểm Trung Bình</div>
         </div>
@@ -53,105 +74,74 @@
 
     <div class="charts-row">
         <div class="chart-box" style="flex: 1;">
-            <div class="chart-title">Cấu trúc Kho phim</div>
+            <div class="chart-title"> <i class="fas fa-chart-pie mr-2"></i> Cấu trúc Kho phim</div>
             <div style="height: 250px; display: flex; justify-content: center;">
                 <canvas id="pieChart"></canvas>
             </div>
         </div>
         <div class="chart-box" style="flex: 2;">
-            <div class="chart-title">Top 5 Phim nhiều Review nhất</div>
+            <div class="chart-title"> <i class="fas fa-chart-bar mr-2"></i> Top 5 Phim "Hot" nhất</div>
             <div style="height: 250px;">
                 <canvas id="barChart"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="charts-row">
-        <div class="chart-box" style="flex: 2;">
-            <div class="chart-title">🚀 Tăng trưởng Thành viên (6 tháng qua)</div>
-            <div style="height: 300px;">
-                <canvas id="userLineChart"></canvas>
-            </div>
-        </div>
-        <div class="chart-box" style="flex: 1;">
-            <div class="chart-title">🎭 Top Thể loại phổ biến</div>
-            <div style="height: 300px; display: flex; justify-content: center;">
-                <canvas id="genrePolarChart"></canvas>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // 1. Pie Chart
+        function triggerAction(url) {
+            if(!confirm("Bạn có chắc muốn chạy tác vụ này không?")) return;
+            // Hiệu ứng loading nhẹ ở button nếu cần (option)
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message); // Hiển thị message từ JsonResponse
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Có lỗi kết nối Server!");
+                });
+        }
+
+        // Cấu hình chung cho Chart.js
+        Chart.defaults.color = '#bbb';
+        Chart.defaults.font.family = "'Segoe UI', 'Roboto', sans-serif";
+
         new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: {
                 labels: {{ stats.pie_labels|safe }},
                 datasets: [{
                     data: {{ stats.pie_data|safe }},
-                    backgroundColor: ['#c40000', '#ffc107'],
-                    borderWidth: 0, hoverOffset: 10
+                    backgroundColor: ['#c40000', '#ffc107'], 
+                    hoverOffset: 4, borderWidth: 0
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#ccc' } } } }
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { position: 'right', labels: { boxWidth: 15, padding: 15, color: '#e0e0e0' } } } 
+            }
         });
 
-        // 2. Bar Chart
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: {{ stats.bar_labels|safe }},
                 datasets: [{
-                    label: 'Reviews',
+                    label: 'Lượt Reviews', 
                     data: {{ stats.bar_data|safe }},
-                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.8)', 
                     borderColor: '#0d6efd', borderWidth: 1, borderRadius: 4
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } }, x: { grid: { display: false }, ticks: { color: '#aaa' } } },
+                scales: { 
+                    y: { beginAtZero: true, grid: { color: '#333' } }, 
+                    x: { grid: { display: false } } 
+                },
                 plugins: { legend: { display: false } }
-            }
-        });
-
-        // 3. User Line Chart
-        new Chart(document.getElementById('userLineChart'), {
-            type: 'line',
-            data: {
-                labels: {{ stats.user_labels|safe }},
-                datasets: [{
-                    label: 'Thành viên mới',
-                    data: {{ stats.user_data|safe }},
-                    borderColor: '#00d2d3', backgroundColor: 'rgba(0, 210, 211, 0.2)',
-                    borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#aaa' } }, x: { grid: { display: false }, ticks: { color: '#aaa' } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // 4. Genre Polar Chart
-        new Chart(document.getElementById('genrePolarChart'), {
-            type: 'polarArea',
-            data: {
-                labels: {{ stats.genre_labels|safe }},
-                datasets: [{
-                    data: {{ stats.genre_data|safe }},
-                    backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)'],
-                    borderWidth: 1, borderColor: '#1e1e1e'
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { r: { grid: { color: '#444' }, ticks: { display: false, backdropColor: 'transparent' } } },
-                plugins: { legend: { position: 'bottom', labels: { color: '#ccc' } } }
             }
         });
     </script>
-
     {{ block.super }}
 {% endblock %}
