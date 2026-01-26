@@ -22,12 +22,13 @@
             --surface: rgba(15, 15, 15, 0.95);
             --border: rgba(255, 255, 255, 0.08);
             --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --nav-height-mobile: 60px;
         }
 
         body { 
             background-color: var(--bg-deep); color: #e0e0e0; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            padding-top: 70px; /* Mobile padding */
+            padding-top: 70px; 
             overflow-x: hidden; -webkit-font-smoothing: antialiased;
         }
 
@@ -47,7 +48,7 @@
             border-bottom: 1px solid var(--border);
             padding: 10px 15px; z-index: 3000; 
             transition: all 0.3s;
-            min-height: 60px;
+            min-height: var(--nav-height-mobile);
         }
 
         .brand-logo { 
@@ -84,7 +85,7 @@
         }
         .dropdown-item:hover { background: rgba(196, 0, 0, 0.15) !important; color: #fff !important; transform: translateX(5px); }
 
-        /* --- SEARCH BOX (STYLES CŨ & MỚI CHO AJAX) --- */
+        /* --- SEARCH BOX --- */
         .search-container { position: relative; width: 100%; margin-bottom: 15px; z-index: 3001; } 
         .search-wrapper {
             background: rgba(255,255,255,0.08); border: 1px solid var(--border);
@@ -100,7 +101,6 @@
             max-height: 350px; overflow-y: auto;
         }
         
-        /* STYLE CHO KẾT QUẢ TÌM KIẾM AJAX */
         .search-result-item {
             display: flex; align-items: center; padding: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -108,60 +108,73 @@
         }
         .search-result-item:last-child { border-bottom: none; }
         .search-result-item:hover { background: rgba(255, 255, 255, 0.1); }
-
-        .search-poster {
-            width: 45px; height: 60px; border-radius: 4px;
-            object-fit: cover; margin-right: 12px; background: #333;
-        }
+        .search-poster { width: 45px; height: 60px; border-radius: 4px; object-fit: cover; margin-right: 12px; background: #333; }
         .search-info { flex: 1; overflow: hidden; }
-        .search-title { 
-            color: #fff; font-size: 0.9rem; font-weight: 600; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            margin-bottom: 2px;
-        }
+        .search-title { color: #fff; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
         .search-meta { font-size: 0.75rem; color: #aaa; display: flex; align-items: center; gap: 8px; }
         .search-rating { color: var(--accent); font-weight: bold; }
-        /* ------------------------------------- */
 
-        /* --- USER GATE (AVATAR) --- */
+        /* --- USER GATE --- */
         .user-gate { 
             padding: 6px; cursor: pointer; display: flex; 
             align-items: center; gap: 12px; background: rgba(255,255,255,0.05); 
             border: 1px solid var(--border); border-radius: 12px; transition: 0.3s;
-            width: 100%; /* Full width mobile */
+            width: 100%; 
         }
         .avatar-box { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--primary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
         .logout-btn { background: transparent; border: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 0; color: #ff4757 !important; font-weight: 700; }
 
-        /* --- MOBILE SPECIFIC FIXES --- */
+        /* --- MOBILE MENU STYLE MỚI (ĐẸP HƠN, KHÔNG CHE HẾT) --- */
         @media (max-width: 991px) {
             .navbar-collapse {
-                background: #0f0f0f;
-                position: absolute; top: 100%; left: 0; right: 0;
-                padding: 20px;
-                border-bottom: 1px solid var(--primary);
-                max-height: 80vh; /* Quan trọng: Cho phép cuộn nếu menu dài */
-                overflow-y: auto; 
-                box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+                /* Không dùng fixed full màn hình nữa, dùng absolute để nó "trôi" ngay dưới navbar */
+                position: absolute;
+                top: 100%; /* Ngay sát mép dưới navbar */
+                left: 0;
+                right: 0;
+                z-index: 2900; /* Thấp hơn navbar một chút */
+
+                /* Giao diện kính mờ (Glassmorphism) sang trọng */
+                background: rgba(15, 15, 15, 0.92) !important; /* Màu nền tối bán trong suốt */
+                backdrop-filter: blur(20px) saturate(120%); /* Hiệu ứng làm mờ hậu cảnh */
+                -webkit-backdrop-filter: blur(20px) saturate(120%);
+                
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Viền sáng nhẹ bên dưới */
+                box-shadow: 0 20px 40px rgba(0,0,0,0.6); /* Đổ bóng mềm */
+                
+                padding: 20px 15px;
+                
+                /* Giới hạn chiều cao để không che hết màn hình, nếu dài quá thì cuộn */
+                max-height: 80vh; 
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                
+                /* Hiệu ứng bo góc nhẹ ở đáy khi mở ra */
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
             }
             
-            .navbar-nav { width: 100%; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+            /* Tùy chỉnh thanh cuộn cho đẹp */
+            .navbar-collapse::-webkit-scrollbar { width: 4px; }
+            .navbar-collapse::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
             
-            /* Dropdown trên mobile */
+            /* Các phần khác giữ nguyên để đảm bảo hoạt động đúng */
+            .navbar-nav { width: 100%; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+            
             .dropdown-menu { 
                 position: static !important; float: none; width: 100%;
                 display: none; background: rgba(255,255,255,0.03) !important;
-                border: none !important; margin-top: 5px;
+                border: none !important; margin-top: 5px; padding-left: 15px;
+                border-radius: 12px; /* Bo góc cho dropdown con */
             }
             .dropdown-menu.show { display: block !important; }
             
-            /* Mega menu mobile */
             .mega-menu-wrapper { display: block; }
-            .mega-column { margin-bottom: 15px; }
-            .mega-title { color: var(--accent); margin-top: 10px; margin-bottom: 5px; padding-left: 10px; font-size: 0.8rem; text-transform: uppercase; border-left: 3px solid var(--accent); }
+            .mega-column { margin-bottom: 20px; }
+            .mega-title { color: var(--accent); margin-top: 10px; margin-bottom: 5px; padding-left: 10px; font-size: 0.9rem; text-transform: uppercase; border-left: 3px solid var(--accent); font-weight: 800; }
 
-            .btn-login { width: 100%; display: block; padding: 12px; text-align: center; margin-top: 10px; }
+            .btn-login { width: 100%; display: block; padding: 12px; text-align: center; margin-top: 20px; }
         }
 
         /* --- DESKTOP SPECIFIC --- */
@@ -172,7 +185,7 @@
                 margin: 15px 2%; padding: 5px 20px; min-height: 80px;
                 background: var(--surface) !important;
             }
-            .navbar-collapse { position: static; background: transparent; padding: 0; border: none; box-shadow: none; overflow: visible; }
+            .navbar-collapse { position: static; background: transparent; padding: 0; border: none; box-shadow: none; overflow: visible; height: auto !important; }
             .navbar-nav { border: none; margin: 0; padding: 0; width: auto; flex-direction: row; align-items: center; }
             .search-container { width: 260px; margin-bottom: 0; }
             .user-gate { width: auto; border-radius: 50px; padding: 5px 12px 5px 5px; }
@@ -190,7 +203,6 @@
             .mega-column { flex: 1; }
             .mega-title { border-left: 3px solid var(--primary); padding-left: 10px; margin-bottom: 15px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 2px; }
             
-            /* Dropdown User căn phải */
             .user-dropdown-mobile .dropdown-menu { left: auto !important; right: 0 !important; transform: translateY(15px) !important; width: 220px; }
             .user-dropdown-mobile:hover .dropdown-menu { transform: translateY(0) !important; }
         }
@@ -199,10 +211,7 @@
         .extremely-small { font-size: 10px !important; line-height: 1.2; }
         .heart-particle { position: fixed; pointer-events: none; font-size: 20px; z-index: 10000; animation: heartFly 1s ease-out forwards; }
         @keyframes heartFly { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-        
         .btn-login { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 12px; font-size: 0.75rem; text-decoration: none; flex-shrink: 0; }
-        
-        /* COPY BUTTON FEEDBACK */
         .copy-feedback { position: absolute; background: #28a745; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; top: -30px; right: 0; opacity: 0; transition: 0.3s; }
         .copy-feedback.show { opacity: 1; top: -40px; }
     </style>
@@ -225,7 +234,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Khám phá</a></li>
                     
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="genreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="genreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Danh mục <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i>
                         </a>
                         <div class="dropdown-menu mega-menu-content" aria-labelledby="genreDropdown">
@@ -253,7 +262,7 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="historyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="historyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Lịch sử <i class="fas fa-clock-rotate-left ms-1" style="font-size: 0.6rem; opacity: 0.5;"></i>
                         </a>
                         <div class="dropdown-menu shadow-lg p-2" aria-labelledby="historyDropdown">
@@ -376,36 +385,32 @@
             const navContent = document.getElementById('navContent');
             const toggler = document.querySelector('.navbar-toggler');
             
-            // Auto close mobile menu
-            document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth < 992) {
-                        const bsCollapse = bootstrap.Collapse.getInstance(navContent) || new bootstrap.Collapse(navContent);
-                        bsCollapse.hide();
+            // --- FIX LOGIC MENU (Giữ nguyên để đảm bảo hoạt động) ---
+            document.addEventListener('click', function(e) {
+                if (navContent.contains(e.target)) {
+                    const link = e.target.closest('a');
+                    if (link && !link.classList.contains('dropdown-toggle')) {
+                        if (window.innerWidth < 992 && navContent.classList.contains('show')) {
+                            const bsCollapse = bootstrap.Collapse.getInstance(navContent);
+                            if (bsCollapse) bsCollapse.hide();
+                        }
                     }
-                });
-            });
-
-            // Click outside
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth < 992) {
-                    const isClickInside = navContent.contains(event.target) || toggler.contains(event.target);
-                    if (!isClickInside && navContent.classList.contains('show')) {
+                }
+                else if (!toggler.contains(e.target) && navContent.classList.contains('show')) {
+                    if (window.innerWidth < 992) {
                         const bsCollapse = bootstrap.Collapse.getInstance(navContent);
-                        bsCollapse.hide();
+                        if (bsCollapse) bsCollapse.hide();
                     }
                 }
             });
 
-            // --- TÍNH NĂNG TÌM KIẾM THÔNG MINH (AJAX) MỚI ---
+            // --- SEARCH LOGIC ---
             const searchInput = document.getElementById('live-search');
             const resultsBox = document.getElementById('search-results-box');
             let debounceTimer;
 
-            // 1. Hàm gọi API từ Backend
             const fetchMovies = async (query) => {
                 try {
-                    // Gọi đến URL ajax_search đã tạo
                     const response = await fetch(`/ajax-search/?q=${encodeURIComponent(query)}`, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
@@ -423,7 +428,6 @@
                 }
             };
 
-            // 2. Hàm hiển thị HTML kết quả
             const renderResults = (movies) => {
                 const html = movies.map(movie => `
                     <a href="/movie/${movie.slug}/" class="search-result-item">
@@ -438,7 +442,6 @@
                     </a>
                 `).join('');
                 
-                // Nút "Xem tất cả"
                 const viewAllHtml = `
                     ${html}
                     <a href="{% url 'home' %}?q=${searchInput.value}" class="d-block p-2 text-center small fw-bold text-decoration-none border-top border-secondary border-opacity-25" style="color: var(--accent);">
@@ -450,62 +453,28 @@
                 resultsBox.style.display = 'block';
             };
 
-            // 3. Sự kiện gõ phím (Có Debounce 300ms)
             searchInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
                 const query = this.value.trim();
-
-                if (query.length < 2) {
-                    resultsBox.style.display = 'none';
-                    return;
-                }
-
-                // Hiện loading giả
+                if (query.length < 2) { resultsBox.style.display = 'none'; return; }
                 resultsBox.style.display = 'block';
                 resultsBox.innerHTML = '<div class="p-3 text-center text-white-50 small"><i class="fas fa-circle-notch fa-spin me-2"></i>Đang tìm...</div>';
-
-                debounceTimer = setTimeout(() => {
-                    fetchMovies(query);
-                }, 300);
+                debounceTimer = setTimeout(() => { fetchMovies(query); }, 300);
             });
 
-            // 4. Ẩn khi click ra ngoài
             document.addEventListener('click', function(e) {
                 if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
                     resultsBox.style.display = 'none';
                 }
             });
 
-            // 5. Hiện lại khi focus
             searchInput.addEventListener('focus', function() {
                 if (this.value.trim().length >= 2 && resultsBox.innerHTML !== '') {
                     resultsBox.style.display = 'block';
                 }
             });
-            // ----------------------------------------------------
-
         });
 
-        // Hiệu ứng tim bay
-        function createHeartBurst(event) {
-            const btn = event.currentTarget;
-            const rect = btn.getBoundingClientRect();
-            const count = 10;
-            for (let i = 0; i < count; i++) {
-                const heart = document.createElement('i');
-                heart.className = 'fas fa-heart heart-particle text-danger';
-                heart.style.left = rect.left + rect.width / 2 + 'px';
-                heart.style.top = rect.top + rect.height / 2 + 'px';
-                const tx = (Math.random() - 0.5) * 100 + 'px';
-                const ty = (Math.random() - 1) * 100 - 50 + 'px';
-                heart.style.setProperty('--tx', tx);
-                heart.style.setProperty('--ty', ty);
-                document.body.appendChild(heart);
-                setTimeout(() => heart.remove(), 1000);
-            }
-        }
-
-        // Copy STK function
         function copyBankNum() {
             const num = document.getElementById('bank-num').innerText;
             navigator.clipboard.writeText(num).then(() => {
@@ -513,6 +482,21 @@
                 msg.classList.add('show');
                 setTimeout(() => msg.classList.remove('show'), 2000);
             });
+        }
+        
+        function createHeartBurst(event) {
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fas fa-heart heart-particle text-danger';
+                heart.style.left = rect.left + rect.width / 2 + 'px';
+                heart.style.top = rect.top + rect.height / 2 + 'px';
+                heart.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+                heart.style.setProperty('--ty', (Math.random() - 1) * 100 - 50 + 'px');
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 1000);
+            }
         }
     </script>
 </body>
