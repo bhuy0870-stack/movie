@@ -8,7 +8,7 @@ urlpatterns = [
     path('', views.home, name='home'), 
     
     # Chi tiết phim - Chỉ dùng 1 dòng duy nhất cho Slug
-    path('movie/<slug:slug>/', views.movie_detail, name='movie_detail'),
+    path('movie/<str:slug>/', views.movie_detail, name='movie_detail'),
     
     # Watchlist
     path('watchlist/', views.watchlist_view, name='watchlist'),
