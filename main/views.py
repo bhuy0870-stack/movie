@@ -6,15 +6,19 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-# Đã thêm Case, When, Value để xử lý logic điều kiện trong DB
-from django.db.models import Q, IntegerField, Case, When, Value
-# Đã thêm RegexReplace để lọc bỏ ký tự chữ
-from django.db.models.functions import Cast, RegexReplace
+# Đã sửa import: Bỏ RegexReplace ở đây, thêm Func
+from django.db.models import Q, IntegerField, Case, When, Value, Func
+from django.db.models.functions import Cast
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import Movie, Watchlist, Review, Achievement, UserAchievement, Episode, Profile, WatchHistory
+
+# --- 0. ĐỊNH NGHĨA HÀM REGEX CHO POSTGRESQL (FIX LỖI IMPORT) ---
+class RegexReplace(Func):
+    function = 'REGEXP_REPLACE'
+    template = "%(function)s(%(expressions)s, 'g')"
 
 # --- 1. DỮ LIỆU NAVBAR ---
 NAV_CONTEXT = {
@@ -106,6 +110,7 @@ def movie_detail(request, slug=None):
         messages.warning(request, "Vui lòng đăng nhập để xem chi tiết!")
         return redirect('login')
     
+    # Logic path/slug cũ của bạn
     movie = get_object_or_404(Movie, id=slug) if str(slug).isdigit() else get_object_or_404(Movie, slug=slug)
         
     reviews = Review.objects.filter(movie=movie, parent=None).select_related('user', 'user__profile').prefetch_related('replies', 'replies__user', 'replies__user__profile').order_by('-created_at')    
@@ -113,29 +118,29 @@ def movie_detail(request, slug=None):
 
     # --- FIX LỖI "596 SP" VÀ SẮP XẾP TẬP PHIM AN TOÀN ---
     episodes = movie.episodes.annotate(
-        # 1. Lọc bỏ ký tự không phải số (Ví dụ: "596 SP" -> "596")
-        clean_ep_name=RegexReplace('episode_name', r'[^0-9]', Value(''))
+        # 1. Dùng class RegexReplace tự định nghĩa ở trên
+        # Lọc bỏ ký tự KHÔNG phải số (regex: \D) thay bằng rỗng
+        clean_ep_name=RegexReplace('episode_name', Value(r'\D'), Value(''))
     ).annotate(
-        # 2. Xử lý logic: Nếu sau khi lọc mà rỗng (không có số) -> gán 0. Nếu có số -> ép kiểu Integer
+        # 2. Xử lý logic: Nếu rỗng -> 0, có số -> ép kiểu Integer
         ep_num=Case(
             When(clean_ep_name='', then=Value(0)),
             default=Cast('clean_ep_name', output_field=IntegerField()),
             output_field=IntegerField(),
         )
-    ).order_by('ep_num', 'id') # Sắp xếp theo số tập, sau đó theo ID
+    ).order_by('ep_num', 'id')
 
     default_video_url = episodes.first().link_ophim if episodes.exists() else ""
     
     # LOGIC KIỂM TRA TUỔI
     can_watch, age_message = True, ""
     if movie.age_limit > 0:
-        # Ưu tiên lấy từ Profile.birth_date
         u_profile = getattr(request.user, 'profile', None)
         b_date = None
         
         if u_profile and u_profile.birth_date:
             b_date = u_profile.birth_date
-        elif request.user.last_name: # Fallback dữ liệu cũ
+        elif request.user.last_name: 
             try: b_date = date.fromisoformat(request.user.last_name)
             except: b_date = None
 
@@ -163,7 +168,7 @@ def movie_detail(request, slug=None):
     }
     return render(request, 'main/detail.html', context)
 
-# --- Các hàm khác (Search, Account, History,...) giữ nguyên logic của bạn ---
+# --- Các hàm khác (Search, Account, History,...) giữ nguyên ---
 def ajax_search(request):
     query = request.GET.get('q', '').strip()
     if len(query) >= 2:
