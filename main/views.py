@@ -6,8 +6,10 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, IntegerField
-from django.db.models.functions import Cast
+# Đã thêm Case, When, Value để xử lý logic điều kiện trong DB
+from django.db.models import Q, IntegerField, Case, When, Value
+# Đã thêm RegexReplace để lọc bỏ ký tự chữ
+from django.db.models.functions import Cast, RegexReplace
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -109,27 +111,31 @@ def movie_detail(request, slug=None):
     reviews = Review.objects.filter(movie=movie, parent=None).select_related('user', 'user__profile').prefetch_related('replies', 'replies__user', 'replies__user__profile').order_by('-created_at')    
     is_bookmarked = Watchlist.objects.filter(user=request.user, movie=movie).exists()
 
-    # FIX LỖI SẮP XẾP TẬP PHIM TẠI ĐÂY:
+    # --- FIX LỖI "596 SP" VÀ SẮP XẾP TẬP PHIM AN TOÀN ---
     episodes = movie.episodes.annotate(
-        ep_num=Cast('episode_name', output_field=IntegerField())
-    ).order_by('ep_num')
-    
-    # Fallback nếu episode_name không phải là số thuần túy
-    if not episodes.exists():
-        episodes = movie.episodes.all().order_by('id')
+        # 1. Lọc bỏ ký tự không phải số (Ví dụ: "596 SP" -> "596")
+        clean_ep_name=RegexReplace('episode_name', r'[^0-9]', Value(''))
+    ).annotate(
+        # 2. Xử lý logic: Nếu sau khi lọc mà rỗng (không có số) -> gán 0. Nếu có số -> ép kiểu Integer
+        ep_num=Case(
+            When(clean_ep_name='', then=Value(0)),
+            default=Cast('clean_ep_name', output_field=IntegerField()),
+            output_field=IntegerField(),
+        )
+    ).order_by('ep_num', 'id') # Sắp xếp theo số tập, sau đó theo ID
 
     default_video_url = episodes.first().link_ophim if episodes.exists() else ""
     
     # LOGIC KIỂM TRA TUỔI
     can_watch, age_message = True, ""
     if movie.age_limit > 0:
-        # Ưu tiên lấy từ Profile.birth_date mới thêm
+        # Ưu tiên lấy từ Profile.birth_date
         u_profile = getattr(request.user, 'profile', None)
         b_date = None
         
         if u_profile and u_profile.birth_date:
             b_date = u_profile.birth_date
-        elif request.user.last_name: # Fallback dữ liệu cũ của bạn
+        elif request.user.last_name: # Fallback dữ liệu cũ
             try: b_date = date.fromisoformat(request.user.last_name)
             except: b_date = None
 
